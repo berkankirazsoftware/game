@@ -169,7 +169,7 @@ export default function IntegrationPage() {
                 </pre>
                 <button
                   onClick={() => copyToClipboard(generateIframeCode())}
-                  className="absolute top-2 right-2 px-2 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-600 transition-colors flex items-items"
+                  className="absolute top-2 right-2 px-2 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-600 transition-colors flex items-center"
                 >
                   {copied ? <CheckCircle className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
                   {copied ? 'Kopyalandı!' : 'Kopyala'}
@@ -188,6 +188,7 @@ export default function IntegrationPage() {
             </div>
           </div>
         </div>
+      </div>
 
       {/* Instructions */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border border-indigo-200">
