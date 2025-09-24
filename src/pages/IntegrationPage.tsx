@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, ExternalLink, Code, Settings, CheckCircle } from 'lucide-react'
+import { Copy, ExternalLink, Code, Settings, CheckCircle, Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { Database } from '../lib/supabase'
 
 type Game = Database['public']['Tables']['games']['Row']
@@ -139,35 +140,6 @@ export default function IntegrationPage() {
           </div>
         </div>
 
-        {/* Integration Code */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Entegrasyon Kodu</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Widget URL (Test için)
-              </label>
-              <div className="flex">
-                <input
-                  type="text"
-                  readOnly
-                  value={generateIframeUrl()}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-sm"
-                />
-                <button
-                  onClick={() => copyToClipboard(generateIframeUrl())}
-                  className="px-3 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 transition-colors"
-            {coupons.length > 0 ? (
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">Mevcut Kuponlar ({coupons.length})</h4>
-                <div className="space-y-2">
-                  {coupons.map((coupon) => (
-                    <div key={coupon.id} className="flex items-center justify-between text-green-800">
-                      <span className="font-medium">{coupon.code}</span>
-                      <span className="text-sm">
-                        {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
-                      </span>
         {/* Integration Code - Only show if coupons exist */}
         {coupons.length > 0 ? (
           <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -186,6 +158,14 @@ export default function IntegrationPage() {
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-sm"
                   />
                   <button
+                    onClick={() => copyToClipboard(generateIframeUrl())}
+                    className="px-3 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 transition-colors"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   HTML iframe Kodu
@@ -202,10 +182,7 @@ export default function IntegrationPage() {
                     {copied ? 'Kopyalandı!' : 'Kopyala'}
                   </button>
                 </div>
-              </button>
-          </div>
-        </div>
-      </div>
+              </div>
 
               <div className="flex space-x-3">
                 <button
@@ -216,22 +193,28 @@ export default function IntegrationPage() {
                   Widget'ı Önizle
                 </button>
               </div>
-            <h4 className="font-semibold text-indigo-800 mb-2">WordPress için:</h4>
-            <ol className="text-indigo-700 space-y-1">
-              <li>1. Sayfa/yazı düzenleyicisini açın</li>
-              <li>2. HTML bloğu ekleyin</li>
-              <li>3. iframe kodunu yapıştırın</li>
-              <li>4. Sayfayı kaydedin</li>
-            </ol>
-          </div>
-          <div>
-            <h4 className="font-semibold text-indigo-800 mb-2">Diğer Platformlar için:</h4>
-            <ol className="text-indigo-700 space-y-1">
-              <li>1. HTML düzenleme moduna geçin</li>
-              <li>2. iframe kodunu istediğiniz yere yapıştırın</li>
-              <li>3. Değişiklikleri kaydedin</li>
-              <li>4. Sayfayı yayınlayın</li>
-            </ol>
+
+              <div className="bg-indigo-50 p-4 rounded-lg space-y-4">
+                <div>
+                  <h4 className="font-semibold text-indigo-800 mb-2">WordPress için:</h4>
+                  <ol className="text-indigo-700 space-y-1">
+                    <li>1. Sayfa/yazı düzenleyicisini açın</li>
+                    <li>2. HTML bloğu ekleyin</li>
+                    <li>3. iframe kodunu yapıştırın</li>
+                    <li>4. Sayfayı kaydedin</li>
+                  </ol>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-indigo-800 mb-2">Diğer Platformlar için:</h4>
+                  <ol className="text-indigo-700 space-y-1">
+                    <li>1. HTML düzenleme moduna geçin</li>
+                    <li>2. iframe kodunu istediğiniz yere yapıştırın</li>
+                    <li>3. Değişiklikleri kaydedin</li>
+                    <li>4. Sayfayı yayınlayın</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="bg-white p-6 rounded-lg shadow-sm border">
