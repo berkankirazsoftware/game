@@ -21,7 +21,7 @@ const GAMES = [
     description: 'Karışık parçaları doğru yerlere yerleştirerek resmi tamamlayın. Puzzle\'ı çözünce kupon kazanın!',
     code: 'puzzle',
     emoji: '🧩'
-  }
+  },
   {
     id: 'memory-game', 
     name: 'Hafıza Oyunu',
