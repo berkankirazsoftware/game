@@ -49,16 +49,6 @@ function App() {
             }
           />
           <Route
-            path="/game-select-page"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <GameSelectPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/integration"
             element={
               <ProtectedRoute>

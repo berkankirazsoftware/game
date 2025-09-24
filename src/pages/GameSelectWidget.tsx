@@ -22,53 +22,40 @@ export default function GameSelectWidget() {
 
   const fetchGamesAndCoupons = async () => {
     try {
-      console.log('Fetching user selected games and coupons for userId:', userId)
+      console.log('Fetching all games and user coupons for userId:', userId)
       
-      if (!userId) {
-        console.log('No userId provided')
-        setLoading(false)
-        return
-      }
-
-      // Kullanıcının seçtiği oyunları getir
-      const { data: userGamesData, error: userGamesError } = await supabase
-        .from('user_games')
-        .select(`
-          *,
-          games (*)
-        `)
-        .eq('user_id', userId)
+      // Tüm mevcut oyunları getir
+      const { data: gamesData, error: gamesError } = await supabase
+        .from('games')
+        .select('*')
         .order('created_at', { ascending: false })
 
-      console.log('User games query result:', { userGamesData, userGamesError })
+      console.log('Games query result:', { gamesData, gamesError })
 
-      if (userGamesData && !userGamesError) {
-        // user_games'ten games bilgilerini çıkar
-        const userSelectedGames = userGamesData.map(ug => ug.games).filter(Boolean)
-        console.log('Extracted games:', userSelectedGames)
-        
-        setGames(userSelectedGames)
-        if (userSelectedGames.length > 0) {
-          setSelectedGame(userSelectedGames[0])
+      if (gamesData && !gamesError) {
+        setGames(gamesData)
+        if (gamesData.length > 0) {
+          setSelectedGame(gamesData[0])
         }
       } else {
-        console.error('Error fetching user games:', userGamesError)
-        setGames([])
+        console.error('Error fetching games:', gamesError)
       }
 
-      // Kuponları getir
-      console.log('Fetching coupons for user:', userId)
-      const { data: couponsData, error: couponsError } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('user_id', userId)
+      // Kuponları getir (sadece userId varsa)
+      if (userId) {
+        console.log('Fetching coupons for user:', userId)
+        const { data: couponsData, error: couponsError } = await supabase
+          .from('coupons')
+          .select('*')
+          .eq('user_id', userId)
 
-      console.log('Coupons query result:', { couponsData, couponsError })
+        console.log('Coupons query result:', { couponsData, couponsError })
 
-      if (couponsData && !couponsError) {
-        setCoupons(couponsData)
-      } else {
-        console.error('Error fetching coupons:', couponsError)
+        if (couponsData && !couponsError) {
+          setCoupons(couponsData)
+        } else {
+          console.error('Error fetching coupons:', couponsError)
+        }
       }
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -109,15 +96,10 @@ export default function GameSelectWidget() {
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full text-center">
           <GamepadIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Bu kullanıcı için henüz oyun seçilmemiş</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Henüz oyun bulunmuyor</h2>
           <p className="text-gray-600">
-            Lütfen önce "Oyun Seç" sayfasından oyun seçin.
+            Sistem yöneticisi tarafından oyun eklenmesi bekleniyor.
           </p>
-          {userId && (
-            <p className="text-sm text-gray-500 mt-2">
-              User ID: {userId}
-            </p>
-          )}
         </div>
       </div>
     )
