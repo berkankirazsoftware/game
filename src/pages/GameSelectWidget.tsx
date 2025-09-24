@@ -21,16 +21,12 @@ export default function GameSelectWidget() {
   }, [userId])
 
   const fetchGamesAndCoupons = async () => {
-    console.log('Fetching games and coupons for userId:', userId)
-    
     try {
       // Tüm oyunları getir
       const { data: gamesData, error: gamesError } = await supabase
         .from('games')
         .select('*')
         .order('created_at', { ascending: false })
-
-      console.log('Games query result:', { gamesData, gamesError })
 
       if (gamesData && !gamesError) {
         setGames(gamesData)
@@ -45,8 +41,6 @@ export default function GameSelectWidget() {
           .from('coupons')
           .select('*')
           .eq('user_id', userId)
-
-        console.log('Coupons query result:', { couponsData, couponsError })
 
         if (couponsData && !couponsError) {
           setCoupons(couponsData)

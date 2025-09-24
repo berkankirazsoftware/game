@@ -54,9 +54,7 @@ export default function IntegrationPage() {
 
   const generateIframeUrl = () => {
     const baseUrl = window.location.origin
-    const url = `${baseUrl}/game-widget?userId=${user?.id}`
-    console.log('Generated iframe URL:', url)
-    return url
+    return `${baseUrl}/game-widget?userId=${user?.id}`
   }
 
   const generateIframeCode = () => {
@@ -167,7 +165,7 @@ export default function IntegrationPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Widget URL
+                  Widget URL (Test için)
                 </label>
                 <div className="flex">
                   <input
@@ -206,10 +204,10 @@ export default function IntegrationPage() {
               <div className="flex space-x-3">
                 <button
                   onClick={() => window.open(generateIframeUrl(), '_blank')}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Widget'ı Test Et
+                  Widget'ı Önizle
                 </button>
               </div>
             </div>
