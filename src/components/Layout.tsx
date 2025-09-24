@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LogOut, Home, Settings, GamepadIcon } from 'lucide-react'
+import { LogOut, Home, Settings, GamepadIcon, Puzzle, Code } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -14,6 +14,8 @@ export default function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Oyunlarım', href: '/games', icon: GamepadIcon },
+    { name: 'Oyun Seç', href: '/game-select-page', icon: Puzzle },
+    { name: 'Entegrasyon', href: '/integration', icon: Code },
     { name: 'Ayarlar', href: '/settings', icon: Settings },
   ]
 

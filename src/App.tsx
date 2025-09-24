@@ -10,6 +10,10 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import Dashboard from './pages/Dashboard'
 import GamesPage from './pages/GamesPage'
 import GamePlayer from './pages/GamePlayer'
+import GameSelectPage from './pages/GameSelectPage'
+import IntegrationPage from './pages/IntegrationPage'
+import GameSelectWidget from './pages/GameSelectWidget'
+import MemoryGame from './pages/MemoryGame'
 
 function App() {
   return (
@@ -21,6 +25,8 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/game/:gameId" element={<GamePlayer />} />
+          <Route path="/game-select" element={<GameSelectWidget />} />
+          <Route path="/memory/:gameId" element={<MemoryGame />} />
           
           <Route
             path="/dashboard"
@@ -38,6 +44,26 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <GamesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/game-select-page"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GameSelectPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/integration"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <IntegrationPage />
                 </Layout>
               </ProtectedRoute>
             }

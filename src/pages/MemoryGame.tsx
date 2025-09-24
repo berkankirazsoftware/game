@@ -1,67 +1,43 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Gift, Star, Trophy } from 'lucide-react'
+import { Gift, Star, Trophy, RotateCcw } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
-export default function GamePlayer() {
+interface Card {
+  id: number
+  symbol: string
+  isFlipped: boolean
+  isMatched: boolean
+}
+
+export default function MemoryGame() {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('userId')
   
   const [game, setGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [cards, setCards] = useState<Card[]>([])
+  const [flippedCards, setFlippedCards] = useState<number[]>([])
+  const [matchedPairs, setMatchedPairs] = useState(0)
+  const [moves, setMoves] = useState(0)
+  const [gameStarted, setGameStarted] = useState(false)
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
-  const [score, setScore] = useState(0)
 
-  // Snake Game State
-  const [snake, setSnake] = useState([[10, 10]])
-  const [food, setFood] = useState([15, 15])
-  const [direction, setDirection] = useState([0, 1])
-  const [gameRunning, setGameRunning] = useState(false)
-  const [gameOver, setGameOver] = useState(false)
+  const symbols = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎺', '🎸']
 
   useEffect(() => {
     if (gameId) {
       fetchGame()
       fetchCoupons()
+      initializeGame()
     }
   }, [gameId, userId])
-
-  useEffect(() => {
-    if (gameRunning && !gameOver) {
-      const gameInterval = setInterval(moveSnake, 150)
-      return () => clearInterval(gameInterval)
-    }
-  }, [snake, direction, gameRunning, gameOver])
-
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp':
-          setDirection([-1, 0])
-          break
-        case 'ArrowDown':
-          setDirection([1, 0])
-          break
-        case 'ArrowLeft':
-          setDirection([0, -1])
-          break
-        case 'ArrowRight':
-          setDirection([0, 1])
-          break
-      }
-    }
-
-    if (gameRunning) {
-      window.addEventListener('keydown', handleKeyPress)
-      return () => window.removeEventListener('keydown', handleKeyPress)
-    }
-  }, [gameRunning])
 
   const fetchGame = async () => {
     if (!gameId) return
@@ -91,53 +67,77 @@ export default function GamePlayer() {
     }
   }
 
-  const moveSnake = () => {
-    setSnake(currentSnake => {
-      const newSnake = [...currentSnake]
-      const head = [
-        newSnake[0][0] + direction[0],
-        newSnake[0][1] + direction[1]
-      ]
-
-      // Check wall collision
-      if (head[0] < 0 || head[0] >= 20 || head[1] < 0 || head[1] >= 20) {
-        setGameOver(true)
-        setGameRunning(false)
-        return currentSnake
-      }
-
-      // Check self collision
-      if (newSnake.some(segment => segment[0] === head[0] && segment[1] === head[1])) {
-        setGameOver(true)
-        setGameRunning(false)
-        return currentSnake
-      }
-
-      newSnake.unshift(head)
-
-      // Check food collision
-      if (head[0] === food[0] && head[1] === food[1]) {
-        setScore(prev => prev + 10)
-        setFood([
-          Math.floor(Math.random() * 20),
-          Math.floor(Math.random() * 20)
-        ])
-        
-        // Check win condition
-        if (score + 10 >= 50) {
-          handleGameWin()
-        }
-      } else {
-        newSnake.pop()
-      }
-
-      return newSnake
+  const initializeGame = () => {
+    const gameCards: Card[] = []
+    const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5).slice(0, 8)
+    
+    // Her sembolden 2 tane oluştur
+    shuffledSymbols.forEach((symbol, index) => {
+      gameCards.push(
+        { id: index * 2, symbol, isFlipped: false, isMatched: false },
+        { id: index * 2 + 1, symbol, isFlipped: false, isMatched: false }
+      )
     })
+    
+    // Kartları karıştır
+    const shuffledCards = gameCards.sort(() => Math.random() - 0.5)
+    setCards(shuffledCards)
+  }
+
+  const handleCardClick = (cardId: number) => {
+    if (!gameStarted || flippedCards.length >= 2) return
+    
+    const card = cards.find(c => c.id === cardId)
+    if (!card || card.isFlipped || card.isMatched) return
+
+    const newFlippedCards = [...flippedCards, cardId]
+    setFlippedCards(newFlippedCards)
+    
+    // Kartı çevir
+    setCards(prev => prev.map(c => 
+      c.id === cardId ? { ...c, isFlipped: true } : c
+    ))
+
+    if (newFlippedCards.length === 2) {
+      setMoves(prev => prev + 1)
+      
+      const [firstId, secondId] = newFlippedCards
+      const firstCard = cards.find(c => c.id === firstId)
+      const secondCard = cards.find(c => c.id === secondId)
+      
+      if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
+        // Eşleşme var
+        setTimeout(() => {
+          setCards(prev => prev.map(c => 
+            c.id === firstId || c.id === secondId 
+              ? { ...c, isMatched: true }
+              : c
+          ))
+          setMatchedPairs(prev => prev + 1)
+          setFlippedCards([])
+          
+          // Oyun tamamlandı mı kontrol et
+          if (matchedPairs + 1 === 8) {
+            handleGameWin()
+          }
+        }, 1000)
+      } else {
+        // Eşleşme yok
+        setTimeout(() => {
+          setCards(prev => prev.map(c => 
+            c.id === firstId || c.id === secondId 
+              ? { ...c, isFlipped: false }
+              : c
+          ))
+          setFlippedCards([])
+        }, 1000)
+      }
+    }
   }
 
   const handleGameWin = () => {
     setGameCompleted(true)
-    setGameRunning(false)
+    setGameStarted(false)
     
     // Rastgele kupon seç
     if (coupons.length > 0) {
@@ -147,30 +147,23 @@ export default function GamePlayer() {
   }
 
   const startGame = () => {
-    setGameRunning(true)
-    setGameOver(false)
+    setGameStarted(true)
     setGameCompleted(false)
-    setScore(0)
-    setSnake([[10, 10]])
-    setFood([15, 15])
-    setDirection([0, 1])
+    setMoves(0)
+    setMatchedPairs(0)
+    setFlippedCards([])
     setWonCoupon(null)
+    initializeGame()
   }
 
   const resetGame = () => {
-    setGameOver(false)
+    setGameStarted(false)
     setGameCompleted(false)
-    setScore(0)
-    setSnake([[10, 10]])
-    setFood([15, 15])
-    setDirection([0, 1])
+    setMoves(0)
+    setMatchedPairs(0)
+    setFlippedCards([])
     setWonCoupon(null)
-  }
-
-  // Hafıza oyunu için yönlendirme
-  if (game && game.code === 'memory') {
-    window.location.href = `/memory/${gameId}?userId=${userId}`
-    return null
+    initializeGame()
   }
 
   if (!game) {
@@ -194,10 +187,10 @@ export default function GamePlayer() {
             <p className="text-indigo-100">{game.description}</p>
             <div className="mt-4 flex items-center space-x-4">
               <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="font-semibold">Skor: {score}</span>
+                <span className="font-semibold">Hamle: {moves}</span>
               </div>
               <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="font-semibold">Hedef: 50 puan</span>
+                <span className="font-semibold">Eşleşen: {matchedPairs}/8</span>
               </div>
             </div>
           </div>
@@ -212,7 +205,7 @@ export default function GamePlayer() {
                     Tebrikler! 🎉
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    Oyunu başarıyla tamamladınız ve kupon kazandınız!
+                    Hafıza oyununu {moves} hamlede tamamladınız ve kupon kazandınız!
                   </p>
                   
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
@@ -238,59 +231,31 @@ export default function GamePlayer() {
               </div>
             )}
 
-            {/* Game Over Modal */}
-            {gameOver && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
-                  <div className="text-6xl mb-4">😵</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Oyun Bitti!
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Skorunuz: {score} puan<br/>
-                    Kupon kazanmak için 50 puana ulaşmanız gerekiyor.
-                  </p>
-                  <button
-                    onClick={resetGame}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    Tekrar Dene
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Game Area */}
               <div className="lg:col-span-2">
-                <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-20 gap-0 w-full max-w-md mx-auto">
-                    {Array.from({ length: 400 }, (_, index) => {
-                      const row = Math.floor(index / 20)
-                      const col = index % 20
-                      
-                      let cellClass = "w-4 h-4 border border-gray-700"
-                      
-                      // Snake body
-                      if (snake.some(segment => segment[0] === row && segment[1] === col)) {
-                        cellClass += " bg-green-500"
-                      }
-                      // Food
-                      else if (food[0] === row && food[1] === col) {
-                        cellClass += " bg-red-500"
-                      }
-                      // Empty cell
-                      else {
-                        cellClass += " bg-gray-800"
-                      }
-                      
-                      return <div key={index} className={cellClass}></div>
-                    })}
+                <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                  <div className="grid grid-cols-4 gap-3 max-w-md mx-auto">
+                    {cards.map((card) => (
+                      <div
+                        key={card.id}
+                        onClick={() => handleCardClick(card.id)}
+                        className={`aspect-square rounded-lg flex items-center justify-center text-2xl font-bold cursor-pointer transition-all duration-300 ${
+                          card.isFlipped || card.isMatched
+                            ? card.isMatched
+                              ? 'bg-green-200 text-green-800'
+                              : 'bg-blue-200 text-blue-800'
+                            : 'bg-indigo-600 hover:bg-indigo-700'
+                        }`}
+                      >
+                        {card.isFlipped || card.isMatched ? card.symbol : '?'}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 <div className="text-center space-y-4">
-                  {!gameRunning && !gameOver && !gameCompleted && (
+                  {!gameStarted && !gameCompleted && (
                     <div>
                       <button
                         onClick={startGame}
@@ -299,15 +264,24 @@ export default function GamePlayer() {
                         Oyunu Başlat
                       </button>
                       <p className="text-gray-600 text-sm mt-2">
-                        Ok tuşları ile yönlendirin
+                        Kartları çevirerek eşleşen çiftleri bulun
                       </p>
                     </div>
                   )}
                   
-                  {gameRunning && (
-                    <p className="text-gray-600">
-                      Ok tuşları ile yılanı yönlendirin. Kırmızı noktaları yakalayın!
-                    </p>
+                  {gameStarted && (
+                    <div className="flex justify-center space-x-4">
+                      <p className="text-gray-600">
+                        Kartları çevirerek eşleşen çiftleri bulun!
+                      </p>
+                      <button
+                        onClick={resetGame}
+                        className="text-indigo-600 hover:text-indigo-700 flex items-center"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-1" />
+                        Yeniden Başla
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -321,9 +295,9 @@ export default function GamePlayer() {
                     Nasıl Oynanır?
                   </h3>
                   <ul className="text-blue-800 text-sm space-y-1">
-                    <li>• Ok tuşları ile yılanı yönlendirin</li>
-                    <li>• Kırmızı yemi toplayın</li>
-                    <li>• 50 puana ulaşın</li>
+                    <li>• Kartlara tıklayarak çevirin</li>
+                    <li>• Aynı sembolleri eşleştirin</li>
+                    <li>• Tüm çiftleri bulun</li>
                     <li>• Kupon kazanın!</li>
                   </ul>
                 </div>
