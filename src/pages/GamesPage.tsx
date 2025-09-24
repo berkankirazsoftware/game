@@ -166,7 +166,13 @@ export default function GamesPage() {
                     {selectedGame.name}
                   </h3>
                   <button
-                    onClick={() => window.open(`/game/${selectedGame.id}?userId=${user?.id}`, '_blank')}
+                    onClick={() => {
+                      if (selectedGame.code === 'memory') {
+                        window.open(`/memory/${selectedGame.id}?userId=${user?.id}`, '_blank')
+                      } else {
+                        window.open(`/game/${selectedGame.id}?userId=${user?.id}`, '_blank')
+                      }
+                    }}
                     className="flex items-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />

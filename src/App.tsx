@@ -9,7 +9,7 @@ import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import Dashboard from './pages/Dashboard'
 import GamesPage from './pages/GamesPage'
-import GamePlayer from './pages/GamePlayer'
+import SnakeGame from './pages/SnakeGame'
 import GameSelectPage from './pages/GameSelectPage'
 import IntegrationPage from './pages/IntegrationPage'
 import GameSelectWidget from './pages/GameSelectWidget'
@@ -24,7 +24,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/game/:gameId" element={<GamePlayer />} />
+          <Route path="/game/:gameId" element={<SnakeGame />} />
           <Route path="/game-widget" element={<GameSelectWidget />} />
           <Route path="/memory/:gameId" element={<MemoryGame />} />
           

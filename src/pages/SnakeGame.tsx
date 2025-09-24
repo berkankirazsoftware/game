@@ -7,7 +7,7 @@ import type { Database } from '../lib/supabase'
 type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
-export default function GamePlayer() {
+export default function SnakeGame() {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('userId')
@@ -164,12 +164,6 @@ export default function GamePlayer() {
     setFood([15, 15])
     setDirection([0, 1])
     setWonCoupon(null)
-  }
-
-  // Hafıza oyunu için yönlendirme
-  if (game && game.code === 'memory') {
-    window.location.href = `/memory/${gameId}?userId=${userId}`
-    return null
   }
 
   if (!game) {
