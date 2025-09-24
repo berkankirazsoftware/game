@@ -9,8 +9,8 @@ import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import Dashboard from './pages/Dashboard'
 import GamesPage from './pages/GamesPage'
+import CouponsPage from './pages/CouponsPage'
 import SnakeGame from './pages/SnakeGame'
-import GameSelectPage from './pages/GameSelectPage'
 import IntegrationPage from './pages/IntegrationPage'
 import GameSelectWidget from './pages/GameSelectWidget'
 import MemoryGame from './pages/MemoryGame'
@@ -44,6 +44,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <GamesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coupons"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CouponsPage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -14,8 +14,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalGames: 0,
     totalCoupons: 0,
-    totalPlays: 156, // Mock data
-    conversionRate: 23.5 // Mock data
+    totalPlays: 0
   })
 
   useEffect(() => {
@@ -76,13 +75,6 @@ export default function Dashboard() {
       icon: Users,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
-    },
-    {
-      title: 'Dönüşüm Oranı',
-      value: `%${stats.conversionRate}`,
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
     }
   ]
 
@@ -99,7 +91,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon
           return (
@@ -178,25 +170,6 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Hızlı İşlemler</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
-            <GamepadIcon className="h-6 w-6 text-indigo-600 mr-2" />
-            <span className="text-indigo-700 font-medium">Oyun Seç</span>
-          </button>
-          <button className="flex items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-            <Plus className="h-6 w-6 text-green-600 mr-2" />
-            <span className="text-green-700 font-medium">Kupon Ekle</span>
-          </button>
-          <button className="flex items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-            <TrendingUp className="h-6 w-6 text-purple-600 mr-2" />
-            <span className="text-purple-700 font-medium">İstatistikler</span>
-          </button>
         </div>
       </div>
     </div>

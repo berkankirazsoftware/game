@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LogOut, Home, Settings, GamepadIcon, Puzzle, Code } from 'lucide-react'
+import { LogOut, Home, Settings, GamepadIcon, Gift, Code } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -14,6 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Oyunlarım', href: '/games', icon: GamepadIcon },
+    { name: 'Kuponlar', href: '/coupons', icon: Gift },
     { name: 'Entegrasyon', href: '/integration', icon: Code },
     { name: 'Ayarlar', href: '/settings', icon: Settings },
   ]
@@ -30,7 +31,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg">
+        <div className="w-64 bg-white shadow-lg min-h-screen">
           <div className="p-4">
             <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
               GameCoupon

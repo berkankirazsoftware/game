@@ -106,7 +106,10 @@ export default function IntegrationPage() {
                       </span>
                     </div>
                   )) : (
-                    <p className="text-green-700 text-sm">Henüz kupon eklenmemiş</p>
+                    <div className="text-center py-4">
+                      <p className="text-green-700 text-sm mb-3">Henüz kupon eklenmemiş</p>
+                      <p className="text-green-600 text-xs">Kuponlar sayfasından kupon ekleyin</p>
+                    </div>
                   )}
                 </div>
               </div>
