@@ -27,6 +27,15 @@ export default function GameSelectWidget() {
   const fetchUserGames = async () => {
     if (!userId) return
 
+    // Önce user_games tablosunu kontrol et
+    const { data: userGamesData, error: userGamesError } = await supabase
+      .from('user_games')
+      .select('*')
+      .eq('user_id', userId)
+
+    console.log('Raw user_games data:', { userGamesData, userGamesError })
+
+    // Sonra join ile games bilgilerini al
     const { data, error } = await supabase
       .from('user_games')
       .select(`
@@ -47,6 +56,28 @@ export default function GameSelectWidget() {
       }
     } else {
       console.error('Error fetching user games:', error)
+      
+      // Eğer veri yoksa, tüm oyunları göster (fallback)
+      console.log('No user games found, fetching all available games as fallback')
+      const { data: allGames, error: allGamesError } = await supabase
+        .from('games')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (allGames && !allGamesError) {
+        // Tüm oyunları user_games formatına çevir
+        const fallbackGames: UserGame[] = allGames.map(game => ({
+          id: `fallback-${game.id}`,
+          user_id: userId || '',
+          game_id: game.id,
+          created_at: new Date().toISOString(),
+          games: game
+        }))
+        setUserGames(fallbackGames)
+        if (fallbackGames.length > 0) {
+          setSelectedGame(fallbackGames[0].games)
+        }
+      }
     }
     setLoading(false)
   }
@@ -99,6 +130,12 @@ export default function GameSelectWidget() {
             <p>Debug bilgileri:</p>
             <p>User ID: {userId}</p>
             <p>Games count: {userGames.length}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm"
+            >
+              Yenile
+            </button>
           </div>
         </div>
       </div>

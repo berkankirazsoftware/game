@@ -59,6 +59,19 @@ export default function GameSelectPage() {
 
     console.log('Selecting game:', gameId, 'for user:', user.id)
     
+    // Önce bu oyun zaten seçili mi kontrol et
+    const { data: existingGame } = await supabase
+      .from('user_games')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('game_id', gameId)
+      .single()
+    
+    if (existingGame) {
+      console.log('Game already selected')
+      return
+    }
+    
     const { data, error } = await supabase
       .from('user_games')
       .insert([{
@@ -72,6 +85,8 @@ export default function GameSelectPage() {
       fetchSelectedGames()
     } else {
       console.error('Error selecting game:', error)
+      // Hata detaylarını göster
+      alert(`Oyun seçilirken hata oluştu: ${error.message}`)
     }
   }
 
