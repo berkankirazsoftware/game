@@ -6,92 +6,56 @@ import type { Database } from '../lib/supabase'
 
 type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
-type UserGame = Database['public']['Tables']['user_games']['Row'] & {
-  games: Game
-}
 
 export default function GameSelectWidget() {
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('userId')
   
-  const [userGames, setUserGames] = useState<UserGame[]>([])
+  const [games, setGames] = useState<Game[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchUserGames()
-    fetchCoupons()
+    fetchGamesAndCoupons()
   }, [userId])
 
-  const fetchUserGames = async () => {
-    if (!userId) return
-
-    // Önce user_games tablosunu kontrol et
-    const { data: userGamesData, error: userGamesError } = await supabase
-      .from('user_games')
-      .select('*')
-      .eq('user_id', userId)
-
-    console.log('Raw user_games data:', { userGamesData, userGamesError })
-
-    // Sonra join ile games bilgilerini al
-    const { data, error } = await supabase
-      .from('user_games')
-      .select(`
-        *,
-        games (*)
-      `)
-      .eq('user_id', userId)
-
-    console.log('Fetching games for userId:', userId)
-    console.log('Query result:', { data, error })
-
-    if (data && !error) {
-      const games = data as UserGame[]
-      setUserGames(games)
-      
-      if (games.length > 0) {
-        setSelectedGame(games[0].games)
-      }
-    } else {
-      console.error('Error fetching user games:', error)
-      
-      // Eğer veri yoksa, tüm oyunları göster (fallback)
-      console.log('No user games found, fetching all available games as fallback')
-      const { data: allGames, error: allGamesError } = await supabase
+  const fetchGamesAndCoupons = async () => {
+    console.log('Fetching games and coupons for userId:', userId)
+    
+    try {
+      // Tüm oyunları getir
+      const { data: gamesData, error: gamesError } = await supabase
         .from('games')
         .select('*')
         .order('created_at', { ascending: false })
-      
-      if (allGames && !allGamesError) {
-        // Tüm oyunları user_games formatına çevir
-        const fallbackGames: UserGame[] = allGames.map(game => ({
-          id: `fallback-${game.id}`,
-          user_id: userId || '',
-          game_id: game.id,
-          created_at: new Date().toISOString(),
-          games: game
-        }))
-        setUserGames(fallbackGames)
-        if (fallbackGames.length > 0) {
-          setSelectedGame(fallbackGames[0].games)
+
+      console.log('Games query result:', { gamesData, gamesError })
+
+      if (gamesData && !gamesError) {
+        setGames(gamesData)
+        if (gamesData.length > 0) {
+          setSelectedGame(gamesData[0])
         }
       }
-    }
-    setLoading(false)
-  }
 
-  const fetchCoupons = async () => {
-    if (!userId) return
+      // Kuponları getir (eğer userId varsa)
+      if (userId) {
+        const { data: couponsData, error: couponsError } = await supabase
+          .from('coupons')
+          .select('*')
+          .eq('user_id', userId)
 
-    const { data } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq('user_id', userId)
+        console.log('Coupons query result:', { couponsData, couponsError })
 
-    if (data) {
-      setCoupons(data)
+        if (couponsData && !couponsError) {
+          setCoupons(couponsData)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -101,7 +65,12 @@ export default function GameSelectWidget() {
 
   const handlePlayGame = () => {
     if (selectedGame) {
-      const gameUrl = `/game/${selectedGame.id}?userId=${userId}`
+      let gameUrl = ''
+      if (selectedGame.code === 'memory') {
+        gameUrl = `/memory/${selectedGame.id}?userId=${userId}`
+      } else {
+        gameUrl = `/game/${selectedGame.id}?userId=${userId}`
+      }
       window.open(gameUrl, '_blank')
     }
   }
@@ -117,26 +86,15 @@ export default function GameSelectWidget() {
     )
   }
 
-  if (userGames.length === 0) {
+  if (games.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full text-center">
           <GamepadIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Oyun Bulunamadı</h2>
           <p className="text-gray-600">
-            Bu kullanıcı için henüz oyun seçilmemiş. (User ID: {userId})
+            Henüz hiç oyun eklenmemiş.
           </p>
-          <div className="mt-4 text-xs text-gray-500">
-            <p>Debug bilgileri:</p>
-            <p>User ID: {userId}</p>
-            <p>Games count: {userGames.length}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm"
-            >
-              Yenile
-            </button>
-          </div>
         </div>
       </div>
     )
@@ -155,7 +113,7 @@ export default function GameSelectWidget() {
           </div>
 
           <div className="p-6">
-            {userGames.length === 1 ? (
+            {games.length === 1 ? (
               // Single game - direct play
               <div className="text-center space-y-6">
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg">
@@ -208,25 +166,25 @@ export default function GameSelectWidget() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {userGames.map((userGame) => (
+                  {games.map((game) => (
                     <div
-                      key={userGame.id}
+                      key={game.id}
                       className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
-                        selectedGame?.id === userGame.games.id
+                        selectedGame?.id === game.id
                           ? 'border-indigo-500 bg-indigo-50'
                           : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                       }`}
-                      onClick={() => handleGameSelect(userGame.games)}
+                      onClick={() => handleGameSelect(game)}
                     >
                       <div className="text-center">
                         <GamepadIcon className={`h-12 w-12 mx-auto mb-3 ${
-                          selectedGame?.id === userGame.games.id ? 'text-indigo-600' : 'text-gray-400'
+                          selectedGame?.id === game.id ? 'text-indigo-600' : 'text-gray-400'
                         }`} />
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {userGame.games.name}
+                          {game.name}
                         </h3>
                         <p className="text-gray-600 text-sm">
-                          {userGame.games.description}
+                          {game.description}
                         </p>
                       </div>
                     </div>
