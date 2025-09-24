@@ -45,7 +45,7 @@ export default function IntegrationPage() {
   }
 
   const generateIframeUrl = () => {
-    const baseUrl = window.location.origin
+    const baseUrl = 'https://berkankirazsoftware-8isq.bolt.host'
     return `${baseUrl}/game-widget?userId=${user?.id}`
   }
 

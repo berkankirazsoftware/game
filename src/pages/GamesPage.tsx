@@ -169,9 +169,7 @@ export default function GamesPage() {
                     onClick={() => {
                       // Test için varsayılan oyun ID'leri kullan
                       const testGameId = selectedGame.code === 'memory' ? 'memory-test' : 'snake-test'
-                      const testUrl = selectedGame.code === 'memory' 
-                        ? `/memory/${testGameId}?userId=${user?.id}&testMode=true`
-                        : `/game/${testGameId}?userId=${user?.id}&testMode=true`
+                      const testUrl = `https://berkankirazsoftware-8isq.bolt.host/game-widget?userId=${user?.id}`
                       window.open(testUrl, '_blank')
                     }}
                     className="flex items-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
