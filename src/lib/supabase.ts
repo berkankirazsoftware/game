@@ -38,7 +38,7 @@ export type Database = {
         Row: {
           id: string
           user_id: string
-          game_id: string
+          game_id: string | null
           code: string
           description: string
           discount_type: 'percentage' | 'fixed'
@@ -48,7 +48,7 @@ export type Database = {
         Insert: {
           id?: string
           user_id: string
-          game_id: string
+          game_id?: string | null
           code: string
           description: string
           discount_type: 'percentage' | 'fixed'
@@ -58,7 +58,7 @@ export type Database = {
         Update: {
           id?: string
           user_id?: string
-          game_id?: string
+          game_id?: string | null
           code?: string
           description?: string
           discount_type?: 'percentage' | 'fixed'

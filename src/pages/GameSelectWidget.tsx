@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { GamepadIcon, Play, Gift } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
+type UserGame = Database['public']['Tables']['user_games']['Row'] & {
+  games: Game
+}
 
 export default function GameSelectWidget() {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
   const userId = searchParams.get('userId')
-  const preSelectedGameId = searchParams.get('gameId')
   
-  const [games, setGames] = useState<Game[]>([])
+  const [userGames, setUserGames] = useState<UserGame[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchUserGames()
+    fetchCoupons()
   }, [userId])
-
-  useEffect(() => {
-    if (preSelectedGameId && games.length > 0) {
-      const game = games.find(g => g.id === preSelectedGameId)
-      if (game) {
-        setSelectedGame(game)
-        fetchGameCoupons(game.id)
-      }
-    }
-  }, [preSelectedGameId, games])
 
   const fetchUserGames = async () => {
     if (!userId) return
@@ -38,30 +30,29 @@ export default function GameSelectWidget() {
     const { data } = await supabase
       .from('user_games')
       .select(`
+        *,
         games (*)
       `)
       .eq('user_id', userId)
 
     if (data) {
-      const userGames = data.map(item => item.games).filter(Boolean) as Game[]
-      setGames(userGames)
+      const games = data as UserGame[]
+      setUserGames(games)
       
-      if (!preSelectedGameId && userGames.length > 0) {
-        setSelectedGame(userGames[0])
-        fetchGameCoupons(userGames[0].id)
+      if (games.length > 0) {
+        setSelectedGame(games[0].games)
       }
     }
     setLoading(false)
   }
 
-  const fetchGameCoupons = async (gameId: string) => {
+  const fetchCoupons = async () => {
     if (!userId) return
 
     const { data } = await supabase
       .from('coupons')
       .select('*')
       .eq('user_id', userId)
-      .eq('game_id', gameId)
 
     if (data) {
       setCoupons(data)
@@ -70,7 +61,6 @@ export default function GameSelectWidget() {
 
   const handleGameSelect = (game: Game) => {
     setSelectedGame(game)
-    fetchGameCoupons(game.id)
   }
 
   const handlePlayGame = () => {
@@ -91,7 +81,7 @@ export default function GameSelectWidget() {
     )
   }
 
-  if (games.length === 0) {
+  if (userGames.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full text-center">
@@ -118,7 +108,7 @@ export default function GameSelectWidget() {
           </div>
 
           <div className="p-6">
-            {games.length === 1 ? (
+            {userGames.length === 1 ? (
               // Single game - direct play
               <div className="text-center space-y-6">
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg">
@@ -171,25 +161,25 @@ export default function GameSelectWidget() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {games.map((game) => (
+                  {userGames.map((userGame) => (
                     <div
-                      key={game.id}
+                      key={userGame.id}
                       className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
-                        selectedGame?.id === game.id
+                        selectedGame?.id === userGame.games.id
                           ? 'border-indigo-500 bg-indigo-50'
                           : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                       }`}
-                      onClick={() => handleGameSelect(game)}
+                      onClick={() => handleGameSelect(userGame.games)}
                     >
                       <div className="text-center">
                         <GamepadIcon className={`h-12 w-12 mx-auto mb-3 ${
-                          selectedGame?.id === game.id ? 'text-indigo-600' : 'text-gray-400'
+                          selectedGame?.id === userGame.games.id ? 'text-indigo-600' : 'text-gray-400'
                         }`} />
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {game.name}
+                          {userGame.games.name}
                         </h3>
                         <p className="text-gray-600 text-sm">
-                          {game.description}
+                          {userGame.games.description}
                         </p>
                       </div>
                     </div>

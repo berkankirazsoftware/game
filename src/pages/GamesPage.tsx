@@ -4,12 +4,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { 
   GamepadIcon, 
   Plus, 
-  Edit, 
   Trash2, 
   Copy, 
   ExternalLink,
-  Gift,
-  Settings
+  Gift
 } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
@@ -31,13 +29,8 @@ export default function GamesPage() {
 
   useEffect(() => {
     fetchGames()
+    fetchCoupons()
   }, [])
-
-  useEffect(() => {
-    if (selectedGame) {
-      fetchGameCoupons(selectedGame.id)
-    }
-  }, [selectedGame])
 
   const fetchGames = async () => {
     const { data } = await supabase
@@ -53,14 +46,13 @@ export default function GamesPage() {
     }
   }
 
-  const fetchGameCoupons = async (gameId: string) => {
+  const fetchCoupons = async () => {
     if (!user) return
     
     const { data } = await supabase
       .from('coupons')
       .select('*')
       .eq('user_id', user.id)
-      .eq('game_id', gameId)
       .order('created_at', { ascending: false })
     
     if (data) {
@@ -70,18 +62,18 @@ export default function GamesPage() {
 
   const handleAddCoupon = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !selectedGame) return
+    if (!user) return
 
     const { error } = await supabase
       .from('coupons')
       .insert([{
         user_id: user.id,
-        game_id: selectedGame.id,
+        game_id: null, // Kuponlar artık genel
         ...couponForm
       }])
 
     if (!error) {
-      fetchGameCoupons(selectedGame.id)
+      fetchCoupons()
       setShowCouponModal(false)
       setCouponForm({
         code: '',
@@ -98,19 +90,19 @@ export default function GamesPage() {
       .delete()
       .eq('id', couponId)
 
-    if (!error && selectedGame) {
-      fetchGameCoupons(selectedGame.id)
+    if (!error) {
+      fetchCoupons()
     }
   }
 
-  const generateIframeUrl = (gameId: string) => {
+  const generateIframeUrl = () => {
     const baseUrl = window.location.origin
-    return `${baseUrl}/game/${gameId}?userId=${user?.id}`
+    return `${baseUrl}/game-widget?userId=${user?.id}`
   }
 
-  const copyIframeCode = (gameId: string) => {
-    const iframeUrl = generateIframeUrl(gameId)
-    const iframeCode = `<iframe src="${iframeUrl}" width="800" height="600" frameborder="0"></iframe>`
+  const copyIframeCode = () => {
+    const iframeUrl = generateIframeUrl()
+    const iframeCode = `<iframe src="${iframeUrl}" width="800" height="600" frameborder="0" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></iframe>`
     navigator.clipboard.writeText(iframeCode)
   }
 
@@ -118,6 +110,22 @@ export default function GamesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Oyun Yönetimi</h1>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setShowCouponModal(true)}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Kupon Ekle
+          </button>
+          <button
+            onClick={copyIframeCode}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            iframe Kopyala
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -157,73 +165,33 @@ export default function GamesPage() {
                   <h3 className="text-lg font-semibold text-gray-900">
                     {selectedGame.name}
                   </h3>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => copyIframeCode(selectedGame.id)}
-                      className="flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      iframe Kopyala
-                    </button>
-                    <button className="flex items-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Önizle
-                    </button>
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-4">{selectedGame.description}</p>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-2">iframe URL:</p>
-                  <code className="text-xs bg-white p-2 rounded border block overflow-x-auto">
-                    {generateIframeUrl(selectedGame.id)}
-                  </code>
-                </div>
-              </div>
-
-              {/* Coupons */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Kuponlar</h3>
                   <button
-                    onClick={() => setShowCouponModal(true)}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    onClick={() => window.open(`/game/${selectedGame.id}?userId=${user?.id}`, '_blank')}
+                    className="flex items-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Kupon Ekle
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Oyunu Test Et
                   </button>
                 </div>
-                
-                <div className="space-y-3">
-                  {coupons.length > 0 ? coupons.map((coupon) => (
-                    <div key={coupon.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Gift className="h-6 w-6 text-green-600" />
-                        <div className="ml-3">
-                          <p className="font-medium text-gray-900">{coupon.code}</p>
-                          <p className="text-sm text-gray-500">{coupon.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-green-600">
-                            {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteCoupon(coupon.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Gift className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                      <p>Bu oyun için kupon oluşturmadınız</p>
-                      <p className="text-sm">Yukarıdaki butona tıklayarak kupon ekleyebilirsiniz</p>
-                    </div>
-                  )}
+                <p className="text-gray-600 mb-4">{selectedGame.description}</p>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-2">Oyun Özellikleri:</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    {selectedGame.code === 'snake' && (
+                      <>
+                        <li>• Ok tuşları ile kontrol</li>
+                        <li>• 50 puana ulaşınca kupon kazanma</li>
+                        <li>• Klasik yılan oyunu mekaniği</li>
+                      </>
+                    )}
+                    {selectedGame.code === 'memory' && (
+                      <>
+                        <li>• Kart eşleştirme oyunu</li>
+                        <li>• 8 çift kart (16 kart toplam)</li>
+                        <li>• Tüm çiftleri bulunca kupon kazanma</li>
+                      </>
+                    )}
+                  </ul>
                 </div>
               </div>
             </>
@@ -233,6 +201,47 @@ export default function GamesPage() {
               <p className="text-gray-500">Bir oyun seçin</p>
             </div>
           )}
+
+          {/* Coupons */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Genel Kuponlar</h3>
+              <span className="text-sm text-gray-500">Tüm oyunlar için geçerli</span>
+            </div>
+            
+            <div className="space-y-3">
+              {coupons.length > 0 ? coupons.map((coupon) => (
+                <div key={coupon.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <Gift className="h-6 w-6 text-green-600" />
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-900">{coupon.code}</p>
+                      <p className="text-sm text-gray-500">{coupon.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-green-600">
+                        {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteCoupon(coupon.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Gift className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>Henüz kupon oluşturmadınız</p>
+                  <p className="text-sm">Yukarıdaki butona tıklayarak kupon ekleyebilirsiniz</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

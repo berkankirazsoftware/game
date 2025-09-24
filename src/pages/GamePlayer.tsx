@@ -78,13 +78,12 @@ export default function GamePlayer() {
   }
 
   const fetchCoupons = async () => {
-    if (!gameId || !userId) return
+    if (!userId) return
     
     const { data } = await supabase
       .from('coupons')
       .select('*')
       .eq('user_id', userId)
-      .eq('game_id', gameId)
     
     if (data) {
       setCoupons(data)

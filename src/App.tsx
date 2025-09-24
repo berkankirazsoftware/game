@@ -25,7 +25,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/game/:gameId" element={<GamePlayer />} />
-          <Route path="/game-select" element={<GameSelectWidget />} />
+          <Route path="/game-widget" element={<GameSelectWidget />} />
           <Route path="/memory/:gameId" element={<MemoryGame />} />
           
           <Route
