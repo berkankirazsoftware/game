@@ -35,7 +35,7 @@ export default function GameSelectPage() {
   const fetchSelectedGames = async () => {
     if (!user) return
     
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_games')
       .select(`
         *,
@@ -44,23 +44,34 @@ export default function GameSelectPage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
     
-    if (data) {
+    console.log('Fetching selected games for user:', user.id)
+    console.log('Selected games result:', { data, error })
+    
+    if (data && !error) {
       setSelectedGames(data as UserGame[])
+    } else {
+      console.error('Error fetching selected games:', error)
     }
   }
 
   const handleSelectGame = async (gameId: string) => {
     if (!user) return
 
-    const { error } = await supabase
+    console.log('Selecting game:', gameId, 'for user:', user.id)
+    
+    const { data, error } = await supabase
       .from('user_games')
       .insert([{
         user_id: user.id,
         game_id: gameId
       }])
 
+    console.log('Insert result:', { data, error })
+
     if (!error) {
       fetchSelectedGames()
+    } else {
+      console.error('Error selecting game:', error)
     }
   }
 

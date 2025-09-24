@@ -27,7 +27,7 @@ export default function GameSelectWidget() {
   const fetchUserGames = async () => {
     if (!userId) return
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_games')
       .select(`
         *,
@@ -35,13 +35,18 @@ export default function GameSelectWidget() {
       `)
       .eq('user_id', userId)
 
-    if (data) {
+    console.log('Fetching games for userId:', userId)
+    console.log('Query result:', { data, error })
+
+    if (data && !error) {
       const games = data as UserGame[]
       setUserGames(games)
       
       if (games.length > 0) {
         setSelectedGame(games[0].games)
       }
+    } else {
+      console.error('Error fetching user games:', error)
     }
     setLoading(false)
   }
@@ -88,8 +93,13 @@ export default function GameSelectWidget() {
           <GamepadIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Oyun Bulunamadı</h2>
           <p className="text-gray-600">
-            Bu kullanıcı için henüz oyun seçilmemiş.
+            Bu kullanıcı için henüz oyun seçilmemiş. (User ID: {userId})
           </p>
+          <div className="mt-4 text-xs text-gray-500">
+            <p>Debug bilgileri:</p>
+            <p>User ID: {userId}</p>
+            <p>Games count: {userGames.length}</p>
+          </div>
         </div>
       </div>
     )
