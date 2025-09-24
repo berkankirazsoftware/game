@@ -18,6 +18,7 @@ export default function MemoryGame() {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('userId')
+  const testMode = searchParams.get('testMode') === 'true'
   
   const [game, setGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
@@ -32,9 +33,32 @@ export default function MemoryGame() {
   const symbols = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎺', '🎸']
 
   useEffect(() => {
-    if (gameId) {
+    if (gameId && !testMode) {
       fetchGame()
       fetchCoupons()
+      initializeGame()
+    } else if (testMode) {
+      // Test modu için varsayılan oyun bilgisi
+      setGame({
+        id: 'memory-test',
+        name: 'Hafıza Oyunu',
+        description: 'Kartları çevirerek eşleşen çiftleri bulun',
+        code: 'memory',
+        created_at: new Date().toISOString()
+      })
+      // Test modu için varsayılan kuponlar
+      setCoupons([
+        {
+          id: 'test-coupon-1',
+          user_id: userId || '',
+          game_id: null,
+          code: 'TEST15',
+          description: 'Test kuponu - %15 indirim',
+          discount_type: 'percentage',
+          discount_value: 15,
+          created_at: new Date().toISOString()
+        }
+      ])
       initializeGame()
     }
   }, [gameId, userId])
@@ -42,14 +66,17 @@ export default function MemoryGame() {
   const fetchGame = async () => {
     if (!gameId) return
     
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('games')
       .select('*')
       .eq('id', gameId)
       .single()
     
-    if (data) {
+    if (data && !error) {
       setGame(data)
+    } else {
+      console.error('Game not found:', error)
+      // Oyun bulunamadığında varsayılan bir oyun göster veya hata mesajı
     }
   }
 

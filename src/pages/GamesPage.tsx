@@ -167,11 +167,12 @@ export default function GamesPage() {
                   </h3>
                   <button
                     onClick={() => {
-                      if (selectedGame.code === 'memory') {
-                        window.open(`/memory/${selectedGame.id}?userId=${user?.id}`, '_blank')
-                      } else {
-                        window.open(`/game/${selectedGame.id}?userId=${user?.id}`, '_blank')
-                      }
+                      // Test için varsayılan oyun ID'leri kullan
+                      const testGameId = selectedGame.code === 'memory' ? 'memory-test' : 'snake-test'
+                      const testUrl = selectedGame.code === 'memory' 
+                        ? `/memory/${testGameId}?userId=${user?.id}&testMode=true`
+                        : `/game/${testGameId}?userId=${user?.id}&testMode=true`
+                      window.open(testUrl, '_blank')
                     }}
                     className="flex items-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                   >

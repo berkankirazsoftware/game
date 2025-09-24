@@ -11,6 +11,7 @@ export default function SnakeGame() {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('userId')
+  const testMode = searchParams.get('testMode') === 'true'
   
   const [game, setGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
@@ -26,9 +27,31 @@ export default function SnakeGame() {
   const [gameOver, setGameOver] = useState(false)
 
   useEffect(() => {
-    if (gameId) {
+    if (gameId && !testMode) {
       fetchGame()
       fetchCoupons()
+    } else if (testMode) {
+      // Test modu için varsayılan oyun bilgisi
+      setGame({
+        id: 'snake-test',
+        name: 'Yılan Oyunu',
+        description: 'Ok tuşları ile yılanı yönlendirin ve yemi toplayın',
+        code: 'snake',
+        created_at: new Date().toISOString()
+      })
+      // Test modu için varsayılan kuponlar
+      setCoupons([
+        {
+          id: 'test-coupon-1',
+          user_id: userId || '',
+          game_id: null,
+          code: 'TEST20',
+          description: 'Test kuponu - %20 indirim',
+          discount_type: 'percentage',
+          discount_value: 20,
+          created_at: new Date().toISOString()
+        }
+      ])
     }
   }, [gameId, userId])
 
@@ -66,14 +89,17 @@ export default function SnakeGame() {
   const fetchGame = async () => {
     if (!gameId) return
     
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('games')
       .select('*')
       .eq('id', gameId)
       .single()
     
-    if (data) {
+    if (data && !error) {
       setGame(data)
+    } else {
+      console.error('Game not found:', error)
+      // Oyun bulunamadığında varsayılan bir oyun göster veya hata mesajı
     }
   }
 
