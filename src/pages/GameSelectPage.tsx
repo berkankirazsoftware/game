@@ -57,6 +57,8 @@ export default function GameSelectPage() {
   const handleSelectGame = async (gameId: string) => {
     if (!user) return
 
+    console.log('Selecting game:', gameId, 'for user:', user.id)
+
     const { data, error } = await supabase
       .from('user_games')
       .insert([{
@@ -64,9 +66,13 @@ export default function GameSelectPage() {
         game_id: gameId
       }])
 
+    console.log('Insert result:', { data, error })
 
     if (!error) {
+      console.log('Game selected successfully')
       fetchSelectedGames()
+    } else {
+      console.error('Error selecting game:', error)
     }
   }
 
