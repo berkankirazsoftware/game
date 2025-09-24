@@ -60,16 +60,6 @@ export default function IntegrationPage() {
 </iframe>`
   }
 
-  const generateGenericIframeCode = () => {
-    const baseUrl = 'https://berkankirazsoftware-8isq.bolt.host'
-    return `<iframe 
-  src="${baseUrl}/game-widget?userId=YOUR_USER_ID" 
-  width="800" 
-  height="600" 
-  frameborder="0"
-  style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-</iframe>`
-  }
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -179,7 +169,7 @@ export default function IntegrationPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  HTML iframe Kodu (Test için - Kendi User ID'niz ile)
+                  HTML iframe Kodu
                 </label>
                 <div className="relative">
                   <pre className="bg-gray-900 text-green-400 p-4 rounded-md text-xs overflow-x-auto">
@@ -195,23 +185,6 @@ export default function IntegrationPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Genel iframe Kodu (Müşteriler için)
-                </label>
-                <div className="relative">
-                  <pre className="bg-gray-900 text-green-400 p-4 rounded-md text-xs overflow-x-auto">
-                    <code>{generateGenericIframeCode()}</code>
-                  </pre>
-                  <button
-                    onClick={() => copyToClipboard(generateGenericIframeCode())}
-                    className="absolute top-2 right-2 px-2 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-600 transition-colors flex items-center"
-                  >
-                    <Copy className="h-3 w-3 mr-1" />
-                    Kopyala
-                  </button>
-                </div>
-              </div>
 
               <div className="flex space-x-3">
                 <button
@@ -223,20 +196,13 @@ export default function IntegrationPage() {
                 </button>
               </div>
 
-              <div className="bg-indigo-50 p-4 rounded-lg space-y-4">
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-                  <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Önemli Not:</h4>
-                  <p className="text-yellow-700 text-sm">
-                    iframe kodundaki <code className="bg-yellow-100 px-1 rounded">YOUR_USER_ID</code> kısmını 
-                    kendi User ID'niz ile değiştirmeyi unutmayın: <code className="bg-yellow-100 px-1 rounded">{user?.id}</code>
-                  </p>
-                </div>
+              <div className="bg-indigo-50 p-4 rounded-lg">
                 <div>
                   <h4 className="font-semibold text-indigo-800 mb-2">WordPress için:</h4>
                   <ol className="text-indigo-700 space-y-1">
                     <li>1. Sayfa/yazı düzenleyicisini açın</li>
                     <li>2. HTML bloğu ekleyin</li>
-                    <li>3. iframe kodunu yapıştırın ve YOUR_USER_ID'yi değiştirin</li>
+                    <li>3. iframe kodunu yapıştırın</li>
                     <li>4. Sayfayı kaydedin</li>
                   </ol>
                 </div>
@@ -245,8 +211,7 @@ export default function IntegrationPage() {
                   <ol className="text-indigo-700 space-y-1">
                     <li>1. HTML düzenleme moduna geçin</li>
                     <li>2. iframe kodunu istediğiniz yere yapıştırın</li>
-                    <li>3. YOUR_USER_ID'yi kendi ID'niz ile değiştirin</li>
-                    <li>4. Değişiklikleri kaydedin ve yayınlayın</li>
+                    <li>3. Değişiklikleri kaydedin ve yayınlayın</li>
                   </ol>
                 </div>
               </div>
