@@ -158,51 +158,64 @@ export default function IntegrationPage() {
                 <button
                   onClick={() => copyToClipboard(generateIframeUrl())}
                   className="px-3 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 transition-colors"
-                >
-                  {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                HTML iframe Kodu
-              </label>
-              <div className="relative">
-                <pre className="bg-gray-900 text-green-400 p-4 rounded-md text-xs overflow-x-auto">
-                  <code>{generateIframeCode()}</code>
-                </pre>
-                <button
-                  onClick={() => copyToClipboard(generateIframeCode())}
-                  className="absolute top-2 right-2 px-2 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-600 transition-colors flex items-center"
-                >
-                  {copied ? <CheckCircle className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
-                  {copied ? 'Kopyalandı!' : 'Kopyala'}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                onClick={() => window.open(generateIframeUrl(), '_blank')}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Widget'ı Önizle
+            {coupons.length > 0 ? (
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-900 mb-2">Mevcut Kuponlar ({coupons.length})</h4>
+                <div className="space-y-2">
+                  {coupons.map((coupon) => (
+                    <div key={coupon.id} className="flex items-center justify-between text-green-800">
+                      <span className="font-medium">{coupon.code}</span>
+                      <span className="text-sm">
+                        {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
+                      </span>
+        {/* Integration Code - Only show if coupons exist */}
+        {coupons.length > 0 ? (
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Entegrasyon Kodu</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Widget URL (Test için)
+                </label>
+                <div className="flex">
+                  <input
+                    type="text"
+                    readOnly
+                    value={generateIframeUrl()}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-sm"
+                  />
+                  <button
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  HTML iframe Kodu
+                </label>
+                <div className="relative">
+                  <pre className="bg-gray-900 text-green-400 p-4 rounded-md text-xs overflow-x-auto">
+                    <code>{generateIframeCode()}</code>
+                  </pre>
+                  <button
+                    onClick={() => copyToClipboard(generateIframeCode())}
+                    className="absolute top-2 right-2 px-2 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-600 transition-colors flex items-center"
+                  >
+                    {copied ? <CheckCircle className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
+                    {copied ? 'Kopyalandı!' : 'Kopyala'}
+                  </button>
+                </div>
               </button>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Instructions */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border border-indigo-200">
-        <h3 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
-          <Code className="h-5 w-5 mr-2" />
-          Entegrasyon Talimatları
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-          <div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => window.open(generateIframeUrl(), '_blank')}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Widget'ı Önizle
+                </button>
+              </div>
             <h4 className="font-semibold text-indigo-800 mb-2">WordPress için:</h4>
             <ol className="text-indigo-700 space-y-1">
               <li>1. Sayfa/yazı düzenleyicisini açın</li>
@@ -220,7 +233,26 @@ export default function IntegrationPage() {
               <li>4. Sayfayı yayınlayın</li>
             </ol>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎮</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Widget Hazır Değil
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Widget'ı kullanabilmek için önce kupon eklemelisiniz
+              </p>
+              <Link
+                to="/coupons"
+                className="inline-flex items-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                İlk Kuponunuzu Ekleyin
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

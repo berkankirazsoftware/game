@@ -540,6 +540,23 @@ export default function GameSelectWidget() {
     )
   }
 
+  // Kupon yoksa hiçbir şey gösterme
+  if (coupons.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md text-center">
+          <div className="text-6xl mb-4">🎮</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Widget Hazır Değil
+          </h2>
+          <p className="text-gray-600">
+            Bu widget henüz aktif değil. Site sahibi kupon eklemesi gerekiyor.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   // Oyun seçildiyse oyunu göster
   if (selectedGame === 'snake') {
     return (
