@@ -24,11 +24,14 @@ export default function Dashboard() {
   }, [user])
 
   const fetchGames = async () => {
+    console.log('Dashboard: Fetching games...')
     const { data } = await supabase
       .from('games')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(5)
+    
+    console.log('Dashboard: Games result:', data)
     
     if (data) {
       setGames(data)

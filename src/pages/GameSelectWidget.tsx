@@ -22,28 +22,39 @@ export default function GameSelectWidget() {
 
   const fetchGamesAndCoupons = async () => {
     try {
+      console.log('Fetching games and coupons...')
+      
       // Tüm oyunları getir
       const { data: gamesData, error: gamesError } = await supabase
         .from('games')
         .select('*')
         .order('created_at', { ascending: false })
 
+      console.log('Games query result:', { gamesData, gamesError })
+
       if (gamesData && !gamesError) {
         setGames(gamesData)
         if (gamesData.length > 0) {
           setSelectedGame(gamesData[0])
         }
+      } else {
+        console.error('Error fetching games:', gamesError)
       }
 
       // Kuponları getir (eğer userId varsa)
       if (userId) {
+        console.log('Fetching coupons for user:', userId)
         const { data: couponsData, error: couponsError } = await supabase
           .from('coupons')
           .select('*')
           .eq('user_id', userId)
 
+        console.log('Coupons query result:', { couponsData, couponsError })
+
         if (couponsData && !couponsError) {
           setCoupons(couponsData)
+        } else {
+          console.error('Error fetching coupons:', couponsError)
         }
       }
     } catch (error) {
