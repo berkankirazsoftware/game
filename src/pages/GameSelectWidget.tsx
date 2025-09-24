@@ -715,6 +715,7 @@ export default function GameSelectWidget() {
   
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<string | null>(null)
 
   useEffect(() => {
@@ -724,17 +725,27 @@ export default function GameSelectWidget() {
   const fetchCoupons = async () => {
     try {
       if (userId) {
+        console.log('Fetching coupons for userId:', userId)
         const { data: couponsData, error: couponsError } = await supabase
           .from('coupons')
           .select('*')
           .eq('user_id', userId)
 
+        console.log('Coupons response:', { data: couponsData, error: couponsError })
+        
         if (couponsData && !couponsError) {
           setCoupons(couponsData)
+        } else if (couponsError) {
+          console.error('Coupon fetch error:', couponsError)
+          setError(`Kupon yükleme hatası: ${couponsError.message}`)
         }
+      } else {
+        console.log('No userId provided')
+        setError('User ID bulunamadı')
       }
     } catch (error) {
       console.error('Error fetching coupons:', error)
+      setError('Kuponlar yüklenirken hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -745,7 +756,30 @@ export default function GameSelectWidget() {
       <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center overflow-hidden">
         <div className="bg-white p-8 rounded-lg shadow-2xl">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="text-center mt-4 text-gray-600">Yükleniyor...</p>
+          <p className="text-center mt-4 text-gray-600">Widget yükleniyor...</p>
+          <p className="text-center mt-2 text-sm text-gray-500">User ID: {userId}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Hata durumu
+  if (error) {
+    return (
+      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center overflow-hidden">
+        <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Yükleme Hatası
+          </h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-sm text-gray-500">User ID: {userId}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+          >
+            Tekrar Dene
+          </button>
         </div>
       </div>
     )
@@ -760,9 +794,14 @@ export default function GameSelectWidget() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Widget Hazır Değil
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Bu widget henüz aktif değil. Site sahibi kupon eklemesi gerekiyor.
           </p>
+          <div className="bg-gray-100 p-3 rounded text-sm text-gray-600">
+            <p>Debug Bilgisi:</p>
+            <p>User ID: {userId}</p>
+            <p>Kupon Sayısı: {coupons.length}</p>
+          </div>
         </div>
       </div>
     )

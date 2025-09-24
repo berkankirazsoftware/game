@@ -199,20 +199,26 @@ export default function IntegrationPage() {
               <div className="bg-indigo-50 p-4 rounded-lg">
                 <div>
                   <h4 className="font-semibold text-indigo-800 mb-2">WordPress için:</h4>
-                  <ol className="text-indigo-700 space-y-1">
+                  <ol className="text-indigo-700 space-y-1 text-sm">
                     <li>1. Sayfa/yazı düzenleyicisini açın</li>
                     <li>2. HTML bloğu ekleyin</li>
                     <li>3. iframe kodunu yapıştırın</li>
                     <li>4. Sayfayı kaydedin</li>
                   </ol>
                 </div>
-                <div>
+                <div className="mt-4">
                   <h4 className="font-semibold text-indigo-800 mb-2">Diğer Platformlar için:</h4>
-                  <ol className="text-indigo-700 space-y-1">
+                  <ol className="text-indigo-700 space-y-1 text-sm">
                     <li>1. HTML düzenleme moduna geçin</li>
                     <li>2. iframe kodunu istediğiniz yere yapıştırın</li>
                     <li>3. Değişiklikleri kaydedin ve yayınlayın</li>
                   </ol>
+                </div>
+                <div className="mt-4 bg-yellow-100 border border-yellow-300 p-3 rounded">
+                  <h4 className="font-semibold text-yellow-800 mb-1">⚠️ Sorun Giderme:</h4>
+                  <p className="text-yellow-700 text-sm">
+                    Eğer iframe "Widget Hazır Değil" gösteriyorsa, tarayıcı konsolunu açıp hata mesajlarını kontrol edin.
+                  </p>
                 </div>
               </div>
             </div>
