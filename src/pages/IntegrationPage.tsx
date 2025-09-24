@@ -82,14 +82,16 @@ export default function IntegrationPage() {
             
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Mevcut Oyunlar ({games.length})</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Mevcut Oyunlar (2)</h4>
                 <div className="space-y-2">
-                  {games.map((game) => (
-                    <div key={game.id} className="flex items-center text-blue-800">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                      {game.name}
-                    </div>
-                  ))}
+                  <div className="flex items-center text-blue-800">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                    🐍 Yılan Oyunu
+                  </div>
+                  <div className="flex items-center text-blue-800">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                    🧠 Hafıza Oyunu
+                  </div>
                 </div>
               </div>
 
