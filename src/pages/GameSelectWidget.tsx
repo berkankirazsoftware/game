@@ -16,6 +16,13 @@ const GAMES = [
     emoji: '🐍'
   },
   {
+    id: 'puzzle-game',
+    name: 'Puzzle Oyunu', 
+    description: 'Karışık parçaları doğru yerlere yerleştirerek resmi tamamlayın. Puzzle\'ı çözünce kupon kazanın!',
+    code: 'puzzle',
+    emoji: '🧩'
+  }
+  {
     id: 'memory-game', 
     name: 'Hafıza Oyunu',
     description: 'Kartları çevirerek eşleşen çiftleri bulun. Tüm çiftleri eşleştirince kupon kazanın!',
@@ -498,6 +505,210 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   )
 }
 
+// Puzzle Game Component
+function PuzzleGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[] }) {
+  const [pieces, setPieces] = useState<Array<{id: number, correctPos: number, currentPos: number}>>([])
+  const [gameStarted, setGameStarted] = useState(false)
+  const [gameCompleted, setGameCompleted] = useState(false)
+  const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
+  const [moves, setMoves] = useState(0)
+
+  useEffect(() => {
+    initializeGame()
+  }, [])
+
+  const initializeGame = () => {
+    // 3x3 puzzle (9 parça)
+    const puzzlePieces = Array.from({ length: 9 }, (_, i) => ({
+      id: i,
+      correctPos: i,
+      currentPos: i
+    }))
+    
+    // Karıştır
+    const shuffled = [...puzzlePieces]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const temp = shuffled[i].currentPos
+      shuffled[i].currentPos = shuffled[j].currentPos
+      shuffled[j].currentPos = temp
+    }
+    
+    setPieces(shuffled)
+  }
+
+  const handlePieceClick = (pieceId: number) => {
+    if (!gameStarted || gameCompleted) return
+    
+    const piece = pieces.find(p => p.id === pieceId)
+    if (!piece) return
+
+    // Basit swap mantığı - tıklanan parça ile rastgele başka bir parça yer değiştir
+    const otherPiece = pieces[Math.floor(Math.random() * pieces.length)]
+    if (otherPiece.id === pieceId) return
+
+    setPieces(prev => prev.map(p => {
+      if (p.id === pieceId) {
+        return { ...p, currentPos: otherPiece.currentPos }
+      } else if (p.id === otherPiece.id) {
+        return { ...p, currentPos: piece.currentPos }
+      }
+      return p
+    }))
+
+    setMoves(prev => prev + 1)
+
+    // Kazanma kontrolü
+    setTimeout(() => {
+      const allCorrect = pieces.every(p => p.correctPos === p.currentPos)
+      if (allCorrect) {
+        handleGameWin()
+      }
+    }, 100)
+  }
+
+  const handleGameWin = () => {
+    setGameCompleted(true)
+    setGameStarted(false)
+    
+    // Rastgele kupon seç
+    if (coupons.length > 0) {
+      const randomCoupon = coupons[Math.floor(Math.random() * coupons.length)]
+      setWonCoupon(randomCoupon)
+    }
+  }
+
+  const startGame = () => {
+    setGameStarted(true)
+    setGameCompleted(false)
+    setMoves(0)
+    setWonCoupon(null)
+    initializeGame()
+  }
+
+  const resetGame = () => {
+    setGameStarted(false)
+    setGameCompleted(false)
+    setMoves(0)
+    setWonCoupon(null)
+    initializeGame()
+  }
+
+  const getPieceColor = (pieceId: number) => {
+    const colors = [
+      'bg-red-200', 'bg-blue-200', 'bg-green-200',
+      'bg-yellow-200', 'bg-purple-200', 'bg-pink-200',
+      'bg-indigo-200', 'bg-orange-200', 'bg-teal-200'
+    ]
+    return colors[pieceId] || 'bg-gray-200'
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center text-indigo-600 hover:text-indigo-700"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Oyun Seçimine Dön
+        </button>
+        <div className="flex items-center space-x-4">
+          <div className="bg-indigo-100 px-3 py-1 rounded-full">
+            <span className="font-semibold text-indigo-800">Hamle: {moves}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Game Won Modal */}
+      {gameCompleted && wonCoupon && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
+            <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              Tebrikler! 🎉
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Puzzle'ı {moves} hamlede tamamladınız ve kupon kazandınız!
+            </p>
+            
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
+              <div className="flex items-center justify-center mb-2">
+                <Gift className="h-6 w-6 text-green-600 mr-2" />
+                <span className="text-lg font-bold text-green-800">{wonCoupon.code}</span>
+              </div>
+              <p className="text-green-700 font-medium">
+                {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
+              </p>
+              <p className="text-green-600 text-sm mt-1">
+                {wonCoupon.description}
+              </p>
+            </div>
+            
+            <button
+              onClick={resetGame}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Tekrar Oyna
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Game Area */}
+      <div className="bg-gray-100 rounded-lg p-4">
+        <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+          {pieces.sort((a, b) => a.currentPos - b.currentPos).map((piece) => (
+            <div
+              key={piece.id}
+              onClick={() => handlePieceClick(piece.id)}
+              className={`aspect-square rounded-lg flex items-center justify-center text-2xl font-bold cursor-pointer transition-all duration-300 ${
+                getPieceColor(piece.id)
+              } hover:scale-105 border-2 ${
+                piece.correctPos === piece.currentPos ? 'border-green-500' : 'border-gray-300'
+              }`}
+            >
+              {piece.id + 1}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center space-y-4">
+        {!gameStarted && !gameCompleted && (
+          <div>
+            <button
+              onClick={startGame}
+              className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+            >
+              Oyunu Başlat
+            </button>
+            <p className="text-gray-600 text-sm mt-2">
+              Parçalara tıklayarak doğru sıraya dizin
+            </p>
+          </div>
+        )}
+        
+        {gameStarted && (
+          <div className="flex justify-center space-x-4">
+            <p className="text-gray-600">
+              Parçaları tıklayarak doğru sıraya dizin!
+            </p>
+            <button
+              onClick={resetGame}
+              className="text-indigo-600 hover:text-indigo-700 flex items-center"
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Yeniden Başla
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function GameSelectWidget() {
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('userId')
@@ -531,7 +742,7 @@ export default function GameSelectWidget() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center">
+      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center overflow-hidden">
         <div className="bg-white p-8 rounded-lg shadow-2xl">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="text-center mt-4 text-gray-600">Yükleniyor...</p>
@@ -543,7 +754,7 @@ export default function GameSelectWidget() {
   // Kupon yoksa hiçbir şey gösterme
   if (coupons.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center">
+      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center overflow-hidden">
         <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md text-center">
           <div className="text-6xl mb-4">🎮</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -560,14 +771,14 @@ export default function GameSelectWidget() {
   // Oyun seçildiyse oyunu göster
   if (selectedGame === 'snake') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+        <div className="w-full h-full">
+          <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
               <h1 className="text-3xl font-bold mb-2">🐍 Yılan Oyunu</h1>
               <p className="text-indigo-100">Ok tuşları ile yılanı yönlendirin ve yemi toplayın</p>
             </div>
-            <div className="p-6">
+            <div className="p-6 flex-1 overflow-auto">
               <SnakeGame onBack={() => setSelectedGame(null)} coupons={coupons} />
             </div>
           </div>
@@ -578,15 +789,33 @@ export default function GameSelectWidget() {
 
   if (selectedGame === 'memory') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+        <div className="w-full h-full">
+          <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
               <h1 className="text-3xl font-bold mb-2">🧠 Hafıza Oyunu</h1>
               <p className="text-indigo-100">Kartları çevirerek eşleşen çiftleri bulun</p>
             </div>
-            <div className="p-6">
+            <div className="p-6 flex-1 overflow-auto">
               <MemoryGame onBack={() => setSelectedGame(null)} coupons={coupons} />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedGame === 'puzzle') {
+    return (
+      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+        <div className="w-full h-full">
+          <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+              <h1 className="text-3xl font-bold mb-2">🧩 Puzzle Oyunu</h1>
+              <p className="text-indigo-100">Parçaları doğru yere yerleştirerek resmi tamamlayın</p>
+            </div>
+            <div className="p-6 flex-1 overflow-auto">
+              <PuzzleGame onBack={() => setSelectedGame(null)} coupons={coupons} />
             </div>
           </div>
         </div>
@@ -596,9 +825,9 @@ export default function GameSelectWidget() {
 
   // Oyun seçim ekranı
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+    <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+      <div className="w-full h-full">
+        <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white text-center">
             <h1 className="text-3xl font-bold mb-2">🎮 Oyun Oyna, Kupon Kazan!</h1>
@@ -607,7 +836,7 @@ export default function GameSelectWidget() {
             </p>
           </div>
 
-          <div className="p-6">
+          <div className="p-6 flex-1 overflow-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Oynamak İstediğiniz Oyunu Seçin
@@ -618,11 +847,11 @@ export default function GameSelectWidget() {
             </div>
 
             {/* Games Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {GAMES.map((game) => (
                 <div
                   key={game.id}
-                  className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-lg p-6 hover:border-indigo-300 hover:shadow-lg transition-all duration-300"
+                  className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-xl p-6 hover:border-indigo-300 hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   <div className="text-center">
                     <div className="text-6xl mb-4">{game.emoji}</div>
@@ -634,7 +863,7 @@ export default function GameSelectWidget() {
                     </p>
                     <button
                       onClick={() => setSelectedGame(game.code)}
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
                     >
                       <Play className="h-5 w-5 mr-2" />
                       Oyunu Başlat
@@ -646,14 +875,14 @@ export default function GameSelectWidget() {
 
             {/* Available Coupons */}
             {coupons.length > 0 && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-6 rounded-lg mb-8">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-6 rounded-xl mb-6">
                 <h3 className="text-xl font-bold text-green-900 mb-4 flex items-center justify-center">
                   <Gift className="h-6 w-6 mr-2" />
                   Kazanabileceğiniz Kuponlar
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {coupons.map((coupon) => (
-                    <div key={coupon.id} className="bg-white p-4 rounded-lg border border-green-200 text-center shadow-sm">
+                    <div key={coupon.id} className="bg-white p-4 rounded-xl border border-green-200 text-center shadow-sm hover:shadow-md transition-shadow">
                       <div className="font-bold text-green-800 text-lg">{coupon.code}</div>
                       <div className="text-green-700 font-semibold">
                         {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value} İndirim
@@ -666,7 +895,7 @@ export default function GameSelectWidget() {
             )}
 
             {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+            <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl">
               <h3 className="text-lg font-semibold text-blue-900 mb-3">
                 🎯 Nasıl Çalışır?
               </h3>
