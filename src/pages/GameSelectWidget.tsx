@@ -226,7 +226,6 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
           </div>
         </div>
         </div>
-      </div>
 
       {/* Sidebar - Kupon Bilgileri */}
         <div className="space-y-4">
@@ -575,3 +574,4 @@ function PuzzleGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   useEffect(() => {
     initializeGame()
   }, [])
+}
