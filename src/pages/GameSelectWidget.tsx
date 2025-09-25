@@ -9,166 +9,125 @@ type Coupon = Database['public']['Tables']['coupons']['Row']
 // Sabit oyun listesi
 const GAMES = [
   {
-    id: 'snake-game',
-    name: 'Yılan Oyunu',
-    description: 'Klasik yılan oyunu',
-    code: 'snake',
-    image: 'https://images.pexels.com/photos/4164418/pexels-photo-4164418.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 'puzzle-game',
-    name: 'Puzzle', 
-    description: 'Zeka oyunu',
-    code: 'puzzle',
-    image: 'https://images.pexels.com/photos/3740390/pexels-photo-3740390.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
     id: 'memory-game', 
     name: 'Hafıza',
     description: 'Kart eşleştirme',
     code: 'memory',
     image: 'https://images.pexels.com/photos/278918/pexels-photo-278918.jpeg?auto=compress&cs=tinysrgb&w=400'
+  },
+  {
+    id: 'timing-game',
+    name: 'Zamanlama',
+    description: 'Çubuğu tam ortada durdur',
+    code: 'timing',
+    image: 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=400'
   }
 ]
 
-// Snake Game Component
-function SnakeGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[] }) {
-  const [snake, setSnake] = useState([[10, 10]])
-  const [food, setFood] = useState([15, 15])
-  const [direction, setDirection] = useState([0, 1])
+// Timing Game Component
+function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[] }) {
+  const [barPosition, setBarPosition] = useState(0)
+  const [direction, setDirection] = useState(1)
   const [gameRunning, setGameRunning] = useState(false)
-  const [gameOver, setGameOver] = useState(false)
-  const [score, setScore] = useState(0)
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
+  const [gameSpeed, setGameSpeed] = useState(50)
 
   useEffect(() => {
-    if (gameRunning && !gameOver) {
-      const gameInterval = setInterval(moveSnake, 150)
+    if (gameRunning && !gameCompleted) {
+      const gameInterval = setInterval(moveBar, gameSpeed)
       return () => clearInterval(gameInterval)
     }
-  }, [snake, direction, gameRunning, gameOver])
+  }, [barPosition, direction, gameRunning, gameCompleted, gameSpeed])
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp':
-          setDirection([-1, 0])
-          break
-        case 'ArrowDown':
-          setDirection([1, 0])
-          break
-        case 'ArrowLeft':
-          setDirection([0, -1])
-          break
-        case 'ArrowRight':
-          setDirection([0, 1])
-          break
+  const moveBar = () => {
+    setBarPosition(prev => {
+      let newPos = prev + direction * 2
+      let newDir = direction
+
+      if (newPos >= 100) {
+        newPos = 100
+        newDir = -1
+      } else if (newPos <= 0) {
+        newPos = 0
+        newDir = 1
       }
-    }
-
-    if (gameRunning) {
-      window.addEventListener('keydown', handleKeyPress)
-      return () => window.removeEventListener('keydown', handleKeyPress)
-    }
-  }, [gameRunning])
-
-  const moveSnake = () => {
-    setSnake(currentSnake => {
-      const newSnake = [...currentSnake]
-      const head = [
-        newSnake[0][0] + direction[0],
-        newSnake[0][1] + direction[1]
-      ]
-
-      // Check wall collision
-      if (head[0] < 0 || head[0] >= 20 || head[1] < 0 || head[1] >= 20) {
-        setGameOver(true)
-        setGameRunning(false)
-        return currentSnake
-      }
-
-      // Check self collision
-      if (newSnake.some(segment => segment[0] === head[0] && segment[1] === head[1])) {
-        setGameOver(true)
-        setGameRunning(false)
-        return currentSnake
-      }
-
-      newSnake.unshift(head)
-
-      // Check food collision
-      if (head[0] === food[0] && head[1] === food[1]) {
-        setScore(prev => prev + 10)
-        setFood([
-          Math.floor(Math.random() * 20),
-          Math.floor(Math.random() * 20)
-        ])
-        
-        // Check win condition
-        if (score + 10 >= 50) {
-          handleGameWin()
-        }
-      } else {
-        newSnake.pop()
-      }
-
-      return newSnake
+      
+      setDirection(newDir)
+      return newPos
     })
   }
 
-  const handleGameWin = () => {
-    setGameCompleted(true)
-    setGameRunning(false)
+  const stopBar = () => {
+    if (!gameRunning) return
     
-    // Rastgele kupon seç
+    setGameRunning(false)
+    setGameCompleted(true)
+    
+    // Pozisyona göre kupon seviyesi belirle
+    let level = 1
+    if (barPosition >= 40 && barPosition <= 60) {
+      level = 3 // Tam orta - en iyi kupon
+    } else if (barPosition >= 25 && barPosition <= 75) {
+      level = 2 // Orta bölge - orta kupon
+    } else {
+      level = 1 // Kenar bölgeler - düşük kupon
+    }
+    
+    // Seviyeye göre kupon seç
     if (coupons.length > 0) {
-      const randomCoupon = coupons[Math.floor(Math.random() * coupons.length)]
+      const levelCoupons = coupons.filter(c => c.level === level)
+      const randomCoupon = levelCoupons.length > 0 
+        ? levelCoupons[Math.floor(Math.random() * levelCoupons.length)]
+        : coupons[Math.floor(Math.random() * coupons.length)]
       setWonCoupon(randomCoupon)
     }
   }
 
   const startGame = () => {
     setGameRunning(true)
-    setGameOver(false)
     setGameCompleted(false)
-    setScore(0)
-    setSnake([[10, 10]])
-    setFood([15, 15])
-    setDirection([0, 1])
+    setBarPosition(0)
+    setDirection(1)
     setWonCoupon(null)
   }
 
   const resetGame = () => {
-    setGameOver(false)
     setGameCompleted(false)
-    setScore(0)
-    setSnake([[10, 10]])
-    setFood([15, 15])
-    setDirection([0, 1])
+    setGameRunning(false)
+    setBarPosition(0)
+    setDirection(1)
     setWonCoupon(null)
   }
 
+  const getLevelInfo = (level: number) => {
+    const levelData = {
+      1: { name: 'Bronz', color: 'text-yellow-600', icon: '🥉' },
+      2: { name: 'Gümüş', color: 'text-gray-600', icon: '🥈' },
+      3: { name: 'Altın', color: 'text-yellow-500', icon: '🥇' }
+    }
+    return levelData[level as keyof typeof levelData]
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+      {/* Game Area */}
+      <div className="lg:col-span-2 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
         <button
           onClick={onBack}
           className="flex items-center text-indigo-600 hover:text-indigo-700"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
-          Oyun Seçimine Dön
+            Oyun Seçimine Dön
         </button>
-        <div className="flex items-center space-x-4">
-          <div className="bg-indigo-100 px-3 py-1 rounded-full">
-            <span className="font-semibold text-indigo-800">Skor: {score}</span>
+          <div className="text-center">
+            <div className="bg-indigo-100 px-3 py-1 rounded-full">
+              <span className="font-semibold text-indigo-800">Zamanlama Oyunu</span>
           </div>
-          <div className="bg-green-100 px-3 py-1 rounded-full">
-            <span className="font-semibold text-green-800">Hedef: 50 puan</span>
           </div>
         </div>
-      </div>
 
       {/* Game Won Modal */}
       {gameCompleted && wonCoupon && (
@@ -179,7 +138,7 @@ function SnakeGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[] 
               Tebrikler! 🎉
             </h3>
             <p className="text-gray-600 mb-6">
-              Oyunu başarıyla tamamladınız ve kupon kazandınız!
+              Çubuğu durdurdunuz ve kupon kazandınız!
             </p>
             
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
@@ -205,75 +164,108 @@ function SnakeGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[] 
         </div>
       )}
 
-      {/* Game Over Modal */}
-      {gameOver && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
-            <div className="text-6xl mb-4">😵</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Oyun Bitti!
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Skorunuz: {score} puan<br/>
-              Kupon kazanmak için 50 puana ulaşmanız gerekiyor.
-            </p>
-            <button
-              onClick={resetGame}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Tekrar Dene
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Game Area */}
-      <div className="bg-gray-900 rounded-lg p-4">
-        <div className="grid grid-cols-20 gap-0 w-full max-w-md mx-auto">
-          {Array.from({ length: 400 }, (_, index) => {
-            const row = Math.floor(index / 20)
-            const col = index % 20
+        <div className="bg-gray-100 rounded-lg p-6 flex-1">
+          {/* Timing Bar */}
+          <div className="relative w-full h-20 bg-gray-300 rounded-lg overflow-hidden mb-6">
+            {/* Level Zones */}
+            <div className="absolute inset-0 flex">
+              <div className="flex-1 bg-red-200 flex items-center justify-center">
+                <span className="text-red-800 font-bold">🥉 Bronz</span>
+              </div>
+              <div className="w-1/4 bg-yellow-200 flex items-center justify-center">
+                <span className="text-yellow-800 font-bold">🥈 Gümüş</span>
+              </div>
+              <div className="w-1/5 bg-green-200 flex items-center justify-center">
+                <span className="text-green-800 font-bold">🥇 Altın</span>
+              </div>
+              <div className="w-1/4 bg-yellow-200 flex items-center justify-center">
+                <span className="text-yellow-800 font-bold">🥈 Gümüş</span>
+              </div>
+              <div className="flex-1 bg-red-200 flex items-center justify-center">
+                <span className="text-red-800 font-bold">🥉 Bronz</span>
+              </div>
+            </div>
             
-            let cellClass = "w-4 h-4 border border-gray-700"
+            {/* Moving Bar */}
+            <div 
+              className="absolute top-0 w-2 h-full bg-indigo-600 transition-all duration-75"
+              style={{ left: `${barPosition}%` }}
+            />
+          </div>
+          
+          <div className="text-center space-y-4">
+            {!gameRunning && !gameCompleted && (
+              <div>
+                <button
+                  onClick={startGame}
+                  className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Oyunu Başlat
+                </button>
+                <p className="text-gray-600 text-sm mt-2">
+                  Çubuğu tam ortada durdurmaya çalışın
+                </p>
+              </div>
+            )}
             
-            // Snake body
-            if (snake.some(segment => segment[0] === row && segment[1] === col)) {
-              cellClass += " bg-green-500"
-            }
-            // Food
-            else if (food[0] === row && food[1] === col) {
-              cellClass += " bg-red-500"
-            }
-            // Empty cell
-            else {
-              cellClass += " bg-gray-800"
-            }
-            
-            return <div key={index} className={cellClass}></div>
-          })}
+            {gameRunning && (
+              <div>
+                <button
+                  onClick={stopBar}
+                  className="bg-red-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-red-700 transition-colors"
+                >
+                  DURDUR!
+                </button>
+                <p className="text-gray-600 text-sm mt-2">
+                  Çubuğu durdurmak için tıklayın!
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="text-center space-y-4">
-        {!gameRunning && !gameOver && !gameCompleted && (
-          <div>
-            <button
-              onClick={startGame}
-              className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
-            >
-              Oyunu Başlat
-            </button>
-            <p className="text-gray-600 text-sm mt-2">
-              Ok tuşları ile yönlendirin
-            </p>
+      {/* Sidebar - Kupon Bilgileri */}
+      <div className="space-y-4">
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h3 className="font-semibold text-blue-900 mb-3">🎯 Kupon Seviyeleri</h3>
+          <div className="space-y-2">
+            {[1, 2, 3].map(level => {
+              const info = getLevelInfo(level)
+              const levelCoupons = coupons.filter(c => c.level === level)
+              
+              return (
+                <div key={level} className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium">{info.icon} {info.name}</span>
+                  </div>
+                  {levelCoupons.length > 0 ? (
+                    <div className="text-sm">
+                      <div className="font-semibold text-green-800">{levelCoupons[0].code}</div>
+                      <div className="text-green-700">
+                        {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">Kupon yok</div>
+                  )}
+                </div>
+              )
+            })}
           </div>
-        )}
+        </div>
         
-        {gameRunning && (
-          <p className="text-gray-600">
-            Ok tuşları ile yılanı yönlendirin. Kırmızı noktaları yakalayın!
-          </p>
-        )}
+        <div className="bg-green-50 p-4 rounded-lg">
+          <h3 className="font-semibold text-green-900 mb-2">📋 Nasıl Oynanır?</h3>
+          <ul className="text-green-800 text-sm space-y-1">
+            <li>• Çubuk sağa sola hareket eder</li>
+            <li>• Tam ortada durdurmaya çalışın</li>
+            <li>• Yeşil bölge = En iyi kupon</li>
+            <li>• Sarı bölge = Orta kupon</li>
+            <li>• Kırmızı bölge = Düşük kupon</li>
+          </ul>
+        </div>
       </div>
     </div>
   )
