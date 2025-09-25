@@ -78,7 +78,7 @@ export default function IntegrationPage() {
           <div className="bg-white p-4 rounded border border-red-200">
             <p className="text-red-700 text-sm">
               <strong>Dikkat:</strong> Burada tanımladığınız kupon kodları, kendi e-ticaret sisteminizde 
-              (WooCommerce, Shopify, OpenCart vb.) önceden oluşturulmuş ve aktif olmalıdır. 
+              (İkas,WooCommerce, Shopify, Kendi siteniz vb.) önceden oluşturulmuş ve aktif olmalıdır. 
               Aksi takdirde müşteriler kuponu kullanamaz!
             </p>
           </div>
