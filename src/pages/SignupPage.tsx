@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { GamepadIcon, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { GamepadIcon, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -48,6 +48,15 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        <div className="flex justify-start">
+          <Link
+            to="/"
+            className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Ana Sayfaya Dön
+          </Link>
+        </div>
         <div className="text-center">
           <div className="flex justify-center">
             <GamepadIcon className="h-12 w-12 text-indigo-600" />
