@@ -178,17 +178,17 @@ export default function CouponsPage() {
                 Henüz kupon oluşturmadınız
               </h3>
               <p className="text-gray-600 mb-6">
-                Oyun kazananlar için kuponlar oluşturun
+                Oyun sistemi için 3 seviyeli kupon sistemi oluşturun
               </p>
               <div className="space-y-4">
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
                 >
-                  İlk Kuponunuzu Oluşturun
+                  İlk Kuponunuzu Ekleyin
                 </button>
                 <p className="text-sm text-gray-500">
-                  Kuponlar widget'taki tüm oyunlar için geçerli olacak
+                  Her seviyeden (1, 2, 3) en az bir kupon eklemelisiniz
                 </p>
               </div>
             </div>
