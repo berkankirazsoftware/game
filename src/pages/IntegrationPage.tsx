@@ -186,7 +186,6 @@ export default function IntegrationPage() {
                   >
                     <Copy className="h-4 w-4" />
                   </button>
-                    <div className="flex space-x-3">
                 <button
                   onClick={() => window.open(generateIframeUrl(), '_blank')}
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -194,7 +193,6 @@ export default function IntegrationPage() {
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Widget'ı Önizle
                 </button>
-              </div>
                 </div>
               </div>
 
