@@ -810,14 +810,14 @@ export default function GameSelectWidget() {
   // Oyun seçildiyse oyunu göster
   if (selectedGame === 'snake') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+      <div className="w-full h-[600px] bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-2 overflow-hidden">
         <div className="w-full h-full">
           <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-              <h1 className="text-3xl font-bold mb-2">🐍 Yılan Oyunu</h1>
+              <h1 className="text-2xl font-bold mb-2">🐍 Yılan Oyunu</h1>
               <p className="text-indigo-100">Ok tuşları ile yılanı yönlendirin ve yemi toplayın</p>
             </div>
-            <div className="p-6 flex-1 overflow-auto">
+            <div className="p-4 flex-1 overflow-hidden">
               <SnakeGame onBack={() => setSelectedGame(null)} coupons={coupons} />
             </div>
           </div>
@@ -828,14 +828,14 @@ export default function GameSelectWidget() {
 
   if (selectedGame === 'memory') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+      <div className="w-full h-[600px] bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-2 overflow-hidden">
         <div className="w-full h-full">
           <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-              <h1 className="text-3xl font-bold mb-2">🧠 Hafıza Oyunu</h1>
+              <h1 className="text-2xl font-bold mb-2">🧠 Hafıza Oyunu</h1>
               <p className="text-indigo-100">Kartları çevirerek eşleşen çiftleri bulun</p>
             </div>
-            <div className="p-6 flex-1 overflow-auto">
+            <div className="p-4 flex-1 overflow-hidden">
               <MemoryGame onBack={() => setSelectedGame(null)} coupons={coupons} />
             </div>
           </div>
@@ -846,14 +846,14 @@ export default function GameSelectWidget() {
 
   if (selectedGame === 'puzzle') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+      <div className="w-full h-[600px] bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-2 overflow-hidden">
         <div className="w-full h-full">
           <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-              <h1 className="text-3xl font-bold mb-2">🧩 Puzzle Oyunu</h1>
+              <h1 className="text-2xl font-bold mb-2">🧩 Puzzle Oyunu</h1>
               <p className="text-indigo-100">Parçaları doğru yere yerleştirerek resmi tamamlayın</p>
             </div>
-            <div className="p-6 flex-1 overflow-auto">
+            <div className="p-4 flex-1 overflow-hidden">
               <PuzzleGame onBack={() => setSelectedGame(null)} coupons={coupons} />
             </div>
           </div>
@@ -864,7 +864,7 @@ export default function GameSelectWidget() {
 
   // Oyun seçim ekranı
   return (
-    <div className="w-full h-screen relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <div className="w-full h-[600px] relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
@@ -881,26 +881,28 @@ export default function GameSelectWidget() {
       <div className="w-full h-full">
         <div className="relative z-10 h-full flex flex-col">
           {/* Minimal Header */}
-          <div className="p-8">
-            <div className="text-left">
-              <h1 className="text-4xl font-bold text-white mb-2">Oyna Kazan</h1>
+          <div className="p-4">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 inline-block">
+              <h1 className="text-xl font-bold text-white">Oyna Kazan</h1>
             </div>
           </div>
 
-          <div className="flex-1 px-8 pb-8 overflow-auto">
+          <div className="flex-1 px-4 pb-4 overflow-hidden">
             {/* Kuponlar Section */}
             {coupons.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-2xl font-semibold text-white mb-6">Kuponlar</h2>
+              <div className="mb-6">
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 inline-block mb-3">
+                  <h2 className="text-lg font-semibold text-white">Kuponlar</h2>
+                </div>
                 <div className="flex flex-wrap gap-4">
                   {coupons.map((coupon) => (
-                    <div key={coupon.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-white min-w-[200px]">
+                    <div key={coupon.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 text-white min-w-[120px]">
                       <div className="text-center">
-                        <div className="text-2xl font-bold mb-1">{coupon.code}</div>
-                        <div className="text-lg text-yellow-300">
+                        <div className="text-sm font-bold mb-1">{coupon.code}</div>
+                        <div className="text-sm text-yellow-300">
                           {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
                         </div>
-                        <div className="text-sm text-white/70 mt-1">{coupon.description}</div>
+                        <div className="text-xs text-white/70 mt-1">{coupon.description}</div>
                       </div>
                     </div>
                   ))}
@@ -910,15 +912,17 @@ export default function GameSelectWidget() {
 
             {/* Oyunlar Section */}
             <div>
-              <h2 className="text-2xl font-semibold text-white mb-6">Oyunlar</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 inline-block mb-3">
+                <h2 className="text-lg font-semibold text-white">Oyunlar</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {GAMES.map((game) => (
                   <div
                     key={game.id}
                     onClick={() => setSelectedGame(game.code)}
-                    className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-500 hover:scale-105"
+                    className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-500 hover:scale-105"
                   >
-                    <div className="aspect-video relative overflow-hidden">
+                    <div className="h-24 relative overflow-hidden">
                       <img 
                         src={game.image} 
                         alt={game.name}
@@ -926,14 +930,14 @@ export default function GameSelectWidget() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                          <Play className="h-8 w-8 text-white" />
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                          <Play className="h-4 w-4 text-white" />
                         </div>
                       </div>
                     </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-white mb-2">{game.name}</h3>
-                      <p className="text-white/70 text-sm">{game.description}</p>
+                    <div className="p-3">
+                      <h3 className="text-sm font-bold text-white mb-1">{game.name}</h3>
+                      <p className="text-white/70 text-xs">{game.description}</p>
                     </div>
                   </div>
                 ))}
