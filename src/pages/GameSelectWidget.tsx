@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { GamepadIcon, Play, Gift, RotateCcw, Trophy, Star, ArrowLeft } from 'lucide-react'
+import { Play, Gift, RotateCcw, Trophy, ArrowLeft } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
@@ -11,23 +11,23 @@ const GAMES = [
   {
     id: 'snake-game',
     name: 'Yılan Oyunu',
-    description: 'Ok tuşları ile yılanı yönlendirin ve yemi toplayın. 50 puana ulaşınca kupon kazanın!',
+    description: 'Klasik yılan oyunu',
     code: 'snake',
-    emoji: '🐍'
+    image: 'https://images.pexels.com/photos/4164418/pexels-photo-4164418.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
     id: 'puzzle-game',
-    name: 'Puzzle Oyunu', 
-    description: 'Karışık parçaları doğru yerlere yerleştirerek resmi tamamlayın. Puzzle\'ı çözünce kupon kazanın!',
+    name: 'Puzzle', 
+    description: 'Zeka oyunu',
     code: 'puzzle',
-    emoji: '🧩'
+    image: 'https://images.pexels.com/photos/3740390/pexels-photo-3740390.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
     id: 'memory-game', 
-    name: 'Hafıza Oyunu',
-    description: 'Kartları çevirerek eşleşen çiftleri bulun. Tüm çiftleri eşleştirince kupon kazanın!',
+    name: 'Hafıza',
+    description: 'Kart eşleştirme',
     code: 'memory',
-    emoji: '🧠'
+    image: 'https://images.pexels.com/photos/278918/pexels-photo-278918.jpeg?auto=compress&cs=tinysrgb&w=400'
   }
 ]
 
@@ -864,101 +864,79 @@ export default function GameSelectWidget() {
 
   // Oyun seçim ekranı
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4 overflow-hidden">
+    <div className="w-full h-screen relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        
+        {/* Floating particles */}
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full opacity-60 animate-float"></div>
+        <div className="absolute top-3/4 left-3/4 w-1 h-1 bg-white rounded-full opacity-40 animate-float animation-delay-1000"></div>
+        <div className="absolute top-1/2 right-1/4 w-3 h-3 bg-white rounded-full opacity-30 animate-float animation-delay-3000"></div>
+        <div className="absolute bottom-1/4 left-1/2 w-2 h-2 bg-white rounded-full opacity-50 animate-float animation-delay-2000"></div>
+      </div>
+      
       <div className="w-full h-full">
-        <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white text-center">
-            <h1 className="text-3xl font-bold mb-2">🎮 Oyun Oyna, Kupon Kazan!</h1>
-            <p className="text-indigo-100">
-              Oyun oynayarak özel indirim kuponları kazanın
-            </p>
+        <div className="relative z-10 h-full flex flex-col">
+          {/* Minimal Header */}
+          <div className="p-8">
+            <div className="text-left">
+              <h1 className="text-4xl font-bold text-white mb-2">Oyna Kazan</h1>
+            </div>
           </div>
 
-          <div className="p-6 flex-1 overflow-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Oynamak İstediğiniz Oyunu Seçin
-              </h2>
-              <p className="text-gray-600">
-                Her oyunu başarıyla tamamladığınızda özel kuponlar kazanacaksınız
-              </p>
-            </div>
-
-            {/* Games Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {GAMES.map((game) => (
-                <div
-                  key={game.id}
-                  className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-xl p-6 hover:border-indigo-300 hover:shadow-xl hover:scale-105 transition-all duration-300"
-                >
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">{game.emoji}</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">
-                      {game.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                      {game.description}
-                    </p>
-                    <button
-                      onClick={() => setSelectedGame(game.code)}
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
-                    >
-                      <Play className="h-5 w-5 mr-2" />
-                      Oyunu Başlat
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Available Coupons */}
+          <div className="flex-1 px-8 pb-8 overflow-auto">
+            {/* Kuponlar Section */}
             {coupons.length > 0 && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-6 rounded-xl mb-6">
-                <h3 className="text-xl font-bold text-green-900 mb-4 flex items-center justify-center">
-                  <Gift className="h-6 w-6 mr-2" />
-                  Kazanabileceğiniz Kuponlar
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="mb-12">
+                <h2 className="text-2xl font-semibold text-white mb-6">Kuponlar</h2>
+                <div className="flex flex-wrap gap-4">
                   {coupons.map((coupon) => (
-                    <div key={coupon.id} className="bg-white p-4 rounded-xl border border-green-200 text-center shadow-sm hover:shadow-md transition-shadow">
-                      <div className="font-bold text-green-800 text-lg">{coupon.code}</div>
-                      <div className="text-green-700 font-semibold">
-                        {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value} İndirim
+                    <div key={coupon.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-white min-w-[200px]">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold mb-1">{coupon.code}</div>
+                        <div className="text-lg text-yellow-300">
+                          {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
+                        </div>
+                        <div className="text-sm text-white/70 mt-1">{coupon.description}</div>
                       </div>
-                      <div className="text-green-600 text-sm mt-1">{coupon.description}</div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl">
-              <h3 className="text-lg font-semibold text-blue-900 mb-3">
-                🎯 Nasıl Çalışır?
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-800">
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
-                    <span>Yukarıdaki oyunlardan birini seçin</span>
+            {/* Oyunlar Section */}
+            <div>
+              <h2 className="text-2xl font-semibold text-white mb-6">Oyunlar</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {GAMES.map((game) => (
+                  <div
+                    key={game.id}
+                    onClick={() => setSelectedGame(game.code)}
+                    className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-500 hover:scale-105"
+                  >
+                    <div className="aspect-video relative overflow-hidden">
+                      <img 
+                        src={game.image} 
+                        alt={game.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                          <Play className="h-8 w-8 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-white mb-2">{game.name}</h3>
+                      <p className="text-white/70 text-sm">{game.description}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
-                    <span>Oyunu başarıyla tamamlayın</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
-                    <span>Rastgele kupon kazanın</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
-                    <span>Kuponu alışverişte kullanın</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
