@@ -15,7 +15,9 @@ export default function CouponsPage() {
     code: '',
     description: '',
     discount_type: 'percentage' as 'percentage' | 'fixed',
-    discount_value: 0
+    discount_value: 0,
+    level: 1,
+    quantity: 1
   })
 
   useEffect(() => {
