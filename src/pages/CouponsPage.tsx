@@ -265,7 +265,6 @@ export default function CouponsPage() {
                         <span className={`text-xs px-2 py-1 rounded-full border ${getLevelInfo(coupon.level).color}`}>
                           {getLevelInfo(coupon.level).name}
                         </span>
-                      </div>
                       <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
                         <span>Miktar: {coupon.quantity - coupon.used_count}/{coupon.quantity}</span>
                         <span>Oluşturulma: {new Date(coupon.created_at).toLocaleDateString('tr-TR')}</span>
