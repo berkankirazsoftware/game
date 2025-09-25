@@ -575,3 +575,97 @@ function PuzzleGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     initializeGame()
   }, [])
 }
+
+export default function GameSelectWidget() {
+  const [searchParams] = useSearchParams()
+  const [selectedGame, setSelectedGame] = useState<string | null>(null)
+  const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchCoupons()
+  }, [])
+
+  const fetchCoupons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .order('level', { ascending: true })
+
+      if (error) throw error
+      setCoupons(data || [])
+    } catch (error) {
+      console.error('Error fetching coupons:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGameSelect = (gameCode: string) => {
+    setSelectedGame(gameCode)
+  }
+
+  const handleBackToSelection = () => {
+    setSelectedGame(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Yükleniyor...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedGame === 'timing') {
+    return <TimingGame onBack={handleBackToSelection} coupons={coupons} />
+  }
+
+  if (selectedGame === 'memory') {
+    return <MemoryGame onBack={handleBackToSelection} coupons={coupons} />
+  }
+
+  return (
+    <div className="h-[600px] overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
+      <div className="max-w-4xl mx-auto h-full flex flex-col">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg">
+            <h1 className="text-xl font-bold">🎮 Oyna Kazan</h1>
+          </div>
+        </div>
+
+        {/* Games Grid */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+            {GAMES.map((game) => (
+              <div
+                key={game.id}
+                onClick={() => handleGameSelect(game.code)}
+                className="bg-white rounded-xl p-4 shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 cursor-pointer group h-40 flex flex-col justify-center items-center text-center"
+              >
+                <div className="mb-3">
+                  <img 
+                    src={game.image} 
+                    alt={game.name}
+                    className="w-16 h-16 rounded-lg object-cover mx-auto shadow-md"
+                  />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-1">{game.name}</h3>
+                <p className="text-sm text-gray-600 mb-3">{game.description}</p>
+                <div className="flex items-center justify-center text-indigo-600 group-hover:text-indigo-700">
+                  <Play className="h-6 w-6 mr-2" />
+                  <span className="font-semibold">Oyna</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
