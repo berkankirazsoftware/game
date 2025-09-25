@@ -800,17 +800,17 @@ export default function GameSelectWidget() {
   }
 
   // Oyun seçildiyse oyunu göster
-  if (selectedGame === 'snake') {
+  if (selectedGame === 'timing') {
     return (
       <div className="w-full h-[600px] bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-2 overflow-hidden">
         <div className="w-full h-full">
           <div className="bg-white rounded-lg shadow-2xl overflow-hidden h-full flex flex-col">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-              <h1 className="text-2xl font-bold mb-2">🐍 Yılan Oyunu</h1>
-              <p className="text-indigo-100">Ok tuşları ile yılanı yönlendirin ve yemi toplayın</p>
+              <h1 className="text-2xl font-bold mb-2">⏱️ Zamanlama Oyunu</h1>
+              <p className="text-indigo-100">Çubuğu tam ortada durdurmaya çalışın</p>
             </div>
             <div className="p-4 flex-1 overflow-hidden">
-              <SnakeGame onBack={() => setSelectedGame(null)} coupons={coupons} />
+              <TimingGame onBack={() => setSelectedGame(null)} coupons={coupons} />
             </div>
           </div>
         </div>
