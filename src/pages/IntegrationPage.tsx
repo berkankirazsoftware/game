@@ -186,6 +186,15 @@ export default function IntegrationPage() {
                   >
                     <Copy className="h-4 w-4" />
                   </button>
+                    <div className="flex space-x-3">
+                <button
+                  onClick={() => window.open(generateIframeUrl(), '_blank')}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Widget'ı Önizle
+                </button>
+              </div>
                 </div>
               </div>
 
@@ -204,15 +213,7 @@ export default function IntegrationPage() {
                     {copied ? <CheckCircle className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
                     {copied ? 'Kopyalandı!' : 'Kopyala'}
                   </button>
-                   <div className="flex space-x-3">
-                <button
-                  onClick={() => window.open(generateIframeUrl(), '_blank')}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Widget'ı Önizle
-                </button>
-              </div>
+                 
                 </div>
               </div>
 
