@@ -1,17 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  GamepadIcon, 
-  Check, 
-  Star, 
-  Zap, 
-  Crown, 
-  Palette,
-  BarChart3,
-  Shield,
-  Headphones,
-  Sparkles
-} from 'lucide-react'
+import { Gamepad as GamepadIcon, Check, Star, Zap, Crown, Palette, BarChart3, Shield, Headphones, Sparkles } from 'lucide-react'
 
 export default function PricingPage() {
   const plans = [

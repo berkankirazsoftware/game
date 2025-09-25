@@ -1,14 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  GamepadIcon, 
-  TrendingUp, 
-  Shield, 
-  Zap, 
-  Users, 
-  Star,
-  ArrowRight 
-} from 'lucide-react'
+import { Gamepad as GamepadIcon, TrendingUp, Shield, Zap, Users, Star, ArrowRight } from 'lucide-react'
 
 export default function LandingPage() {
   const features = [
