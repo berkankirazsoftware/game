@@ -108,7 +108,7 @@ export default function CouponsPage() {
       code: '',
       description: '',
       discount_type: 'percentage',
-      discount_value: 0,c
+      discount_value: 0,
       level: 1,
       quantity: 1
     })
