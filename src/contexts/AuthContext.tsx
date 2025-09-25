@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
 interface AuthContextType {
@@ -30,36 +30,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check if Supabase is properly configured
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-    
-    if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://placeholder.supabase.co') {
+    if (!isSupabaseConfigured) {
       setSupabaseError('Supabase yapılandırması eksik. Lütfen sağ üst köşedeki "Connect to Supabase" butonuna tıklayın.')
       setLoading(false)
       return
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    // Get initial session only if properly configured
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session error:', error)
+        // Clear any invalid session data
+        localStorage.removeItem('supabase.auth.token')
+        setSession(null)
+        setUser(null)
+      } else {
+        setSession(session)
+        setUser(session?.user ?? null)
+      }
+      setLoading(false)
+    }).catch((error) => {
+      console.error('Auth initialization error:', error)
       setLoading(false)
     })
 
-    // Listen for auth changes
+    // Listen for auth changes only if properly configured
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    if (supabaseError) {
+    if (!isSupabaseConfigured || supabaseError) {
       return { data: null, error: { message: supabaseError } }
     }
 
@@ -83,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
-    if (supabaseError) {
+    if (!isSupabaseConfigured || supabaseError) {
       return { data: null, error: { message: supabaseError } }
     }
 
@@ -91,12 +98,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    if (supabaseError) return
+    if (!isSupabaseConfigured || supabaseError) return
     await supabase.auth.signOut()
   }
 
   const resetPassword = async (email: string) => {
-    if (supabaseError) {
+    if (!isSupabaseConfigured || supabaseError) {
       return { data: null, error: { message: supabaseError } }
     }
 
