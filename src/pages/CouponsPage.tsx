@@ -305,7 +305,6 @@ export default function CouponsPage() {
                     </div>
                   </div>
                 </div>
-                      </div>
 
               ))}
             </div>
@@ -329,6 +328,7 @@ export default function CouponsPage() {
                   Kuponlar widget'taki tüm oyunlar için geçerli olacak
                 </p>
               </div>
+            </div>
           )}
         </div>
       </div>
