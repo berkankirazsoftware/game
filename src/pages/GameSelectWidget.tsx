@@ -31,7 +31,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   const [gameRunning, setGameRunning] = useState(false)
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
-  const [gameSpeed, setGameSpeed] = useState(50)
+  const [gameSpeed, setGameSpeed] = useState(30) // Daha hızlı hareket
 
   useEffect(() => {
     if (gameRunning && !gameCompleted) {
@@ -42,7 +42,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
 
   const moveBar = () => {
     setBarPosition(prev => {
-      let newPos = prev + direction * 2
+      let newPos = prev + direction * 3 // Daha hızlı hareket
       let newDir = direction
 
       if (newPos >= 100) {
@@ -66,9 +66,9 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     
     // Pozisyona göre kupon seviyesi belirle
     let level = 1
-    if (barPosition >= 40 && barPosition <= 60) {
+    if (barPosition >= 45 && barPosition <= 55) { // Altın bölge daha dar
       level = 3 // Tam orta - en iyi kupon
-    } else if (barPosition >= 25 && barPosition <= 75) {
+    } else if (barPosition >= 35 && barPosition <= 65) { // Gümüş bölge daha dar
       level = 2 // Orta bölge - orta kupon
     } else {
       level = 1 // Kenar bölgeler - düşük kupon
@@ -110,9 +110,10 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+    <div className="h-full flex flex-col">
       {/* Game Area */}
-      <div className="lg:col-span-2 space-y-4">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
       {/* Header */}
         <div className="flex items-center justify-between">
         <button
@@ -165,31 +166,31 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       )}
 
       {/* Game Area */}
-        <div className="bg-gray-100 rounded-lg p-6 flex-1">
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6 shadow-lg">
           {/* Timing Bar */}
-          <div className="relative w-full h-20 bg-gray-300 rounded-lg overflow-hidden mb-6">
+          <div className="relative w-full h-16 bg-gray-800 rounded-xl overflow-hidden mb-6 shadow-inner">
             {/* Level Zones */}
             <div className="absolute inset-0 flex">
-              <div className="flex-1 bg-red-200 flex items-center justify-center">
-                <span className="text-red-800 font-bold">🥉 Bronz</span>
+              <div className="flex-1 bg-gradient-to-r from-red-400 to-red-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">🥉</span>
               </div>
-              <div className="w-1/4 bg-yellow-200 flex items-center justify-center">
-                <span className="text-yellow-800 font-bold">🥈 Gümüş</span>
+              <div className="w-[30%] bg-gradient-to-r from-yellow-400 to-yellow-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">🥈</span>
               </div>
-              <div className="w-1/5 bg-green-200 flex items-center justify-center">
-                <span className="text-green-800 font-bold">🥇 Altın</span>
+              <div className="w-[20%] bg-gradient-to-r from-green-400 to-green-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">🥇</span>
               </div>
-              <div className="w-1/4 bg-yellow-200 flex items-center justify-center">
-                <span className="text-yellow-800 font-bold">🥈 Gümüş</span>
+              <div className="w-[30%] bg-gradient-to-r from-yellow-400 to-yellow-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">🥈</span>
               </div>
-              <div className="flex-1 bg-red-200 flex items-center justify-center">
-                <span className="text-red-800 font-bold">🥉 Bronz</span>
+              <div className="flex-1 bg-gradient-to-r from-red-400 to-red-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">🥉</span>
               </div>
             </div>
             
             {/* Moving Bar */}
             <div 
-              className="absolute top-0 w-2 h-full bg-indigo-600 transition-all duration-75"
+              className="absolute top-0 w-1 h-full bg-white shadow-lg transition-all duration-75"
               style={{ left: `${barPosition}%` }}
             />
           </div>
@@ -199,7 +200,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
               <div>
                 <button
                   onClick={startGame}
-                  className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-xl text-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   Oyunu Başlat
                 </button>
@@ -213,7 +214,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
               <div>
                 <button
                   onClick={stopBar}
-                  className="bg-red-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-red-700 transition-colors"
+                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-xl text-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg hover:shadow-xl animate-pulse"
                 >
                   DURDUR!
                 </button>
@@ -224,11 +225,12 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
             )}
           </div>
         </div>
+        </div>
       </div>
 
       {/* Sidebar - Kupon Bilgileri */}
-      <div className="space-y-4">
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="space-y-4">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl shadow-lg border border-blue-100">
           <h3 className="font-semibold text-blue-900 mb-3">🎯 Kupon Seviyeleri</h3>
           <div className="space-y-2">
             {[1, 2, 3].map(level => {
@@ -236,7 +238,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
               const levelCoupons = coupons.filter(c => c.level === level)
               
               return (
-                <div key={level} className="bg-white p-3 rounded border">
+                <div key={level} className="bg-white p-3 rounded-lg border shadow-sm">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium">{info.icon} {info.name}</span>
                   </div>
@@ -256,15 +258,16 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
           </div>
         </div>
         
-        <div className="bg-green-50 p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl shadow-lg border border-green-100">
           <h3 className="font-semibold text-green-900 mb-2">📋 Nasıl Oynanır?</h3>
           <ul className="text-green-800 text-sm space-y-1">
             <li>• Çubuk sağa sola hareket eder</li>
             <li>• Tam ortada durdurmaya çalışın</li>
-            <li>• Yeşil bölge = En iyi kupon</li>
-            <li>• Sarı bölge = Orta kupon</li>
-            <li>• Kırmızı bölge = Düşük kupon</li>
+            <li>• 🥇 Yeşil bölge = Altın kupon</li>
+            <li>• 🥈 Sarı bölge = Gümüş kupon</li>
+            <li>• 🥉 Kırmızı bölge = Bronz kupon</li>
           </ul>
+        </div>
         </div>
       </div>
     </div>
