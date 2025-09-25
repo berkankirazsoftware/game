@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Play, Gift, RotateCcw, Trophy, ArrowLeft } from 'lucide-react'
+import { Play, Gift, RotateCcw, Trophy, ArrowLeft, Clock, Brain, Zap, Target } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
@@ -9,18 +9,24 @@ type Coupon = Database['public']['Tables']['coupons']['Row']
 // Sabit oyun listesi
 const GAMES = [
   {
-    id: 'memory-game', 
-    name: 'Hafıza',
-    description: 'Kart eşleştirme',
-    code: 'memory',
-    image: 'https://images.pexels.com/photos/278918/pexels-photo-278918.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 'timing-game',
-    name: 'Zamanlama',
+    id: 'timing-game', 
+    name: 'Zamanlama Oyunu',
     description: 'Çubuğu tam ortada durdur',
     code: 'timing',
-    image: 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=400'
+    icon: Clock,
+    gradient: 'from-purple-500 to-pink-500',
+    bgGradient: 'from-purple-50 to-pink-50',
+    color: 'purple'
+  },
+  {
+    id: 'memory-game',
+    name: 'Hafıza Oyunu',
+    description: 'Kartları eşleştir',
+    code: 'memory',
+    icon: Brain,
+    gradient: 'from-blue-500 to-cyan-500',
+    bgGradient: 'from-blue-50 to-cyan-50',
+    color: 'blue'
   }
 ]
 
@@ -31,7 +37,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   const [gameRunning, setGameRunning] = useState(false)
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
-  const [gameSpeed, setGameSpeed] = useState(30) // Daha hızlı hareket
+  const [gameSpeed, setGameSpeed] = useState(25)
 
   useEffect(() => {
     if (gameRunning && !gameCompleted) {
@@ -42,7 +48,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
 
   const moveBar = () => {
     setBarPosition(prev => {
-      let newPos = prev + direction * 3 // Daha hızlı hareket
+      let newPos = prev + direction * 4
       let newDir = direction
 
       if (newPos >= 100) {
@@ -64,17 +70,15 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setGameRunning(false)
     setGameCompleted(true)
     
-    // Pozisyona göre kupon seviyesi belirle
     let level = 1
-    if (barPosition >= 45 && barPosition <= 55) { // Altın bölge daha dar
-      level = 3 // Tam orta - en iyi kupon
-    } else if (barPosition >= 35 && barPosition <= 65) { // Gümüş bölge daha dar
-      level = 2 // Orta bölge - orta kupon
+    if (barPosition >= 47 && barPosition <= 53) {
+      level = 3 // Altın bölge
+    } else if (barPosition >= 40 && barPosition <= 60) {
+      level = 2 // Gümüş bölge
     } else {
-      level = 1 // Kenar bölgeler - düşük kupon
+      level = 1 // Bronz bölge
     }
     
-    // Seviyeye göre kupon seç
     if (coupons.length > 0) {
       const levelCoupons = coupons.filter(c => c.level === level)
       const randomCoupon = levelCoupons.length > 0 
@@ -102,171 +106,203 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
 
   const getLevelInfo = (level: number) => {
     const levelData = {
-      1: { name: 'Bronz', color: 'text-yellow-600', icon: '🥉' },
-      2: { name: 'Gümüş', color: 'text-gray-600', icon: '🥈' },
-      3: { name: 'Altın', color: 'text-yellow-500', icon: '🥇' }
+      1: { name: 'Bronz', color: 'text-orange-600', bgColor: 'bg-orange-100', icon: '🥉' },
+      2: { name: 'Gümüş', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: '🥈' },
+      3: { name: 'Altın', color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: '🥇' }
     }
     return levelData[level as keyof typeof levelData]
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Game Area */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
-      {/* Header */}
-        <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center text-indigo-600 hover:text-indigo-700"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-            Oyun Seçimine Dön
-        </button>
-          <div className="text-center">
-            <div className="bg-indigo-100 px-3 py-1 rounded-full">
-              <span className="font-semibold text-indigo-800">Zamanlama Oyunu</span>
-          </div>
-          </div>
-        </div>
-
-      {/* Game Won Modal */}
-      {gameCompleted && wonCoupon && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
-            <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Tebrikler! 🎉
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Çubuğu durdurdunuz ve kupon kazandınız!
-            </p>
-            
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
-              <div className="flex items-center justify-center mb-2">
-                <Gift className="h-6 w-6 text-green-600 mr-2" />
-                <span className="text-lg font-bold text-green-800">{wonCoupon.code}</span>
-              </div>
-              <p className="text-green-700 font-medium">
-                {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
-              </p>
-              <p className="text-green-600 text-sm mt-1">
-                {wonCoupon.description}
-              </p>
+    <div className="h-[600px] bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-6 overflow-hidden">
+      <div className="max-w-6xl mx-auto h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={onBack}
+            className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-purple-600 hover:text-purple-700 border border-purple-100"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Geri Dön
+          </button>
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+            <div className="flex items-center">
+              <Clock className="h-6 w-6 mr-2" />
+              <span className="text-xl font-bold">Zamanlama Oyunu</span>
             </div>
-            
-            <button
-              onClick={resetGame}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Tekrar Oyna
-            </button>
           </div>
-        </div>
-      )}
-
-      {/* Game Area */}
-        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6 shadow-lg">
-          {/* Timing Bar */}
-          <div className="relative w-full h-16 bg-gray-800 rounded-xl overflow-hidden mb-6 shadow-inner">
-            {/* Level Zones */}
-            <div className="absolute inset-0 flex">
-              <div className="flex-1 bg-gradient-to-r from-red-400 to-red-500 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">🥉</span>
-              </div>
-              <div className="w-[30%] bg-gradient-to-r from-yellow-400 to-yellow-500 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">🥈</span>
-              </div>
-              <div className="w-[20%] bg-gradient-to-r from-green-400 to-green-500 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">🥇</span>
-              </div>
-              <div className="w-[30%] bg-gradient-to-r from-yellow-400 to-yellow-500 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">🥈</span>
-              </div>
-              <div className="flex-1 bg-gradient-to-r from-red-400 to-red-500 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">🥉</span>
-              </div>
-            </div>
-            
-            {/* Moving Bar */}
-            <div 
-              className="absolute top-0 w-1 h-full bg-white shadow-lg transition-all duration-75"
-              style={{ left: `${barPosition}%` }}
-            />
-          </div>
-          
-          <div className="text-center space-y-4">
-            {!gameRunning && !gameCompleted && (
-              <div>
-                <button
-                  onClick={startGame}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-xl text-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  Oyunu Başlat
-                </button>
-                <p className="text-gray-600 text-sm mt-2">
-                  Çubuğu tam ortada durdurmaya çalışın
-                </p>
-              </div>
-            )}
-            
-            {gameRunning && (
-              <div>
-                <button
-                  onClick={stopBar}
-                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-xl text-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg hover:shadow-xl animate-pulse"
-                >
-                  DURDUR!
-                </button>
-                <p className="text-gray-600 text-sm mt-2">
-                  Çubuğu durdurmak için tıklayın!
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+          <div className="w-24"></div>
         </div>
 
-      {/* Sidebar - Kupon Bilgileri */}
-        <div className="space-y-4">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl shadow-lg border border-blue-100">
-          <h3 className="font-semibold text-blue-900 mb-3">🎯 Kupon Seviyeleri</h3>
-          <div className="space-y-2">
-            {[1, 2, 3].map(level => {
-              const info = getLevelInfo(level)
-              const levelCoupons = coupons.filter(c => c.level === level)
+        {/* Game Won Modal */}
+        {gameCompleted && wonCoupon && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-purple-100">
+              <div className="bg-gradient-to-br from-yellow-400 to-orange-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Trophy className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Tebrikler! 🎉
+              </h3>
+              <p className="text-gray-600 mb-6 text-lg">
+                Çubuğu durdurdunuz ve kupon kazandınız!
+              </p>
               
-              return (
-                <div key={level} className="bg-white p-3 rounded-lg border shadow-sm">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium">{info.icon} {info.name}</span>
-                  </div>
-                  {levelCoupons.length > 0 ? (
-                    <div className="text-sm">
-                      <div className="font-semibold text-green-800">{levelCoupons[0].code}</div>
-                      <div className="text-green-700">
-                        {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-xs text-gray-500">Kupon yok</div>
-                  )}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl mb-6">
+                <div className="flex items-center justify-center mb-3">
+                  <Gift className="h-8 w-8 text-green-600 mr-3" />
+                  <span className="text-2xl font-bold text-green-800">{wonCoupon.code}</span>
                 </div>
-              )
-            })}
+                <p className="text-green-700 font-semibold text-lg">
+                  {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
+                </p>
+                <p className="text-green-600 mt-2">
+                  {wonCoupon.description}
+                </p>
+              </div>
+              
+              <button
+                onClick={resetGame}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+              >
+                Tekrar Oyna
+              </button>
+            </div>
           </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl shadow-lg border border-green-100">
-          <h3 className="font-semibold text-green-900 mb-2">📋 Nasıl Oynanır?</h3>
-          <ul className="text-green-800 text-sm space-y-1">
-            <li>• Çubuk sağa sola hareket eder</li>
-            <li>• Tam ortada durdurmaya çalışın</li>
-            <li>• 🥇 Yeşil bölge = Altın kupon</li>
-            <li>• 🥈 Sarı bölge = Gümüş kupon</li>
-            <li>• 🥉 Kırmızı bölge = Bronz kupon</li>
-          </ul>
-        </div>
+        )}
+
+        {/* Main Game Area */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Game Area */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-purple-100">
+              {/* Timing Bar Container */}
+              <div className="relative w-full h-20 bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-inner mb-8">
+                {/* Level Zones */}
+                <div className="absolute inset-0 flex">
+                  {/* Bronz Sol */}
+                  <div className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg drop-shadow-lg">🥉</span>
+                  </div>
+                  {/* Gümüş Sol */}
+                  <div className="w-[20%] bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg drop-shadow-lg">🥈</span>
+                  </div>
+                  {/* Altın Merkez */}
+                  <div className="w-[12%] bg-gradient-to-r from-yellow-400 to-yellow-500 flex items-center justify-center relative">
+                    <span className="text-white font-bold text-lg drop-shadow-lg">🥇</span>
+                    <div className="absolute inset-0 bg-yellow-300/30 animate-pulse"></div>
+                  </div>
+                  {/* Gümüş Sağ */}
+                  <div className="w-[20%] bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg drop-shadow-lg">🥈</span>
+                  </div>
+                  {/* Bronz Sağ */}
+                  <div className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg drop-shadow-lg">🥉</span>
+                  </div>
+                </div>
+                
+                {/* Moving Bar */}
+                <div 
+                  className="absolute top-0 w-2 h-full bg-gradient-to-b from-white to-gray-200 shadow-2xl transition-all duration-75 rounded-full"
+                  style={{ left: `${barPosition}%`, transform: 'translateX(-50%)' }}
+                >
+                  <div className="absolute inset-0 bg-white/50 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              
+              <div className="text-center space-y-6">
+                {!gameRunning && !gameCompleted && (
+                  <div>
+                    <button
+                      onClick={startGame}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-12 py-4 rounded-2xl text-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
+                    >
+                      <Play className="h-6 w-6 mr-3 inline" />
+                      Oyunu Başlat
+                    </button>
+                    <p className="text-gray-600 mt-4 text-lg">
+                      Çubuğu tam ortada durdurmaya çalışın!
+                    </p>
+                  </div>
+                )}
+                
+                {gameRunning && (
+                  <div>
+                    <button
+                      onClick={stopBar}
+                      className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-12 py-4 rounded-2xl text-xl font-bold hover:from-red-600 hover:to-pink-600 transition-all duration-300 shadow-xl hover:shadow-2xl animate-pulse"
+                    >
+                      <Target className="h-6 w-6 mr-3 inline" />
+                      DURDUR!
+                    </button>
+                    <p className="text-gray-600 mt-4 text-lg">
+                      Çubuğu durdurmak için tıklayın!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar - Kupon Bilgileri */}
+          <div className="space-y-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-100">
+              <h3 className="font-bold text-purple-900 mb-4 text-lg flex items-center">
+                <Gift className="h-5 w-5 mr-2" />
+                Kupon Seviyeleri
+              </h3>
+              <div className="space-y-3">
+                {[3, 2, 1].map(level => {
+                  const info = getLevelInfo(level)
+                  const levelCoupons = coupons.filter(c => c.level === level)
+                  
+                  return (
+                    <div key={level} className={`${info.bgColor} p-4 rounded-xl border-2 ${level === 3 ? 'border-yellow-300' : level === 2 ? 'border-gray-300' : 'border-orange-300'} shadow-sm`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold flex items-center">
+                          <span className="text-xl mr-2">{info.icon}</span>
+                          {info.name}
+                        </span>
+                      </div>
+                      {levelCoupons.length > 0 ? (
+                        <div className="text-sm">
+                          <div className="font-bold text-green-800">{levelCoupons[0].code}</div>
+                          <div className="text-green-700 font-semibold">
+                            {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-500">Kupon yok</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-xl border border-purple-100">
+              <h3 className="font-bold text-purple-900 mb-3 flex items-center">
+                <Zap className="h-5 w-5 mr-2" />
+                Nasıl Oynanır?
+              </h3>
+              <ul className="text-purple-800 text-sm space-y-2">
+                <li className="flex items-start">
+                  <span className="text-yellow-500 mr-2">🥇</span>
+                  <span><strong>Altın:</strong> Tam ortada durdur</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-gray-400 mr-2">🥈</span>
+                  <span><strong>Gümüş:</strong> Orta bölgede durdur</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-orange-500 mr-2">🥉</span>
+                  <span><strong>Bronz:</strong> Kenar bölgelerde</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -291,9 +327,8 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
 
   const initializeGame = () => {
     const gameCards: Array<{id: number, symbol: string, isFlipped: boolean, isMatched: boolean}> = []
-    const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5).slice(0, 6) // 6 çift = 12 kart
+    const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5).slice(0, 6)
     
-    // Her sembolden 2 tane oluştur
     shuffledSymbols.forEach((symbol, index) => {
       gameCards.push(
         { id: index * 2, symbol, isFlipped: false, isMatched: false },
@@ -301,7 +336,6 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       )
     })
     
-    // Kartları karıştır
     const shuffledCards = gameCards.sort(() => Math.random() - 0.5)
     setCards(shuffledCards)
   }
@@ -315,7 +349,6 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     const newFlippedCards = [...flippedCards, cardId]
     setFlippedCards(newFlippedCards)
     
-    // Kartı çevir
     setCards(prev => prev.map(c => 
       c.id === cardId ? { ...c, isFlipped: true } : c
     ))
@@ -328,7 +361,6 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       const secondCard = cards.find(c => c.id === secondId)
       
       if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
-        // Eşleşme var
         setTimeout(() => {
           setCards(prev => prev.map(c => 
             c.id === firstId || c.id === secondId 
@@ -338,13 +370,11 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
           setMatchedPairs(prev => prev + 1)
           setFlippedCards([])
           
-          // Oyun tamamlandı mı kontrol et
-          if (matchedPairs + 1 === 6) { // 6 çift için güncellendi
+          if (matchedPairs + 1 === 6) {
             handleGameWin()
           }
         }, 1000)
       } else {
-        // Eşleşme yok
         setTimeout(() => {
           setCards(prev => prev.map(c => 
             c.id === firstId || c.id === secondId 
@@ -361,17 +391,15 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setGameCompleted(true)
     setGameStarted(false)
     
-    // Hamle sayısına göre kupon seviyesi belirle
     let level = 1
     if (moves <= 12) {
-      level = 3 // Altın kupon - 12 hamle veya az
-    } else if (moves <= 20) {
-      level = 2 // Gümüş kupon - 13-20 hamle
+      level = 3
+    } else if (moves <= 18) {
+      level = 2
     } else {
-      level = 1 // Bronz kupon - 20+ hamle
+      level = 1
     }
     
-    // Seviyeye göre kupon seç
     if (coupons.length > 0) {
       const levelCoupons = coupons.filter(c => c.level === level)
       const randomCoupon = levelCoupons.length > 0 
@@ -402,178 +430,192 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center text-indigo-600 hover:text-indigo-700"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Oyun Seçimine Dön
-        </button>
-        <div className="flex items-center space-x-4">
-          <div className="bg-indigo-100 px-3 py-1 rounded-full">
-            <span className="font-semibold text-indigo-800">Hamle: {moves}</span>
+    <div className="h-[600px] bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50 p-6 overflow-hidden">
+      <div className="max-w-6xl mx-auto h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={onBack}
+            className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:text-blue-700 border border-blue-100"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Geri Dön
+          </button>
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+            <div className="flex items-center">
+              <Brain className="h-6 w-6 mr-2" />
+              <span className="text-xl font-bold">Hafıza Oyunu</span>
+            </div>
           </div>
-          <div className="bg-green-100 px-3 py-1 rounded-full">
-            <span className="font-semibold text-green-800">Eşleşen: {matchedPairs}/6</span>
+          <div className="flex items-center space-x-4">
+            <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-blue-100">
+              <span className="font-bold text-blue-800">Hamle: {moves}</span>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-green-100">
+              <span className="font-bold text-green-800">Eşleşen: {matchedPairs}/6</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Game Won Modal */}
-      {gameCompleted && wonCoupon && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
-            <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Tebrikler! 🎉
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Hafıza oyununu {moves} hamlede tamamladınız ve kupon kazandınız!
-            </p>
-            
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
-              <div className="flex items-center justify-center mb-2">
-                <Gift className="h-6 w-6 text-green-600 mr-2" />
-                <span className="text-lg font-bold text-green-800">{wonCoupon.code}</span>
+        {/* Game Won Modal */}
+        {gameCompleted && wonCoupon && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-blue-100">
+              <div className="bg-gradient-to-br from-yellow-400 to-orange-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Trophy className="h-10 w-10 text-white" />
               </div>
-              <p className="text-green-700 font-medium">
-                {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Tebrikler! 🎉
+              </h3>
+              <p className="text-gray-600 mb-6 text-lg">
+                Hafıza oyununu {moves} hamlede tamamladınız!
               </p>
-              <p className="text-green-600 text-sm mt-1">
-                {wonCoupon.description}
-              </p>
+              
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl mb-6">
+                <div className="flex items-center justify-center mb-3">
+                  <Gift className="h-8 w-8 text-green-600 mr-3" />
+                  <span className="text-2xl font-bold text-green-800">{wonCoupon.code}</span>
+                </div>
+                <p className="text-green-700 font-semibold text-lg">
+                  {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
+                </p>
+                <p className="text-green-600 mt-2">
+                  {wonCoupon.description}
+                </p>
+              </div>
+              
+              <button
+                onClick={resetGame}
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+              >
+                Tekrar Oyna
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Main Game Area */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Game Area */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-blue-100">
+              <div className="grid grid-cols-4 gap-4 max-w-lg mx-auto mb-8">
+                {cards.map((card) => (
+                  <div
+                    key={card.id}
+                    onClick={() => handleCardClick(card.id)}
+                    className={`aspect-square rounded-2xl flex items-center justify-center text-2xl font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                      card.isFlipped || card.isMatched
+                        ? card.isMatched
+                          ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-200'
+                          : 'bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-blue-200'
+                        : 'bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-indigo-200'
+                    }`}
+                  >
+                    {card.isFlipped || card.isMatched ? card.symbol : '?'}
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center space-y-6">
+                {!gameStarted && !gameCompleted && (
+                  <div>
+                    <button
+                      onClick={startGame}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-12 py-4 rounded-2xl text-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
+                    >
+                      <Play className="h-6 w-6 mr-3 inline" />
+                      Oyunu Başlat
+                    </button>
+                    <p className="text-gray-600 mt-4 text-lg">
+                      Kartları çevirerek eşleşen çiftleri bulun
+                    </p>
+                  </div>
+                )}
+                
+                {gameStarted && (
+                  <div className="flex justify-center space-x-4">
+                    <p className="text-gray-600 text-lg">
+                      Kartları çevirerek eşleşen çiftleri bulun!
+                    </p>
+                    <button
+                      onClick={resetGame}
+                      className="text-blue-600 hover:text-blue-700 flex items-center font-semibold"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      Yeniden Başla
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar - Kupon Bilgileri */}
+          <div className="space-y-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-blue-100">
+              <h3 className="font-bold text-blue-900 mb-4 text-lg flex items-center">
+                <Gift className="h-5 w-5 mr-2" />
+                Kupon Seviyeleri
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { level: 3, moves: '≤12 hamle', icon: '🥇', name: 'Altın', bgColor: 'bg-yellow-100', borderColor: 'border-yellow-300' },
+                  { level: 2, moves: '13-18 hamle', icon: '🥈', name: 'Gümüş', bgColor: 'bg-gray-100', borderColor: 'border-gray-300' },
+                  { level: 1, moves: '>18 hamle', icon: '🥉', name: 'Bronz', bgColor: 'bg-orange-100', borderColor: 'border-orange-300' }
+                ].map(({ level, moves, icon, name, bgColor, borderColor }) => {
+                  const levelCoupons = coupons.filter(c => c.level === level)
+                  
+                  return (
+                    <div key={level} className={`${bgColor} p-4 rounded-xl border-2 ${borderColor} shadow-sm`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold flex items-center">
+                          <span className="text-xl mr-2">{icon}</span>
+                          {name}
+                        </span>
+                        <span className="text-xs text-gray-600 font-medium">{moves}</span>
+                      </div>
+                      {levelCoupons.length > 0 ? (
+                        <div className="text-sm">
+                          <div className="font-bold text-green-800">{levelCoupons[0].code}</div>
+                          <div className="text-green-700 font-semibold">
+                            {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-500">Kupon yok</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
             
-            <button
-              onClick={resetGame}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Tekrar Oyna
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Game Area with Sidebar */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 shadow-lg">
-            <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto">
-          {cards.map((card) => (
-            <div
-              key={card.id}
-              onClick={() => handleCardClick(card.id)}
-              className={`aspect-square rounded-xl flex items-center justify-center text-xl font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg ${
-                card.isFlipped || card.isMatched
-                  ? card.isMatched
-                    ? 'bg-gradient-to-br from-green-400 to-green-500 text-white'
-                    : 'bg-gradient-to-br from-blue-400 to-blue-500 text-white'
-                  : 'bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white'
-              }`}
-            >
-              {card.isFlipped || card.isMatched ? card.symbol : '?'}
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl shadow-xl border border-blue-100">
+              <h3 className="font-bold text-blue-900 mb-3 flex items-center">
+                <Brain className="h-5 w-5 mr-2" />
+                Nasıl Oynanır?
+              </h3>
+              <ul className="text-blue-800 text-sm space-y-2">
+                <li className="flex items-start">
+                  <span className="text-yellow-500 mr-2">🥇</span>
+                  <span><strong>Altın:</strong> 12 hamle veya az</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-gray-400 mr-2">🥈</span>
+                  <span><strong>Gümüş:</strong> 13-18 hamle</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-orange-500 mr-2">🥉</span>
+                  <span><strong>Bronz:</strong> 18+ hamle</span>
+                </li>
+              </ul>
             </div>
-          ))}
-        </div>
-
-          <div className="text-center space-y-4">
-        {!gameStarted && !gameCompleted && (
-          <div>
-            <button
-              onClick={startGame}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-xl text-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              Oyunu Başlat
-            </button>
-            <p className="text-gray-600 text-sm mt-2">
-              Kartları çevirerek eşleşen çiftleri bulun
-            </p>
-          </div>
-        )}
-        
-        {gameStarted && (
-          <div className="flex justify-center space-x-4">
-            <p className="text-gray-600">
-              Kartları çevirerek eşleşen çiftleri bulun!
-            </p>
-            <button
-              onClick={resetGame}
-              className="text-indigo-600 hover:text-indigo-700 flex items-center"
-            >
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Yeniden Başla
-            </button>
-          </div>
-        )}
-      </div>
-          </div>
-        </div>
-
-        {/* Sidebar - Kupon Bilgileri */}
-        <div className="space-y-4">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl shadow-lg border border-blue-100">
-            <h3 className="font-semibold text-blue-900 mb-3">🎯 Kupon Seviyeleri</h3>
-            <div className="space-y-2">
-              {[
-                { level: 3, moves: '≤12 hamle', icon: '🥇', name: 'Altın' },
-                { level: 2, moves: '13-20 hamle', icon: '🥈', name: 'Gümüş' },
-                { level: 1, moves: '>20 hamle', icon: '🥉', name: 'Bronz' }
-              ].map(({ level, moves, icon, name }) => {
-                const levelCoupons = coupons.filter(c => c.level === level)
-                
-                return (
-                  <div key={level} className="bg-white p-3 rounded-lg border shadow-sm">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium">{icon} {name}</span>
-                      <span className="text-xs text-gray-500">{moves}</span>
-                    </div>
-                    {levelCoupons.length > 0 ? (
-                      <div className="text-sm">
-                        <div className="font-semibold text-green-800">{levelCoupons[0].code}</div>
-                        <div className="text-green-700">
-                          {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-gray-500">Kupon yok</div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl shadow-lg border border-green-100">
-            <h3 className="font-semibold text-green-900 mb-2">📋 Nasıl Oynanır?</h3>
-            <ul className="text-green-800 text-sm space-y-1">
-              <li>• Kartlara tıklayarak çevirin</li>
-              <li>• Aynı sembolleri eşleştirin</li>
-              <li>• Az hamle = Daha iyi kupon</li>
-              <li>• 🥇 12 hamle veya az = Altın</li>
-              <li>• 🥈 13-20 hamle = Gümüş</li>
-              <li>• 🥉 20+ hamle = Bronz</li>
-            </ul>
           </div>
         </div>
       </div>
     </div>
   )
-}
-
-// Puzzle Game Component
-function PuzzleGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[] }) {
-  const [pieces, setPieces] = useState<Array<{id: number, correctPos: number, currentPos: number}>>([])
-  const [gameStarted, setGameStarted] = useState(false)
-  const [gameCompleted, setGameCompleted] = useState(false)
-  const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
-  const [moves, setMoves] = useState(0)
-
-  useEffect(() => {
-    initializeGame()
-  }, [])
 }
 
 export default function GameSelectWidget() {
@@ -612,10 +654,12 @@ export default function GameSelectWidget() {
 
   if (loading) {
     return (
-      <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
+      <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yükleniyor...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent mx-auto mb-6 shadow-lg"></div>
+          <div className="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg">
+            <p className="text-gray-700 font-semibold">Oyunlar yükleniyor...</p>
+          </div>
         </div>
       </div>
     )
@@ -630,39 +674,83 @@ export default function GameSelectWidget() {
   }
 
   return (
-    <div className="h-[600px] overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
-      <div className="max-w-4xl mx-auto h-full flex flex-col">
+    <div className="h-[600px] overflow-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-purple-200 rounded-full opacity-20 animate-blob"></div>
+        <div className="absolute top-20 right-20 w-32 h-32 bg-pink-200 rounded-full opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-20 w-24 h-24 bg-indigo-200 rounded-full opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute bottom-10 right-10 w-16 h-16 bg-cyan-200 rounded-full opacity-20 animate-blob animation-delay-1000"></div>
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto h-full flex flex-col p-6">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg">
-            <h1 className="text-xl font-bold">🎮 Oyna Kazan</h1>
+        <div className="text-center mb-8">
+          <div className="inline-block bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white px-8 py-4 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-sm">
+            <h1 className="text-3xl font-bold flex items-center justify-center">
+              <Play className="h-8 w-8 mr-3" />
+              Oyna & Kazan
+            </h1>
+            <p className="text-purple-100 mt-2">Oyun oyna, kupon kazan!</p>
           </div>
         </div>
 
         {/* Games Grid */}
         <div className="flex-1 flex items-center justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
-            {GAMES.map((game) => (
-              <div
-                key={game.id}
-                onClick={() => handleGameSelect(game.code)}
-                className="bg-white rounded-xl p-4 shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 cursor-pointer group h-40 flex flex-col justify-center items-center text-center"
-              >
-                <div className="mb-3">
-                  <img 
-                    src={game.image} 
-                    alt={game.name}
-                    className="w-16 h-16 rounded-lg object-cover mx-auto shadow-md"
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+            {GAMES.map((game) => {
+              const IconComponent = game.icon
+              return (
+                <div
+                  key={game.id}
+                  onClick={() => handleGameSelect(game.code)}
+                  className={`group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer border border-white/50 hover:scale-105 h-64 flex flex-col justify-center items-center text-center overflow-hidden`}
+                >
+                  {/* Background Gradient */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${game.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`}></div>
+                  
+                  {/* Glow Effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${game.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-3xl blur-xl`}></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className={`mb-6 p-6 rounded-full bg-gradient-to-br ${game.gradient} shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+                      <IconComponent className="h-12 w-12 text-white" />
+                    </div>
+                    
+                    <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-gray-900 transition-colors duration-300">
+                      {game.name}
+                    </h3>
+                    
+                    <p className="text-gray-600 mb-6 text-lg group-hover:text-gray-700 transition-colors duration-300">
+                      {game.description}
+                    </p>
+                    
+                    <div className={`inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r ${game.gradient} text-white rounded-2xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                      <Play className="h-5 w-5 mr-2" />
+                      <span>Oyna</span>
+                    </div>
+                  </div>
+
+                  {/* Floating Elements */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                  </div>
+                  <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-1">{game.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{game.description}</p>
-                <div className="flex items-center justify-center text-indigo-600 group-hover:text-indigo-700">
-                  <Play className="h-6 w-6 mr-2" />
-                  <span className="font-semibold">Oyna</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <div className="inline-block bg-white/60 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg border border-white/30">
+            <p className="text-gray-600 font-medium">
+              🎯 Oyun oyna, performansına göre kupon kazan!
+            </p>
           </div>
         </div>
       </div>
