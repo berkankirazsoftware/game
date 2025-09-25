@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { 
-  Gift, 
-  Plus, 
-  Trash2, 
-  Edit3,
-  Check,
-  X
-} from 'lucide-react'
+import { Gift, Plus, Trash2, CreditCard as Edit3, Check, X } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { GamepadIcon, TrendingUp, Users, Gift, Plus, Code } from 'lucide-react'
+import { Gamepad as GamepadIcon, TrendingUp, Users, Gift, Plus, Code } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Game = Database['public']['Tables']['games']['Row']

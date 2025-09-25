@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LogOut, Home, Settings, GamepadIcon, Gift, Code } from 'lucide-react'
+import { LogOut, Home, Settings, Gamepad as GamepadIcon, Gift, Code } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
