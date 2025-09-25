@@ -78,7 +78,7 @@ export default function IntegrationPage() {
           <div className="bg-white p-4 rounded border border-red-200">
             <p className="text-red-700 text-sm">
               <strong>Dikkat:</strong> Burada tanımladığınız kupon kodları, kendi e-ticaret sisteminizde 
-              (İkas,WooCommerce, Shopify, Kendi siteniz vb.) önceden oluşturulmuş ve aktif olmalıdır. 
+              (İkas, WooCommerce, Shopify, Kendi siteniz vb.) önceden oluşturulmuş ve aktif olmalıdır. 
               Aksi takdirde müşteriler kuponu kullanamaz!
             </p>
           </div>
@@ -204,11 +204,7 @@ export default function IntegrationPage() {
                     {copied ? <CheckCircle className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
                     {copied ? 'Kopyalandı!' : 'Kopyala'}
                   </button>
-                </div>
-              </div>
-
-
-              <div className="flex space-x-3">
+                   <div className="flex space-x-3">
                 <button
                   onClick={() => window.open(generateIframeUrl(), '_blank')}
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -217,6 +213,11 @@ export default function IntegrationPage() {
                   Widget'ı Önizle
                 </button>
               </div>
+                </div>
+              </div>
+
+
+             
 
               <div className="bg-indigo-50 p-6 rounded-lg">
                 <h4 className="font-semibold text-indigo-800 mb-4">📝 Entegrasyon Rehberi</h4>
