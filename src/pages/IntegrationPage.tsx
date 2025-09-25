@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, ExternalLink, CheckCircle, Plus, Gamepad as GamepadIcon } from 'lucide-react'
+import { Copy, ExternalLink, CheckCircle, Plus, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Database } from '../lib/supabase'
 
@@ -10,6 +10,7 @@ type Coupon = Database['public']['Tables']['coupons']['Row']
 export default function IntegrationPage() {
   const { user } = useAuth()
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [levelCounts, setLevelCounts] = useState({ 1: 0, 2: 0, 3: 0 })
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -28,11 +29,18 @@ export default function IntegrationPage() {
     
     if (data) {
       setCoupons(data)
+      
+      // Level sayılarını hesapla
+      const counts = { 1: 0, 2: 0, 3: 0 }
+      data.forEach(coupon => {
+        counts[coupon.level as keyof typeof counts]++
+      })
+      setLevelCounts(counts)
     }
   }
 
   const generateIframeUrl = () => {
-    const baseUrl = 'https://berkankirazsoftware-8isq.bolt.host'
+    const baseUrl = window.location.origin
     return `${baseUrl}/game-widget?userId=${user?.id}`
   }
 
@@ -53,6 +61,23 @@ export default function IntegrationPage() {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const getWidgetStatus = () => {
+    const missingLevels = [1, 2, 3].filter(level => levelCounts[level as keyof typeof levelCounts] === 0)
+    const hasAllLevels = missingLevels.length === 0
+    const totalCoupons = Object.values(levelCounts).reduce((sum, count) => sum + count, 0)
+    const availableCoupons = coupons.filter(coupon => coupon.quantity > coupon.used_count).length
+    
+    return {
+      hasAllLevels,
+      missingLevels,
+      totalCoupons,
+      availableCoupons,
+      isReady: hasAllLevels && availableCoupons > 0
+    }
+  }
+
+  const widgetStatus = getWidgetStatus()
 
   return (
     <div className="space-y-8">
@@ -164,10 +189,41 @@ export default function IntegrationPage() {
 
       <div className="grid grid-cols-1 gap-8">
         {/* Integration Code - Only show if coupons exist */}
-        {coupons.length > 0 ? (
+        {widgetStatus.totalCoupons > 0 ? (
           <div className="bg-white p-8 rounded-lg shadow-sm border">
             <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">🔧 Widget Entegrasyon Kodu</h3>
             
+            {/* Widget Status Check */}
+            <div className="mb-6">
+              {widgetStatus.isReady ? (
+                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                  <div className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                    <span className="font-semibold text-green-800">Widget Hazır! ✅</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Tüm seviyeler tamamlandı ve kuponlar mevcut. Widget kullanıma hazır.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+                    <span className="font-semibold text-red-800">Widget Hazır Değil! ❌</span>
+                  </div>
+                  <div className="text-red-700 text-sm space-y-1">
+                    {!widgetStatus.hasAllLevels && (
+                      <p>• Eksik seviyeler: {widgetStatus.missingLevels.map(level => `Level ${level}`).join(', ')}</p>
+                    )}
+                    {widgetStatus.availableCoupons === 0 && widgetStatus.hasAllLevels && (
+                      <p>• Tüm kuponların stoku tükendi. Yeni kuponlar ekleyin veya miktarları artırın.</p>
+                    )}
+                    <p className="font-medium">Widget test edildiğinde "Widget Hazır Değil" mesajı gösterecektir.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -193,6 +249,12 @@ export default function IntegrationPage() {
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Widget'ı Önizle
                 </button>
+                {!widgetStatus.isReady && (
+                  <div className="mt-2 text-sm text-red-600">
+                    ⚠️ Test ettiğinizde "Widget Hazır Değil" mesajı göreceksiniz. 
+                    Önce tüm seviyelerde kupon tanımlayın.
+                  </div>
+                )}
                 </div>
               </div>
 
@@ -239,9 +301,12 @@ export default function IntegrationPage() {
                 </div>
                 <div className="mt-6 bg-yellow-100 border border-yellow-300 p-4 rounded">
                   <h4 className="font-semibold text-yellow-800 mb-1">⚠️ Sorun Giderme:</h4>
-                  <p className="text-yellow-700 text-sm">
-                    Eğer iframe "Widget Hazır Değil" gösteriyorsa, 3 seviyenin tamamında kupon tanımladığınızdan emin olun.
-                  </p>
+                  <div className="text-yellow-700 text-sm space-y-1">
+                    <p>• <strong>"Widget Hazır Değil" hatası:</strong> 3 seviyenin tamamında kupon tanımladığınızdan emin olun</p>
+                    <p>• <strong>"Kupon bulunamadı" hatası:</strong> Kupon stoklarının tükenmediğini kontrol edin</p>
+                    <p>• <strong>Widget yüklenmiyor:</strong> User ID'nin doğru olduğundan emin olun</p>
+                    <p>• <strong>Kupon kodu çalışmıyor:</strong> Kupon kodlarının kendi e-ticaret sisteminizde tanımlı olduğunu kontrol edin</p>
+                  </div>
                 </div>
               </div>
             </div>
