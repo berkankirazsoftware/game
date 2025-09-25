@@ -888,41 +888,16 @@ export default function GameSelectWidget() {
           </div>
 
           <div className="flex-1 px-4 pb-4 overflow-hidden">
-            {/* Kuponlar Section */}
-            {coupons.length > 0 && (
-              <div className="mb-6">
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 inline-block mb-3">
-                  <h2 className="text-lg font-semibold text-white">Kuponlar</h2>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  {coupons.map((coupon) => (
-                    <div key={coupon.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 text-white min-w-[120px]">
-                      <div className="text-center">
-                        <div className="text-sm font-bold mb-1">{coupon.code}</div>
-                        <div className="text-sm text-yellow-300">
-                          {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
-                        </div>
-                        <div className="text-xs text-white/70 mt-1">{coupon.description}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Oyunlar Section */}
-            <div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 inline-block mb-3">
-                <h2 className="text-lg font-semibold text-white">Oyunlar</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Oyunlar */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
                 {GAMES.map((game) => (
                   <div
                     key={game.id}
                     onClick={() => setSelectedGame(game.code)}
-                    className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-500 hover:scale-105"
+                    className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden cursor-pointer hover:bg-white/20 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/50"
                   >
-                    <div className="h-24 relative overflow-hidden">
+                    <div className="h-40 relative overflow-hidden">
                       <img 
                         src={game.image} 
                         alt={game.name}
@@ -930,14 +905,14 @@ export default function GameSelectWidget() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
-                          <Play className="h-4 w-4 text-white" />
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 shadow-lg shadow-white/20">
+                          <Play className="h-6 w-6 text-white" />
                         </div>
                       </div>
                     </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-bold text-white mb-1">{game.name}</h3>
-                      <p className="text-white/70 text-xs">{game.description}</p>
+                    <div className="p-4">
+                      <h3 className="text-lg font-bold text-white mb-2">{game.name}</h3>
+                      <p className="text-white/70 text-sm">{game.description}</p>
                     </div>
                   </div>
                 ))}
