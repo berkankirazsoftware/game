@@ -63,75 +63,126 @@ export default function IntegrationPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Integration Info */}
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Entegrasyon Bilgileri</h3>
-            
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Mevcut Oyunlar (2)</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center text-blue-800">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                    🐍 Yılan Oyunu
-                  </div>
-                  <div className="flex items-center text-blue-800">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                    🧠 Hafıza Oyunu
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">Mevcut Kuponlar ({coupons.length})</h4>
-                <div className="space-y-2">
-                  {coupons.length > 0 ? coupons.map((coupon) => (
-                    <div key={coupon.id} className="flex items-center justify-between text-green-800">
-                      <span className="font-medium">{coupon.code}</span>
-                      <span className="text-sm">
-                        {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
-                      </span>
-                    </div>
-                  )) : (
-                    <div className="text-center py-4">
-                      <p className="text-green-700 text-sm mb-3">Henüz kupon eklenmemiş</p>
-                      <p className="text-green-600 text-xs">Kuponlar sayfasından kupon ekleyin</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Nasıl Çalışır?</h3>
-            <div className="space-y-3 text-sm text-gray-600">
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</div>
-                <p>Müşteriler iframe'den mevcut oyunları görür</p>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</div>
-                <p>Oyun seçip başarıyla tamamlar</p>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">3</div>
-                <p>Rastgele kupon kazanır</p>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">4</div>
-                <p>Kuponu e-ticaret sitenizde kullanır</p>
-              </div>
-            </div>
+      {/* Nasıl Çalışır Açıklaması */}
+      <div className="bg-white p-8 rounded-lg shadow-sm border mb-8">
+        <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">🎯 Sistem Nasıl Çalışır?</h3>
+        
+        <div className="bg-red-50 border border-red-200 p-6 rounded-lg mb-6">
+          <h4 className="font-bold text-red-900 mb-3 flex items-center">
+            ⚠️ ÖNEMLİ: İlk Adım - Kuponları Tanımlayın
+          </h4>
+          <p className="text-red-800 mb-3">
+            Widget'ı kullanmadan önce <strong>mutlaka 3 seviyenin tamamında kupon tanımlamalısınız</strong>. 
+            Bu kuponlar sizin e-ticaret sisteminizde geçerli olan kuponlar olmalıdır.
+          </p>
+          <div className="bg-white p-4 rounded border border-red-200">
+            <p className="text-red-700 text-sm">
+              <strong>Dikkat:</strong> Burada tanımladığınız kupon kodları, kendi e-ticaret sisteminizde 
+              (WooCommerce, Shopify, OpenCart vb.) önceden oluşturulmuş ve aktif olmalıdır. 
+              Aksi takdirde müşteriler kuponu kullanamaz!
+            </p>
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">📋 Adım Adım Süreç</h4>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">1</div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Kuponları Tanımlayın</h5>
+                  <p className="text-gray-600 text-sm">3 seviyede kupon oluşturun (Level 1, 2, 3). Bu kuponlar kendi sisteminizde mevcut olmalı.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">2</div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Widget'ı Sitenize Ekleyin</h5>
+                  <p className="text-gray-600 text-sm">Aşağıdaki iframe kodunu kopyalayıp sitenizin istediğiniz yerine yapıştırın.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">3</div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Müşteriler Oyun Oynar</h5>
+                  <p className="text-gray-600 text-sm">Müşterileriniz widget'tan oyun seçer ve oynar.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">4</div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Başarıya Göre Kupon Verilir</h5>
+                  <p className="text-gray-600 text-sm">Oyun başarısına göre Level 1, 2 veya 3 kuponlarından biri verilir.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">5</div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Kupon Kullanılır</h5>
+                  <p className="text-gray-600 text-sm">Müşteri kuponu alışveriş sırasında kullanır ve indirim kazanır.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">🎮 Oyun ve Kupon Sistemi</h4>
+            
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h5 className="font-semibold text-purple-900 mb-2">Mevcut Oyunlar</h5>
+              <div className="space-y-2 text-purple-800">
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🐍</span>
+                  <span>Yılan Oyunu - Klasik arcade oyunu</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🧠</span>
+                  <span>Hafıza Oyunu - Kart eşleştirme</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🧩</span>
+                  <span>Puzzle Oyunu - Parça yerleştirme</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <h5 className="font-semibold text-yellow-900 mb-2">Kupon Seviyeleri</h5>
+              <div className="space-y-2 text-yellow-800 text-sm">
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🥉</span>
+                  <span><strong>Level 1:</strong> Az başarılı oyunculara (düşük skor)</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🥈</span>
+                  <span><strong>Level 2:</strong> Orta başarılı oyunculara (orta skor)</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🥇</span>
+                  <span><strong>Level 3:</strong> Çok başarılı oyunculara (yüksek skor)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h5 className="font-semibold text-green-900 mb-2">💡 Önemli Notlar</h5>
+              <ul className="text-green-800 text-sm space-y-1">
+                <li>• Kuponlar otomatik olarak oyun başarısına göre verilir</li>
+                <li>• Her kuponun stok miktarı vardır</li>
+                <li>• Stok bitince o kupon verilemez</li>
+                <li>• Kupon kodları kendi sisteminizde geçerli olmalı</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8">
         {/* Integration Code - Only show if coupons exist */}
         {coupons.length > 0 ? (
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Entegrasyon Kodu</h3>
+          <div className="bg-white p-8 rounded-lg shadow-sm border">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">🔧 Widget Entegrasyon Kodu</h3>
             
             <div className="space-y-4">
               <div>
@@ -183,10 +234,11 @@ export default function IntegrationPage() {
                 </button>
               </div>
 
-              <div className="bg-indigo-50 p-4 rounded-lg">
+              <div className="bg-indigo-50 p-6 rounded-lg">
+                <h4 className="font-semibold text-indigo-800 mb-4">📝 Entegrasyon Rehberi</h4>
                 <div>
                   <h4 className="font-semibold text-indigo-800 mb-2">WordPress için:</h4>
-                  <ol className="text-indigo-700 space-y-1 text-sm">
+                  <ol className="text-indigo-700 space-y-2 text-sm">
                     <li>1. Sayfa/yazı düzenleyicisini açın</li>
                     <li>2. HTML bloğu ekleyin</li>
                     <li>3. iframe kodunu yapıştırın</li>
@@ -195,37 +247,40 @@ export default function IntegrationPage() {
                 </div>
                 <div className="mt-4">
                   <h4 className="font-semibold text-indigo-800 mb-2">Diğer Platformlar için:</h4>
-                  <ol className="text-indigo-700 space-y-1 text-sm">
+                  <ol className="text-indigo-700 space-y-2 text-sm">
                     <li>1. HTML düzenleme moduna geçin</li>
                     <li>2. iframe kodunu istediğiniz yere yapıştırın</li>
                     <li>3. Değişiklikleri kaydedin ve yayınlayın</li>
                   </ol>
                 </div>
-                <div className="mt-4 bg-yellow-100 border border-yellow-300 p-3 rounded">
+                <div className="mt-6 bg-yellow-100 border border-yellow-300 p-4 rounded">
                   <h4 className="font-semibold text-yellow-800 mb-1">⚠️ Sorun Giderme:</h4>
                   <p className="text-yellow-700 text-sm">
-                    Eğer iframe "Widget Hazır Değil" gösteriyorsa, tarayıcı konsolunu açıp hata mesajlarını kontrol edin.
+                    Eğer iframe "Widget Hazır Değil" gösteriyorsa, 3 seviyenin tamamında kupon tanımladığınızdan emin olun.
                   </p>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="bg-white p-8 rounded-lg shadow-sm border">
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎮</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 Widget Hazır Değil
               </h3>
-              <p className="text-gray-600 mb-6">
-                Widget'ı kullanabilmek için önce kupon eklemelisiniz
+              <p className="text-gray-600 mb-4">
+                Widget'ı kullanabilmek için önce <strong>3 seviyenin tamamında kupon</strong> eklemelisiniz
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                Level 1, Level 2 ve Level 3 kuponlarının hepsini tanımlamalısınız
               </p>
               <Link
                 to="/coupons"
-                className="inline-flex items-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                İlk Kuponunuzu Ekleyin
+                Kuponları Tanımlamaya Başlayın
               </Link>
             </div>
           </div>
