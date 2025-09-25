@@ -13,6 +13,7 @@ import SnakeGame from './pages/SnakeGame'
 import IntegrationPage from './pages/IntegrationPage'
 import GameSelectWidget from './pages/GameSelectWidget'
 import MemoryGame from './pages/MemoryGame'
+import PricingPage from './pages/PricingPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
