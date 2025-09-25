@@ -3,18 +3,26 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
 
+console.log('Environment variables:', {
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+})
+
 // Check if we have valid Supabase configuration
 const isValidConfig = supabaseUrl && 
   supabaseKey && 
   supabaseUrl !== 'https://placeholder.supabase.co' && 
-  supabaseUrl !== 'https://lecnzfazipzwkzgyptux.supabase.co' &&
   supabaseKey !== 'placeholder-key' &&
-  !supabaseKey.includes('placeholder')
+  !supabaseKey.includes('placeholder') &&
+  supabaseUrl.includes('.supabase.co') &&
+  supabaseKey.startsWith('eyJ')
 
 console.log('Supabase config:', { 
   url: supabaseUrl, 
   hasKey: !!supabaseKey, 
-  isValid: isValidConfig 
+  isValid: isValidConfig,
+  urlValid: supabaseUrl.includes('.supabase.co'),
+  keyValid: supabaseKey.startsWith('eyJ')
 })
 // Create Supabase client with proper configuration
 export const supabase = isValidConfig
