@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { GamepadIcon, Loader2, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Gamepad as GamepadIcon, Loader2, CheckCircle, ArrowLeft } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')

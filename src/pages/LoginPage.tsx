@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { GamepadIcon, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
+import { Gamepad as GamepadIcon, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
