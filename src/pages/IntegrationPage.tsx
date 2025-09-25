@@ -188,7 +188,7 @@ export default function IntegrationPage() {
                   </button>
                 <button
                   onClick={() => window.open(generateIframeUrl(), '_blank')}
-                  className="flex md items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="flex ml-3 items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Widget'ı Önizle
