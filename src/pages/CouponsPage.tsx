@@ -9,6 +9,7 @@ type Coupon = Database['public']['Tables']['coupons']['Row']
 export default function CouponsPage() {
   const { user } = useAuth()
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [levelCounts, setLevelCounts] = useState({ 1: 0, 2: 0, 3: 0 })
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null)
   const [couponForm, setCouponForm] = useState({
@@ -35,6 +36,13 @@ export default function CouponsPage() {
     
     if (data) {
       setCoupons(data)
+      
+      // Level sayılarını hesapla
+      const counts = { 1: 0, 2: 0, 3: 0 }
+      data.forEach(coupon => {
+        counts[coupon.level as keyof typeof counts]++
+      })
+      setLevelCounts(counts)
     }
   }
 
@@ -101,12 +109,42 @@ export default function CouponsPage() {
       description: '',
       discount_type: 'percentage',
       discount_value: 0
+      level: 1,
+      quantity: 1
     })
   }
 
   const cancelEdit = () => {
     setEditingCoupon(null)
     resetForm()
+  }
+
+  const getLevelInfo = (level: number) => {
+    const levelData = {
+      1: {
+        name: 'Level 1 - Başlangıç',
+        description: 'Az başarılı oyunculara verilir',
+        color: 'bg-red-100 text-red-800 border-red-200',
+        icon: '🥉'
+      },
+      2: {
+        name: 'Level 2 - Orta',
+        description: 'Orta başarılı oyunculara verilir',
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        icon: '🥈'
+      },
+      3: {
+        name: 'Level 3 - Uzman',
+        description: 'Çok başarılı oyunculara verilir',
+        color: 'bg-green-100 text-green-800 border-green-200',
+        icon: '🥇'
+      }
+    }
+    return levelData[level as keyof typeof levelData]
+  }
+
+  const canAddLevel = (level: number) => {
+    return levelCounts[level as keyof typeof levelCounts] === 0
   }
 
   return (
@@ -125,6 +163,88 @@ export default function CouponsPage() {
         </button>
       </div>
 
+      {/* Level Açıklaması */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4">
+          🎯 Kupon Seviyeleri Nasıl Çalışır?
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {[1, 2, 3].map(level => {
+            const info = getLevelInfo(level)
+            const hasLevel = levelCounts[level as keyof typeof levelCounts] > 0
+            return (
+              <div key={level} className={`p-4 rounded-lg border-2 ${info.color}`}>
+                <div className="flex items-center mb-2">
+                  <span className="text-2xl mr-2">{info.icon}</span>
+                  <h4 className="font-semibold">{info.name}</h4>
+                </div>
+                <p className="text-sm mb-2">{info.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">
+                    {hasLevel ? '✅ Kupon Mevcut' : '❌ Kupon Gerekli'}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <div className="bg-white p-4 rounded-lg border border-blue-200">
+          <h4 className="font-semibold text-blue-900 mb-2">📋 Önemli Kurallar:</h4>
+          <ul className="text-blue-800 text-sm space-y-1">
+            <li>• Her seviyeden <strong>sadece 1 kupon</strong> ekleyebilirsiniz</li>
+            <li>• Widget'ın çalışması için <strong>3 seviyenin de</strong> kuponları olmalı</li>
+            <li>• Oyuncu başarısına göre otomatik seviye seçimi yapılır</li>
+            <li>• Kupon miktarı bitince o seviye için yeni kupon verilemez</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Progress Göstergesi */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          📊 Kupon Durumu ({Object.values(levelCounts).filter(count => count > 0).length}/3 Seviye Tamamlandı)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map(level => {
+            const info = getLevelInfo(level)
+            const hasLevel = levelCounts[level as keyof typeof levelCounts] > 0
+            const coupon = coupons.find(c => c.level === level)
+            
+            return (
+              <div key={level} className={`p-4 rounded-lg border-2 ${hasLevel ? info.color : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <span className="text-xl mr-2">{hasLevel ? info.icon : '⚪'}</span>
+                    <span className="font-medium text-sm">{info.name}</span>
+                  </div>
+                  {hasLevel && (
+                    <span className="text-xs px-2 py-1 bg-white rounded-full">
+                      {coupon?.quantity} adet
+                    </span>
+                  )}
+                </div>
+                {hasLevel && coupon ? (
+                  <div className="text-xs">
+                    <div className="font-medium">{coupon.code}</div>
+                    <div className="text-gray-600">{coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}</div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-500">Kupon eklenmedi</div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        
+        {Object.values(levelCounts).filter(count => count > 0).length < 3 && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800 text-sm">
+              ⚠️ Widget'ın çalışması için tüm seviyelerin kuponları gerekli. 
+              Eksik seviyeler: {[1, 2, 3].filter(level => levelCounts[level as keyof typeof levelCounts] === 0).map(level => `Level ${level}`).join(', ')}
+            </p>
+          </div>
+        )}
+      </div>
       {/* Coupons List */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6">
@@ -133,13 +253,23 @@ export default function CouponsPage() {
               {coupons.map((coupon) => (
                 <div key={coupon.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
-                    <Gift className="h-8 w-8 text-green-600" />
+                    <div className="flex flex-col items-center mr-4">
+                      <Gift className="h-6 w-6 text-green-600" />
+                      <span className="text-xs mt-1 px-2 py-1 rounded-full bg-white border">
+                        {getLevelInfo(coupon.level).icon} L{coupon.level}
+                      </span>
+                    </div>
                     <div className="ml-4">
                       <h3 className="font-semibold text-gray-900">{coupon.code}</h3>
                       <p className="text-sm text-gray-600">{coupon.description}</p>
-                      <p className="text-xs text-gray-500">
-                        Oluşturulma: {new Date(coupon.created_at).toLocaleDateString('tr-TR')}
-                      </p>
+                        <span className={`text-xs px-2 py-1 rounded-full border ${getLevelInfo(coupon.level).color}`}>
+                          {getLevelInfo(coupon.level).name}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                        <span>Miktar: {coupon.quantity - coupon.used_count}/{coupon.quantity}</span>
+                        <span>Oluşturulma: {new Date(coupon.created_at).toLocaleDateString('tr-TR')}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -150,6 +280,13 @@ export default function CouponsPage() {
                       <p className="text-xs text-gray-500">
                         {coupon.discount_type === 'percentage' ? 'Yüzde' : 'Sabit'} İndirim
                       </p>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {coupon.quantity - coupon.used_count > 0 ? (
+                          <span className="text-green-600">✅ Stokta</span>
+                        ) : (
+                          <span className="text-red-600">❌ Tükendi</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex space-x-2">
                       <button
@@ -241,10 +378,19 @@ export default function CouponsPage() {
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
-                    <option value={1}>Level 1 - Başlangıç</option>
-                    <option value={2}>Level 2 - Orta</option>
-                    <option value={3}>Level 3 - Uzman</option>
+                    {[1, 2, 3].map(level => {
+                      const info = getLevelInfo(level)
+                      const canAdd = canAddLevel(level)
+                      return (
+                        <option key={level} value={level} disabled={!canAdd}>
+                          {info.icon} {info.name} {!canAdd ? '(Zaten Mevcut)' : ''}
+                        </option>
+                      )
+                    })}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {getLevelInfo(couponForm.level).description}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -382,6 +528,23 @@ export default function CouponsPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kupon Miktarı
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={couponForm.quantity}
+                  onChange={(e) => setCouponForm({ 
+                    ...couponForm, 
+                    quantity: Number(e.target.value) 
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Kaç adet kupon verilecek"
+                />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
