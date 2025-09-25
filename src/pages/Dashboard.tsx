@@ -225,29 +225,3 @@ export default function Dashboard() {
     </div>
   )
 }
-                <div className="flex items-center">
-                  <Gift className="h-8 w-8 text-green-600" />
-                  <div className="ml-3">
-                    <p className="font-medium text-gray-900">{coupon.code}</p>
-                    <p className="text-sm text-gray-500">{coupon.description}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-green-600">
-                    {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
-                  </p>
-                </div>
-              </div>
-            )) : (
-              <div className="text-center py-8 text-gray-500">
-                <Gift className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>Henüz kupon oluşturmadınız</p>
-                <p className="text-sm">Oyun seçip kupon ekleyebilirsiniz</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
