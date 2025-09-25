@@ -129,23 +129,7 @@ export default function IntegrationPage() {
           <div className="space-y-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">🎮 Oyun ve Kupon Sistemi</h4>
             
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <h5 className="font-semibold text-purple-900 mb-2">Mevcut Oyunlar</h5>
-              <div className="space-y-2 text-purple-800">
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🐍</span>
-                  <span>Yılan Oyunu - Klasik arcade oyunu</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🧠</span>
-                  <span>Hafıza Oyunu - Kart eşleştirme</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">🧩</span>
-                  <span>Puzzle Oyunu - Parça yerleştirme</span>
-                </div>
-              </div>
-            </div>
+           
 
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <h5 className="font-semibold text-yellow-900 mb-2">Kupon Seviyeleri</h5>
