@@ -178,17 +178,17 @@ export default function CouponsPage() {
                 Henüz kupon oluşturmadınız
               </h3>
               <p className="text-gray-600 mb-6">
-                Oyun sistemi için 3 seviyeli kupon sistemi oluşturun
+                Oyun kazananlar için kuponlar oluşturun
               </p>
               <div className="space-y-4">
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
                 >
-                  İlk Kuponunuzu Ekleyin
+                  İlk Kuponunuzu Oluşturun
                 </button>
                 <p className="text-sm text-gray-500">
-                  Her seviyeden (1, 2, 3) en az bir kupon eklemelisiniz
+                  Kuponlar widget'taki tüm oyunlar için geçerli olacak
                 </p>
               </div>
             </div>
@@ -228,7 +228,24 @@ export default function CouponsPage() {
                   placeholder="Kupon açıklaması"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kupon Seviyesi
+                  </label>
+                  <select
+                    value={couponForm.level}
+                    onChange={(e) => setCouponForm({ 
+                      ...couponForm, 
+                      level: Number(e.target.value)
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value={1}>Level 1 - Başlangıç</option>
+                    <option value={2}>Level 2 - Orta</option>
+                    <option value={3}>Level 3 - Uzman</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     İndirim Tipi
@@ -261,6 +278,23 @@ export default function CouponsPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kupon Miktarı
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={couponForm.quantity}
+                  onChange={(e) => setCouponForm({ 
+                    ...couponForm, 
+                    quantity: Number(e.target.value) 
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Kaç adet kupon verilecek"
+                />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
