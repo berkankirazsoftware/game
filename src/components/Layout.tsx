@@ -1,7 +1,17 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LogOut, Home, Settings, Gamepad as GamepadIcon, Gift, Code } from 'lucide-react'
+import { 
+  LogOut, 
+  Home, 
+  Settings, 
+  Gift, 
+  Code, 
+  Menu, 
+  X,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -10,6 +20,8 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
   const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -28,48 +40,150 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg min-h-screen">
-          <div className="p-4">
-            <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
-              GameCoupon
-            </Link>
-          </div>
-          <nav className="mt-8">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = location.pathname === item.href
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-4 py-2 text-sm font-medium ${
-                    isActive
-                      ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+        <div className={`
+          fixed inset-y-0 left-0 z-50 bg-white shadow-lg transition-all duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${sidebarCollapsed ? 'w-16' : 'w-64'}
+          lg:translate-x-0 lg:static lg:inset-0
+        `}>
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              {!sidebarCollapsed && (
+                <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
+                  GameCoupon
                 </Link>
-              )
-            })}
-          </nav>
-          <div className="absolute bottom-4 left-4">
-            <button
-              onClick={handleSignOut}
-              className="flex items-center text-gray-600 hover:text-gray-900"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Çıkış Yap
-            </button>
+              )}
+              
+              {/* Desktop collapse button */}
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                {sidebarCollapsed ? (
+                  <ChevronRight className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+
+              {/* Mobile close button */}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+              {navigation.map((item) => {
+                const Icon = item.icon
+                const isActive = location.pathname === item.href
+                
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      to={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                        ${isActive
+                          ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }
+                        ${sidebarCollapsed ? 'justify-center' : ''}
+                      `}
+                    >
+                      <Icon className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                      {!sidebarCollapsed && (
+                        <span className="truncate">{item.name}</span>
+                      )}
+                    </Link>
+                    
+                    {/* Tooltip for collapsed state */}
+                    {sidebarCollapsed && (
+                      <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        {item.name}
+                        <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </nav>
+
+            {/* User section */}
+            <div className="border-t border-gray-200 p-4">
+              {!sidebarCollapsed && (
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.email}
+                  </p>
+                  <p className="text-xs text-gray-500">Hesap Sahibi</p>
+                </div>
+              )}
+              
+              <div className="relative group">
+                <button
+                  onClick={handleSignOut}
+                  className={`
+                    flex items-center w-full px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors
+                    ${sidebarCollapsed ? 'justify-center' : ''}
+                  `}
+                >
+                  <LogOut className={`h-4 w-4 ${sidebarCollapsed ? '' : 'mr-2'}`} />
+                  {!sidebarCollapsed && 'Çıkış Yap'}
+                </button>
+                
+                {/* Tooltip for collapsed logout */}
+                {sidebarCollapsed && (
+                  <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    Çıkış Yap
+                    <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Main content */}
-        <div className="flex-1">
-          <div className="p-8">{children}</div>
+        <div className={`
+          flex-1 transition-all duration-300 ease-in-out
+          ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}
+        `}>
+          {/* Mobile header */}
+          <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Menu className="h-5 w-5 text-gray-600" />
+              </button>
+              <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
+                GameCoupon
+              </Link>
+              <div className="w-10"></div> {/* Spacer for centering */}
+            </div>
+          </div>
+
+          {/* Page content */}
+          <div className="p-4 lg:p-8">
+            {children}
+          </div>
         </div>
       </div>
     </div>
