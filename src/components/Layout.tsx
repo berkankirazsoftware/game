@@ -13,7 +13,6 @@ export default function Layout({ children }: LayoutProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Oyunlarım', href: '/games', icon: GamepadIcon },
     { name: 'Kuponlar', href: '/coupons', icon: Gift },
     { name: 'Entegrasyon', href: '/integration', icon: Code },
     { name: 'Ayarlar', href: '/settings', icon: Settings },

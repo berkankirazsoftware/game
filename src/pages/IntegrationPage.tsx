@@ -1,34 +1,21 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, ExternalLink, Code, Settings, CheckCircle, Plus } from 'lucide-react'
+import { Copy, ExternalLink, CheckCircle, Plus, GamepadIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Database } from '../lib/supabase'
 
-type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
 export default function IntegrationPage() {
   const { user } = useAuth()
-  const [games, setGames] = useState<Game[]>([])
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    fetchGames()
     fetchCoupons()
   }, [user])
 
-  const fetchGames = async () => {
-    const { data } = await supabase
-      .from('games')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (data) {
-      setGames(data)
-    }
-  }
 
   const fetchCoupons = async () => {
     if (!user) return
@@ -84,7 +71,7 @@ export default function IntegrationPage() {
             
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Mevcut Oyunlar (2)</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Mevcut Oyunlar (3)</h4>
                 <div className="space-y-2">
                   <div className="flex items-center text-blue-800">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
@@ -93,6 +80,10 @@ export default function IntegrationPage() {
                   <div className="flex items-center text-blue-800">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
                     🧠 Hafıza Oyunu
+                  </div>
+                  <div className="flex items-center text-blue-800">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                    🧩 Puzzle Oyunu
                   </div>
                 </div>
               </div>
