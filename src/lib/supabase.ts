@@ -37,34 +37,10 @@ export const isSupabaseConfigured = isValidConfig
 export type Database = {
   public: {
     Tables: {
-      games: {
-        Row: {
-          id: string
-          name: string
-          description: string
-          code: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description: string
-          code: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string
-          code?: string
-          created_at?: string
-        }
-      }
       coupons: {
         Row: {
           id: string
           user_id: string
-          game_id: string | null
           code: string
           description: string
           discount_type: 'percentage' | 'fixed'
@@ -74,7 +50,6 @@ export type Database = {
         Insert: {
           id?: string
           user_id: string
-          game_id?: string | null
           code: string
           description: string
           discount_type: 'percentage' | 'fixed'
@@ -84,7 +59,6 @@ export type Database = {
         Update: {
           id?: string
           user_id?: string
-          game_id?: string | null
           code?: string
           description?: string
           discount_type?: 'percentage' | 'fixed'

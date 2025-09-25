@@ -44,7 +44,6 @@ export default function CouponsPage() {
       .from('coupons')
       .insert([{
         user_id: user.id,
-        game_id: null,
         ...couponForm
       }])
 

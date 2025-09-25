@@ -3,14 +3,13 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Gamepad as GamepadIcon, TrendingUp, Users, Gift, Plus, Code } from 'lucide-react'
+
 import type { Database } from '../lib/supabase'
 
-type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [games, setGames] = useState<Game[]>([])
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [stats, setStats] = useState({
     totalGames: 3, // Sabit 3 oyun

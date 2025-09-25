@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Gift, Star, Trophy, RotateCcw } from 'lucide-react'
+
 import type { Database } from '../lib/supabase'
 
-type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
 interface Card {
@@ -20,7 +20,6 @@ export default function MemoryGame() {
   const userId = searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
   
-  const [game, setGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [cards, setCards] = useState<Card[]>([])
   const [flippedCards, setFlippedCards] = useState<number[]>([])
@@ -33,25 +32,16 @@ export default function MemoryGame() {
   const symbols = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎺', '🎸']
 
   useEffect(() => {
-    if (gameId && !testMode) {
-      fetchGame()
+    if (!testMode) {
       fetchCoupons()
-      initializeGame()
-    } else if (testMode) {
-      // Test modu için varsayılan oyun bilgisi
-      setGame({
-        id: 'memory-test',
-        name: 'Hafıza Oyunu',
-        description: 'Kartları çevirerek eşleşen çiftleri bulun',
-        code: 'memory',
-        created_at: new Date().toISOString()
-      })
+    }
+    
+    if (testMode) {
       // Test modu için varsayılan kuponlar
       setCoupons([
         {
           id: 'test-coupon-1',
           user_id: userId || '',
-          game_id: null,
           code: 'TEST15',
           description: 'Test kuponu - %15 indirim',
           discount_type: 'percentage',
@@ -59,25 +49,17 @@ export default function MemoryGame() {
           created_at: new Date().toISOString()
         }
       ])
-      initializeGame()
     }
+    
+    initializeGame()
   }, [gameId, userId])
 
-  const fetchGame = async () => {
-    if (!gameId) return
-    
-    const { data, error } = await supabase
-      .from('games')
-      .select('*')
-      .eq('id', gameId)
-      .single()
-    
-    if (data && !error) {
-      setGame(data)
-    } else {
-      console.error('Game not found:', error)
-      // Oyun bulunamadığında varsayılan bir oyun göster veya hata mesajı
-    }
+  // Sabit oyun bilgisi
+  const game = {
+    id: 'memory-game',
+    name: 'Hafıza Oyunu',
+    description: 'Kartları çevirerek eşleşen çiftleri bulun',
+    code: 'memory'
   }
 
   const fetchCoupons = async () => {
@@ -190,17 +172,6 @@ export default function MemoryGame() {
     setFlippedCards([])
     setWonCoupon(null)
     initializeGame()
-  }
-
-  if (!game) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Oyun yükleniyor...</p>
-        </div>
-      </div>
-    )
   }
 
   return (

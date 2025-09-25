@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Gift, Star, Trophy } from 'lucide-react'
+
 import type { Database } from '../lib/supabase'
 
-type Game = Database['public']['Tables']['games']['Row']
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
 export default function SnakeGame() {
@@ -13,7 +13,6 @@ export default function SnakeGame() {
   const userId = searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
   
-  const [game, setGame] = useState<Game | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
@@ -27,24 +26,16 @@ export default function SnakeGame() {
   const [gameOver, setGameOver] = useState(false)
 
   useEffect(() => {
-    if (gameId && !testMode) {
-      fetchGame()
+    if (!testMode) {
       fetchCoupons()
-    } else if (testMode) {
-      // Test modu için varsayılan oyun bilgisi
-      setGame({
-        id: 'snake-test',
-        name: 'Yılan Oyunu',
-        description: 'Ok tuşları ile yılanı yönlendirin ve yemi toplayın',
-        code: 'snake',
-        created_at: new Date().toISOString()
-      })
+    }
+    
+    if (testMode) {
       // Test modu için varsayılan kuponlar
       setCoupons([
         {
           id: 'test-coupon-1',
           user_id: userId || '',
-          game_id: null,
           code: 'TEST20',
           description: 'Test kuponu - %20 indirim',
           discount_type: 'percentage',
@@ -54,6 +45,27 @@ export default function SnakeGame() {
       ])
     }
   }, [gameId, userId])
+
+  // Sabit oyun bilgisi
+  const game = {
+    id: 'snake-game',
+    name: 'Yılan Oyunu',
+    description: 'Ok tuşları ile yılanı yönlendirin ve yemi toplayın',
+    code: 'snake'
+  }
+
+  const fetchCoupons = async () => {
+    if (!userId) return
+    
+    const { data } = await supabase
+      .from('coupons')
+      .select('*')
+      .eq('user_id', userId)
+    
+    if (data) {
+      setCoupons(data)
+    }
+  }
 
   useEffect(() => {
     if (gameRunning && !gameOver) {
@@ -85,36 +97,6 @@ export default function SnakeGame() {
       return () => window.removeEventListener('keydown', handleKeyPress)
     }
   }, [gameRunning])
-
-  const fetchGame = async () => {
-    if (!gameId) return
-    
-    const { data, error } = await supabase
-      .from('games')
-      .select('*')
-      .eq('id', gameId)
-      .single()
-    
-    if (data && !error) {
-      setGame(data)
-    } else {
-      console.error('Game not found:', error)
-      // Oyun bulunamadığında varsayılan bir oyun göster veya hata mesajı
-    }
-  }
-
-  const fetchCoupons = async () => {
-    if (!userId) return
-    
-    const { data } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq('user_id', userId)
-    
-    if (data) {
-      setCoupons(data)
-    }
-  }
 
   const moveSnake = () => {
     setSnake(currentSnake => {
@@ -190,17 +172,6 @@ export default function SnakeGame() {
     setFood([15, 15])
     setDirection([0, 1])
     setWonCoupon(null)
-  }
-
-  if (!game) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Oyun yükleniyor...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
