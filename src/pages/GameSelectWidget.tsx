@@ -703,14 +703,33 @@ export default function GameSelectWidget() {
     }
     
     try {
-      const { data, error } = await supabase
+      // First try with anon access (for widget usage)
+      let { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle()
       
+      // If no data and we have an error, try with service role or check RLS
+      if (!data && !error) {
+        if (debugMode) {
+          console.log('🔍 No subscription found with anon access, checking RLS policies')
+        }
+        
+        // Try a simple count query to see if data exists
+        const { count, error: countError } = await supabase
+          .from('subscriptions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+        
+        if (debugMode) {
+          console.log('🔍 Count query result:', { count, countError })
+        }
+      }
+      
       if (debugMode) {
         console.log('🔍 Subscription query result:', { data, error })
+        console.log('🔍 Query URL would be:', `${supabaseUrl}/rest/v1/subscriptions?select=*&user_id=eq.${userId}`)
       }
       
       if (error) {

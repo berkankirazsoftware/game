@@ -41,7 +41,6 @@ export const supabase = isValidConfig
       }
     })
 
-export const isSupabaseConfigured = isValidConfig
 export type Database = {
   public: {
     Tables: {
