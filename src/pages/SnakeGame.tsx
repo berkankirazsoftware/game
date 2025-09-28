@@ -319,9 +319,14 @@ export default function SnakeGame() {
                 </div>
 
                 {/* Available Coupons */}
-                <div className="bg-green-50 p-4 rounded-lg">
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 text-gray-900"
                   <h3 className="font-semibold text-green-900 mb-3 flex items-center">
                     <Gift className="h-5 w-5 mr-2" />
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4">
+                    <p className="text-blue-800 text-sm">
+                      📧 Kupon kodunuz <strong>{email || 'email adresinize'}</strong> gönderilecek
+                    </p>
+                  </div>
                     Kazanabileceğiniz Kuponlar
                   </h3>
                   <div className="space-y-2">

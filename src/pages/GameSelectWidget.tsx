@@ -254,8 +254,13 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="E-posta adresinizi girin"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
                   />
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4">
+                    <p className="text-blue-800 text-sm">
+                      📧 Kupon kodunuz <strong>{email || 'email adresinize'}</strong> gönderilecek
+                    </p>
+                  </div>
                 </div>
                 <div className="flex space-x-3">
                   <button
@@ -709,8 +714,13 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="E-posta adresinizi girin"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4">
+                    <p className="text-blue-800 text-sm">
+                      📧 Kupon kodunuz <strong>{email || 'email adresinize'}</strong> gönderilecek
+                    </p>
+                  </div>
                 </div>
                 <div className="flex space-x-3">
                   <button
@@ -1160,38 +1170,4 @@ export default function GameSelectWidget() {
                       {game.name}
                     </h3>
                     
-                    <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-lg group-hover:text-gray-700 transition-colors duration-300">
-                      {game.description}
-                    </p>
-                    
-                    <div className={`inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r ${game.gradient} text-white rounded-2xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                      <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                      <span className="text-sm md:text-base">Oyna</span>
-                    </div>
-                  </div>
-
-                  {/* Floating Elements */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                  </div>
-                  <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <div className="inline-block bg-white/60 backdrop-blur-sm px-4 md:px-6 py-2 md:py-3 rounded-2xl shadow-lg border border-white/30">
-            <p className="text-gray-600 font-medium text-sm md:text-base">
-              🎯 Oyun oyna, performansına göre kupon kazan!
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+                    <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-lg
