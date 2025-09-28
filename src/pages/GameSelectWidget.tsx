@@ -703,39 +703,31 @@ export default function GameSelectWidget() {
     }
     
     try {
-      // Query returns array, get first item
-      let { data: dataArray, error } = await supabase
+      // Query single subscription for user
+      let { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', userId)
+        .single()
       
-      // Convert array to single object
-      const data = dataArray && dataArray.length > 0 ? dataArray[0] : null
-      
-      // If no data and we have an error, try with service role or check RLS
-      if (!data && !error) {
+      // If error is "no rows found", that's expected - user has no subscription
+      if (error && error.code === 'PGRST116') {
+        // No subscription found - this is normal
+        setSubscription(null)
         if (debugMode) {
-          console.log('🔍 No subscription found with anon access, checking RLS policies')
+          console.log('🔍 No subscription found for user (expected)')
         }
-        
-        // Try a simple count query to see if data exists
-        const { count, error: countError } = await supabase
-          .from('subscriptions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-        
-        if (debugMode) {
-          console.log('🔍 Count query result:', { count, countError })
-        }
+        return
       }
       
       if (debugMode) {
-        console.log('🔍 Subscription query result:', { dataArray, data, error })
+        console.log('🔍 Subscription query result:', { data, error })
         console.log('🔍 Query URL would be:', `${supabaseUrl}/rest/v1/subscriptions?select=*&user_id=eq.${userId}`)
       }
       
       if (error) {
         console.error('Subscription fetch error:', error)
+        setSubscription(null)
       } else {
         setSubscription(data)
         if (debugMode) {
@@ -744,6 +736,7 @@ export default function GameSelectWidget() {
       }
     } catch (error) {
       console.error('Subscription error:', error)
+      setSubscription(null)
     }
   }
 
