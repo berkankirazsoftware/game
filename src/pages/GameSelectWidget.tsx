@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase, supabaseUrl } from '../lib/supabase'
 import { Play, Gift, RotateCcw, Trophy, ArrowLeft, Clock, Brain, Zap, Target, XCircle, CreditCard } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
@@ -39,6 +40,10 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
   const [gameSpeed, setGameSpeed] = useState(25)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
 
   useEffect(() => {
     if (gameRunning && !gameCompleted) {
@@ -86,6 +91,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         ? levelCoupons[Math.floor(Math.random() * levelCoupons.length)]
         : coupons[Math.floor(Math.random() * coupons.length)]
       setWonCoupon(randomCoupon)
+      setShowEmailModal(true)
     }
   }
 
@@ -95,6 +101,10 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setBarPosition(0)
     setDirection(1)
     setWonCoupon(null)
+    setShowEmailModal(false)
+    setEmail('')
+    setEmailSent(false)
+    setEmailLoading(false)
   }
 
   const resetGame = () => {
@@ -103,6 +113,36 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setBarPosition(0)
     setDirection(1)
     setWonCoupon(null)
+    setShowEmailModal(false)
+    setEmail('')
+    setEmailSent(false)
+    setEmailLoading(false)
+  }
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !wonCoupon) return
+
+    setEmailLoading(true)
+    
+    try {
+      // Burada email gönderme API'si çağrılacak
+      // Şimdilik simüle ediyoruz
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      setEmailSent(true)
+      setShowEmailModal(false)
+      
+      // 3 saniye sonra success mesajını kapat
+      setTimeout(() => {
+        setEmailSent(false)
+        resetGame()
+      }, 3000)
+    } catch (error) {
+      console.error('Email gönderme hatası:', error)
+    } finally {
+      setEmailLoading(false)
+    }
   }
 
   const getLevelInfo = (level: number) => {
@@ -136,7 +176,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         </div>
 
         {/* Game Won Modal */}
-        {gameCompleted && wonCoupon && (
+        {showEmailModal && wonCoupon && !emailSent && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-purple-100">
               <div className="bg-gradient-to-br from-yellow-400 to-orange-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -146,7 +186,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                 Tebrikler! 🎉
               </h3>
               <p className="text-gray-600 mb-6 text-lg">
-                Çubuğu durdurdunuz ve kupon kazandınız!
+                Kupon kazandınız! E-posta adresinizi girin:
               </p>
               
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl mb-6">
@@ -162,12 +202,61 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                 </p>
               </div>
               
-              <button
-                onClick={resetGame}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
-              >
-                Tekrar Oyna
-              </button>
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="E-posta adresinizi girin"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={emailLoading}
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {emailLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                        Gönderiliyor...
+                      </div>
+                    ) : (
+                      'Kuponu Gönder'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetGame}
+                    className="px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Email Sent Success Modal */}
+        {emailSent && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-green-100">
+              <div className="bg-gradient-to-br from-green-400 to-emerald-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <CheckCircle className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Kupon Gönderildi! ✅
+              </h3>
+              <p className="text-gray-600 mb-4 text-lg">
+                Kupon kodunuz <strong>{email}</strong> adresine gönderildi.
+              </p>
+              <p className="text-sm text-gray-500">
+                E-posta kutunuzu kontrol edin...
+              </p>
             </div>
           </div>
         )}
@@ -319,6 +408,10 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   const [gameStarted, setGameStarted] = useState(false)
   const [gameCompleted, setGameCompleted] = useState(false)
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
 
   const symbols = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎺', '🎸']
 
@@ -407,6 +500,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         ? levelCoupons[Math.floor(Math.random() * levelCoupons.length)]
         : coupons[Math.floor(Math.random() * coupons.length)]
       setWonCoupon(randomCoupon)
+      setShowEmailModal(true)
     }
   }
 
@@ -417,6 +511,10 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setMatchedPairs(0)
     setFlippedCards([])
     setWonCoupon(null)
+    setShowEmailModal(false)
+    setEmail('')
+    setEmailSent(false)
+    setEmailLoading(false)
     initializeGame()
   }
 
@@ -427,7 +525,37 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setMatchedPairs(0)
     setFlippedCards([])
     setWonCoupon(null)
+    setShowEmailModal(false)
+    setEmail('')
+    setEmailSent(false)
+    setEmailLoading(false)
     initializeGame()
+  }
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !wonCoupon) return
+
+    setEmailLoading(true)
+    
+    try {
+      // Burada email gönderme API'si çağrılacak
+      // Şimdilik simüle ediyoruz
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      setEmailSent(true)
+      setShowEmailModal(false)
+      
+      // 3 saniye sonra success mesajını kapat
+      setTimeout(() => {
+        setEmailSent(false)
+        resetGame()
+      }, 3000)
+    } catch (error) {
+      console.error('Email gönderme hatası:', error)
+    } finally {
+      setEmailLoading(false)
+    }
   }
 
   return (
@@ -459,7 +587,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         </div>
 
         {/* Game Won Modal */}
-        {gameCompleted && wonCoupon && (
+        {showEmailModal && wonCoupon && !emailSent && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-blue-100">
               <div className="bg-gradient-to-br from-yellow-400 to-orange-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -469,7 +597,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                 Tebrikler! 🎉
               </h3>
               <p className="text-gray-600 mb-6 text-lg">
-                Hafıza oyununu {moves} hamlede tamamladınız!
+                Kupon kazandınız! E-posta adresinizi girin:
               </p>
               
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl mb-6">
@@ -485,12 +613,64 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                 </p>
               </div>
               
-              <button
-                onClick={resetGame}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
-              >
-                Tekrar Oyna
-              </button>
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="E-posta adresinizi girin"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={emailLoading}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {emailLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                        Gönderiliyor...
+                      </div>
+                    ) : (
+                      'Kuponu Gönder'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetGame}
+                    className="px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+            </div>
+          </div>
+        )}
+
+        {/* Email Sent Success Modal */}
+        {emailSent && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-green-100">
+              <div className="bg-gradient-to-br from-green-400 to-emerald-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <CheckCircle className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Kupon Gönderildi! ✅
+              </h3>
+              <p className="text-gray-600 mb-4 text-lg">
+                Kupon kodunuz <strong>{email}</strong> adresine gönderildi.
+              </p>
+              <p className="text-sm text-gray-500">
+                E-posta kutunuzu kontrol edin...
+              </p>
             </div>
           </div>
         )}
