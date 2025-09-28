@@ -1190,10 +1190,7 @@ export default function GameSelectWidget() {
         <div className="text-center mt-8">
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/30">
             <p className="text-gray-600 text-sm">
-              🎯 Oyun oyna, performansına göre kupon kazan! 
-              <span className="font-semibold text-purple-600 ml-2">
-                {coupons.length} kupon mevcut
-              </span>
+              🎯 Oyunları oynayarak kupon kazanın • 📧 Kuponlarınız email ile gönderilir
             </p>
           </div>
         </div>
