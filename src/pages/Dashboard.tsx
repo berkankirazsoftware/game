@@ -102,7 +102,7 @@ export default function Dashboard() {
           Hoş geldiniz! 👋
         </h1>
         <p className="text-indigo-100">
-          GameCoupon ile e-ticaret sitenizi daha etkileşimli hale getirin
+          Booste ile e-ticaret sitenizi daha etkileşimli hale getirin
         </p>
       </div>
 

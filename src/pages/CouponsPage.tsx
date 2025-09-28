@@ -315,7 +315,7 @@ export default function CouponsPage() {
                 Henüz kupon oluşturmadınız
               </h3>
               <p className="text-gray-600 mb-6">
-                Oyun kazananlar için kuponlar oluşturun
+                Kuponlar widget'taki tüm oyunlar için geçerli olacak
               </p>
               <div className="space-y-4">
                 <button

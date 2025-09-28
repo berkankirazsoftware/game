@@ -47,7 +47,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <GamepadIcon className="h-8 w-8 text-indigo-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">GameCoupon</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Booste</span>
             </div>
             <div className="flex space-x-4">
               <Link
@@ -106,7 +106,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Neden GameCoupon?
+              Neden Booste?
             </h2>
             <p className="text-xl text-gray-600">
               E-ticaret sitenizi daha etkileşimli hale getirin
@@ -200,10 +200,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
             <GamepadIcon className="h-8 w-8 text-indigo-400" />
-            <span className="ml-2 text-xl font-bold">GameCoupon</span>
+            <span className="ml-2 text-xl font-bold">Booste</span>
           </div>
           <div className="text-center text-gray-400 mt-4">
-            © 2024 GameCoupon. Tüm hakları saklıdır.
+            © 2024 Booste. Tüm hakları saklıdır.
           </div>
         </div>
       </footer>

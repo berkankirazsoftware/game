@@ -62,7 +62,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             {!sidebarCollapsed && (
               <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
-                GameCoupon
+                Booste
               </Link>
             )}
             
@@ -172,7 +172,7 @@ export default function Layout({ children }: LayoutProps) {
               <Menu className="h-5 w-5 text-gray-600" />
             </button>
             <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
-              GameCoupon
+              Booste
             </Link>
             <div className="w-10"></div> {/* Spacer for centering */}
           </div>
