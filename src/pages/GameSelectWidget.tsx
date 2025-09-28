@@ -762,8 +762,10 @@ export default function GameSelectWidget() {
   }
 
   // Abonelik kontrolü
-  const hasActiveSubscription = subscription && subscription.is_active === true
-  
+  const hasActiveSubscription =  subscription.is_active === true
+  console.log(subscription)
+    console.log(subscription)
+
   if (debugMode) {
     console.log('🔍 Final subscription check:', { 
       subscription, 
