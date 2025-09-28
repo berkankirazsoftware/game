@@ -79,7 +79,7 @@ export default function PricingPage() {
           <div className="flex justify-between items-center py-6">
             <Link to="/" className="flex items-center">
               <GamepadIcon className="h-8 w-8 text-indigo-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">GameCoupon</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Booste</span>
             </Link>
             <div className="flex space-x-4">
               <Link
@@ -175,7 +175,7 @@ export default function PricingPage() {
         <div className="bg-white rounded-3xl shadow-xl p-12 mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Neden GameCoupon?
+              Neden Booste?
             </h2>
             <p className="text-xl text-gray-600">
               E-ticaret sitenizi daha etkileşimli hale getiren özellikler
@@ -208,7 +208,7 @@ export default function PricingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="mailto:info@gamecoupon.com"
+              href="mailto:info@booste.com"
               className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center"
             >
               <Headphones className="h-5 w-5 mr-2" />
@@ -230,10 +230,10 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
             <GamepadIcon className="h-8 w-8 text-indigo-400" />
-            <span className="ml-2 text-xl font-bold">GameCoupon</span>
+            <span className="ml-2 text-xl font-bold">Booste</span>
           </div>
           <div className="text-center text-gray-400 mt-4">
-            © 2024 GameCoupon. Tüm hakları saklıdır.
+            © 2024 Booste. Tüm hakları saklıdır.
           </div>
         </div>
       </footer>

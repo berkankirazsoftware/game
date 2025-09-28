@@ -278,13 +278,13 @@ export default function SubscriptionPage() {
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-900 mb-2">Abonelik Nasıl Alınır?</h3>
                 <p className="text-blue-800 text-sm">
-                  Abonelik planları manuel olarak yönetilmektedir. 
+                  Abonelik planları manuel olarak yönetilmektedir.
                   Abonelik almak için lütfen bizimle iletişime geçin.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="mailto:info@gamecoupon.com"
+                  href="mailto:info@booste.com"
                   className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
                 >
                   E-posta Gönder
