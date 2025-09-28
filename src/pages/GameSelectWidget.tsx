@@ -764,7 +764,7 @@ export default function GameSelectWidget() {
   // Abonelik kontrolü
   const hasActiveSubscription =  subscription.is_active === true
   console.log(subscription)
-    console.log(subscription)
+    console.log(subscription.is_active)
 
   if (debugMode) {
     console.log('🔍 Final subscription check:', { 
