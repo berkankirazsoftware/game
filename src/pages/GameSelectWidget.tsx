@@ -1058,24 +1058,25 @@ export default function GameSelectWidget() {
           gameType: 'general'
         })
       })
-          message: 'Kupon kodunuz email adresinize başarıyla gönderildi! Email kutunuzu kontrol edin.',
 
-      // API 200 dönse bile result.success kontrol et
-      if (response.ok && result.success) {
-        console.log('✅ Email sent successfully:', result)
-        setEmailSuccess(true)
-        setShowEmailModal(true)
-        
-        // Kupon kullanım sayısını artır
-        await supabase
-          .from('coupons')
-          .update({ used_count: coupon.used_count + 1 })
-          .eq('id', coupon.id)
+      const result = await emailResponse.json()
+      console.log('📧 Email API response:', result)
+      
+      if (result && result.success) {
+        setEmailResult({
+          type: 'success',
+          message: 'Email başarıyla gönderildi! Spam klasörünüzü de kontrol etmeyi unutmayın.',
+          show: true
+        })
       } else {
-        // Hata durumu
-        console.error('❌ Email send failed:', result)
-        setEmail('')
-        setShowEmailModal(false)
+        setEmailResult({
+          type: 'error',
+          message: (result && result.error) || 'Email gönderilemedi',
+          show: true
+        })
+      }
+    } catch (error) {
+      console.error('Email error:', error)
       setEmailResult({
         success: false,
         message: 'Email gönderilirken beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.',
