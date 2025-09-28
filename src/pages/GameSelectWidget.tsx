@@ -115,24 +115,24 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   }
 
   return (
-    <div className="h-[600px] bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-6 overflow-hidden">
-      <div className="max-w-6xl mx-auto h-full flex flex-col">
+    <div className="h-[600px] bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-2 md:p-6 overflow-auto">
+      <div className="max-w-6xl mx-auto h-full flex flex-col min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 md:mb-6 flex-shrink-0">
           <button
             onClick={onBack}
-            className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-purple-600 hover:text-purple-700 border border-purple-100"
+            className="flex items-center px-2 md:px-4 py-1 md:py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-purple-600 hover:text-purple-700 border border-purple-100 text-sm md:text-base"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
+            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1 md:mr-2" />
             Geri Dön
           </button>
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 md:px-6 py-2 md:py-3 rounded-2xl shadow-lg">
             <div className="flex items-center">
-              <Clock className="h-6 w-6 mr-2" />
-              <span className="text-xl font-bold">Zamanlama Oyunu</span>
+              <Clock className="h-4 w-4 md:h-6 md:w-6 mr-1 md:mr-2" />
+              <span className="text-sm md:text-xl font-bold">Zamanlama Oyunu</span>
             </div>
           </div>
-          <div className="w-24"></div>
+          <div className="w-12 md:w-24"></div>
         </div>
 
         {/* Game Won Modal */}
@@ -173,57 +173,57 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         )}
 
         {/* Main Game Area */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 min-h-0 overflow-auto">
           {/* Game Area */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-purple-100">
+          <div className="lg:col-span-3 space-y-4 md:space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 shadow-xl border border-purple-100">
               {/* Timing Bar Container */}
-              <div className="relative w-full h-20 bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-inner mb-8">
+              <div className="relative w-full h-16 md:h-20 bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-inner mb-4 md:mb-8">
                 {/* Level Zones */}
                 <div className="absolute inset-0 flex">
                   {/* Bronz Sol */}
                   <div className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg drop-shadow-lg">🥉</span>
+                    <span className="text-white font-bold text-sm md:text-lg drop-shadow-lg">🥉</span>
                   </div>
                   {/* Gümüş Sol */}
                   <div className="w-[20%] bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg drop-shadow-lg">🥈</span>
+                    <span className="text-white font-bold text-sm md:text-lg drop-shadow-lg">🥈</span>
                   </div>
                   {/* Altın Merkez */}
                   <div className="w-[12%] bg-gradient-to-r from-yellow-400 to-yellow-500 flex items-center justify-center relative">
-                    <span className="text-white font-bold text-lg drop-shadow-lg">🥇</span>
+                    <span className="text-white font-bold text-sm md:text-lg drop-shadow-lg">🥇</span>
                     <div className="absolute inset-0 bg-yellow-300/30 animate-pulse"></div>
                   </div>
                   {/* Gümüş Sağ */}
                   <div className="w-[20%] bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg drop-shadow-lg">🥈</span>
+                    <span className="text-white font-bold text-sm md:text-lg drop-shadow-lg">🥈</span>
                   </div>
                   {/* Bronz Sağ */}
                   <div className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg drop-shadow-lg">🥉</span>
+                    <span className="text-white font-bold text-sm md:text-lg drop-shadow-lg">🥉</span>
                   </div>
                 </div>
                 
                 {/* Moving Bar */}
                 <div 
-                  className="absolute top-0 w-2 h-full bg-gradient-to-b from-white to-gray-200 shadow-2xl transition-all duration-75 rounded-full"
+                  className="absolute top-0 w-1 md:w-2 h-full bg-gradient-to-b from-white to-gray-200 shadow-2xl transition-all duration-75 rounded-full"
                   style={{ left: `${barPosition}%`, transform: 'translateX(-50%)' }}
                 >
                   <div className="absolute inset-0 bg-white/50 rounded-full animate-pulse"></div>
                 </div>
               </div>
               
-              <div className="text-center space-y-6">
+              <div className="text-center space-y-4 md:space-y-6">
                 {!gameRunning && !gameCompleted && (
                   <div>
                     <button
                       onClick={startGame}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-12 py-4 rounded-2xl text-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 md:px-12 py-3 md:py-4 rounded-2xl text-lg md:text-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
                     >
-                      <Play className="h-6 w-6 mr-3 inline" />
+                      <Play className="h-5 w-5 md:h-6 md:w-6 mr-2 md:mr-3 inline" />
                       Oyunu Başlat
                     </button>
-                    <p className="text-gray-600 mt-4 text-lg">
+                    <p className="text-gray-600 mt-3 md:mt-4 text-sm md:text-lg">
                       Çubuğu tam ortada durdurmaya çalışın!
                     </p>
                   </div>
@@ -233,12 +233,12 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                   <div>
                     <button
                       onClick={stopBar}
-                      className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-12 py-4 rounded-2xl text-xl font-bold hover:from-red-600 hover:to-pink-600 transition-all duration-300 shadow-xl hover:shadow-2xl animate-pulse"
+                      className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 md:px-12 py-3 md:py-4 rounded-2xl text-lg md:text-xl font-bold hover:from-red-600 hover:to-pink-600 transition-all duration-300 shadow-xl hover:shadow-2xl animate-pulse"
                     >
-                      <Target className="h-6 w-6 mr-3 inline" />
+                      <Target className="h-5 w-5 md:h-6 md:w-6 mr-2 md:mr-3 inline" />
                       DURDUR!
                     </button>
-                    <p className="text-gray-600 mt-4 text-lg">
+                    <p className="text-gray-600 mt-3 md:mt-4 text-sm md:text-lg">
                       Çubuğu durdurmak için tıklayın!
                     </p>
                   </div>
@@ -248,10 +248,10 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
           </div>
 
           {/* Sidebar - Kupon Bilgileri */}
-          <div className="space-y-4">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-100">
-              <h3 className="font-bold text-purple-900 mb-4 text-lg flex items-center">
-                <Gift className="h-5 w-5 mr-2" />
+          <div className="space-y-3 md:space-y-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl border border-purple-100">
+              <h3 className="font-bold text-purple-900 mb-3 md:mb-4 text-base md:text-lg flex items-center">
+                <Gift className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                 Kupon Seviyeleri
               </h3>
               <div className="space-y-3">
@@ -262,20 +262,20 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                   return (
                     <div key={level} className={`${info.bgColor} p-4 rounded-xl border-2 ${level === 3 ? 'border-yellow-300' : level === 2 ? 'border-gray-300' : 'border-orange-300'} shadow-sm`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold flex items-center">
-                          <span className="text-xl mr-2">{info.icon}</span>
+                        <span className="font-semibold flex items-center text-sm md:text-base">
+                          <span className="text-lg md:text-xl mr-2">{info.icon}</span>
                           {info.name}
                         </span>
                       </div>
                       {levelCoupons.length > 0 ? (
-                        <div className="text-sm">
+                        <div className="text-xs md:text-sm">
                           <div className="font-bold text-green-800">{levelCoupons[0].code}</div>
                           <div className="text-green-700 font-semibold">
                             {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
                           </div>
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-500">Kupon yok</div>
+                        <div className="text-xs md:text-sm text-gray-500">Kupon yok</div>
                       )}
                     </div>
                   )
@@ -283,12 +283,12 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-xl border border-purple-100">
-              <h3 className="font-bold text-purple-900 mb-3 flex items-center">
-                <Zap className="h-5 w-5 mr-2" />
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6 rounded-2xl shadow-xl border border-purple-100">
+              <h3 className="font-bold text-purple-900 mb-3 text-base md:text-lg flex items-center">
+                <Zap className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                 Nasıl Oynanır?
               </h3>
-              <ul className="text-purple-800 text-sm space-y-2">
+              <ul className="text-purple-800 text-xs md:text-sm space-y-2">
                 <li className="flex items-start">
                   <span className="text-yellow-500 mr-2">🥇</span>
                   <span><strong>Altın:</strong> Tam ortada durdur</span>
@@ -431,29 +431,29 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
   }
 
   return (
-    <div className="h-[600px] bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50 p-6 overflow-hidden">
-      <div className="max-w-6xl mx-auto h-full flex flex-col">
+    <div className="h-[600px] bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50 p-2 md:p-6 overflow-auto">
+      <div className="max-w-6xl mx-auto h-full flex flex-col min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 md:mb-6 flex-shrink-0">
           <button
             onClick={onBack}
-            className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:text-blue-700 border border-blue-100"
+            className="flex items-center px-2 md:px-4 py-1 md:py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:text-blue-700 border border-blue-100 text-sm md:text-base"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
+            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1 md:mr-2" />
             Geri Dön
           </button>
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-3 md:px-6 py-2 md:py-3 rounded-2xl shadow-lg">
             <div className="flex items-center">
-              <Brain className="h-6 w-6 mr-2" />
-              <span className="text-xl font-bold">Hafıza Oyunu</span>
+              <Brain className="h-4 w-4 md:h-6 md:w-6 mr-1 md:mr-2" />
+              <span className="text-sm md:text-xl font-bold">Hafıza Oyunu</span>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-blue-100">
-              <span className="font-bold text-blue-800">Hamle: {moves}</span>
+            <div className="bg-white/80 backdrop-blur-sm px-2 md:px-4 py-1 md:py-2 rounded-xl shadow-lg border border-blue-100">
+              <span className="font-bold text-blue-800 text-xs md:text-base">Hamle: {moves}</span>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-green-100">
-              <span className="font-bold text-green-800">Eşleşen: {matchedPairs}/6</span>
+            <div className="bg-white/80 backdrop-blur-sm px-2 md:px-4 py-1 md:py-2 rounded-xl shadow-lg border border-green-100">
+              <span className="font-bold text-green-800 text-xs md:text-base">Eşleşen: {matchedPairs}/6</span>
             </div>
           </div>
         </div>
@@ -496,16 +496,16 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         )}
 
         {/* Main Game Area */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 min-h-0 overflow-auto">
           {/* Game Area */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-blue-100">
-              <div className="grid grid-cols-4 gap-4 max-w-lg mx-auto mb-8">
+          <div className="lg:col-span-3 space-y-4 md:space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 shadow-xl border border-blue-100">
+              <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-sm md:max-w-lg mx-auto mb-4 md:mb-8">
                 {cards.map((card) => (
                   <div
                     key={card.id}
                     onClick={() => handleCardClick(card.id)}
-                    className={`aspect-square rounded-2xl flex items-center justify-center text-2xl font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                    className={`aspect-square rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-2xl font-bold cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
                       card.isFlipped || card.isMatched
                         ? card.isMatched
                           ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-200'
@@ -518,17 +518,17 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                 ))}
               </div>
 
-              <div className="text-center space-y-6">
+              <div className="text-center space-y-4 md:space-y-6">
                 {!gameStarted && !gameCompleted && (
                   <div>
                     <button
                       onClick={startGame}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-12 py-4 rounded-2xl text-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 md:px-12 py-3 md:py-4 rounded-2xl text-lg md:text-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
                     >
-                      <Play className="h-6 w-6 mr-3 inline" />
+                      <Play className="h-5 w-5 md:h-6 md:w-6 mr-2 md:mr-3 inline" />
                       Oyunu Başlat
                     </button>
-                    <p className="text-gray-600 mt-4 text-lg">
+                    <p className="text-gray-600 mt-3 md:mt-4 text-sm md:text-lg">
                       Kartları çevirerek eşleşen çiftleri bulun
                     </p>
                   </div>
@@ -536,14 +536,14 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                 
                 {gameStarted && (
                   <div className="flex justify-center space-x-4">
-                    <p className="text-gray-600 text-lg">
+                    <p className="text-gray-600 text-sm md:text-lg">
                       Kartları çevirerek eşleşen çiftleri bulun!
                     </p>
                     <button
                       onClick={resetGame}
-                      className="text-blue-600 hover:text-blue-700 flex items-center font-semibold"
+                      className="text-blue-600 hover:text-blue-700 flex items-center font-semibold text-sm md:text-base"
                     >
-                      <RotateCcw className="h-4 w-4 mr-1" />
+                      <RotateCcw className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                       Yeniden Başla
                     </button>
                   </div>
@@ -553,10 +553,10 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
           </div>
 
           {/* Sidebar - Kupon Bilgileri */}
-          <div className="space-y-4">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-blue-100">
-              <h3 className="font-bold text-blue-900 mb-4 text-lg flex items-center">
-                <Gift className="h-5 w-5 mr-2" />
+          <div className="space-y-3 md:space-y-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl border border-blue-100">
+              <h3 className="font-bold text-blue-900 mb-3 md:mb-4 text-base md:text-lg flex items-center">
+                <Gift className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                 Kupon Seviyeleri
               </h3>
               <div className="space-y-3">
@@ -570,21 +570,21 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
                   return (
                     <div key={level} className={`${bgColor} p-4 rounded-xl border-2 ${borderColor} shadow-sm`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold flex items-center">
-                          <span className="text-xl mr-2">{icon}</span>
+                        <span className="font-semibold flex items-center text-sm md:text-base">
+                          <span className="text-lg md:text-xl mr-2">{icon}</span>
                           {name}
                         </span>
-                        <span className="text-xs text-gray-600 font-medium">{moves}</span>
+                        <span className="text-xs md:text-sm text-gray-600 font-medium">{moves}</span>
                       </div>
                       {levelCoupons.length > 0 ? (
-                        <div className="text-sm">
+                        <div className="text-xs md:text-sm">
                           <div className="font-bold text-green-800">{levelCoupons[0].code}</div>
                           <div className="text-green-700 font-semibold">
                             {levelCoupons[0].discount_type === 'percentage' ? '%' : '₺'}{levelCoupons[0].discount_value} İndirim
                           </div>
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-500">Kupon yok</div>
+                        <div className="text-xs md:text-sm text-gray-500">Kupon yok</div>
                       )}
                     </div>
                   )
@@ -592,12 +592,12 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl shadow-xl border border-blue-100">
-              <h3 className="font-bold text-blue-900 mb-3 flex items-center">
-                <Brain className="h-5 w-5 mr-2" />
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 md:p-6 rounded-2xl shadow-xl border border-blue-100">
+              <h3 className="font-bold text-blue-900 mb-3 text-base md:text-lg flex items-center">
+                <Brain className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                 Nasıl Oynanır?
               </h3>
-              <ul className="text-blue-800 text-sm space-y-2">
+              <ul className="text-blue-800 text-xs md:text-sm space-y-2">
                 <li className="flex items-start">
                   <span className="text-yellow-500 mr-2">🥇</span>
                   <span><strong>Altın:</strong> 12 hamle veya az</span>
@@ -865,14 +865,14 @@ export default function GameSelectWidget() {
 
         {/* Games Grid */}
         <div className="flex-1 flex items-center justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full max-w-4xl px-4 md:px-0">
             {GAMES.map((game) => {
               const IconComponent = game.icon
               return (
                 <div
                   key={game.id}
                   onClick={() => handleGameSelect(game.code)}
-                  className={`group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer border border-white/50 hover:scale-105 h-64 flex flex-col justify-center items-center text-center overflow-hidden`}
+                  className={`group relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer border border-white/50 hover:scale-105 h-48 md:h-64 flex flex-col justify-center items-center text-center overflow-hidden`}
                 >
                   {/* Background Gradient */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${game.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`}></div>
@@ -882,21 +882,21 @@ export default function GameSelectWidget() {
                   
                   {/* Content */}
                   <div className="relative z-10">
-                    <div className={`mb-6 p-6 rounded-full bg-gradient-to-br ${game.gradient} shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
-                      <IconComponent className="h-12 w-12 text-white" />
+                    <div className={`mb-4 md:mb-6 p-4 md:p-6 rounded-full bg-gradient-to-br ${game.gradient} shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+                      <IconComponent className="h-8 w-8 md:h-12 md:w-12 text-white" />
                     </div>
                     
-                    <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-gray-900 transition-colors duration-300">
+                    <h3 className="text-lg md:text-2xl font-bold text-gray-800 mb-2 md:mb-3 group-hover:text-gray-900 transition-colors duration-300">
                       {game.name}
                     </h3>
                     
-                    <p className="text-gray-600 mb-6 text-lg group-hover:text-gray-700 transition-colors duration-300">
+                    <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-lg group-hover:text-gray-700 transition-colors duration-300">
                       {game.description}
                     </p>
                     
-                    <div className={`inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r ${game.gradient} text-white rounded-2xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                      <Play className="h-5 w-5 mr-2" />
-                      <span>Oyna</span>
+                    <div className={`inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r ${game.gradient} text-white rounded-2xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                      <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                      <span className="text-sm md:text-base">Oyna</span>
                     </div>
                   </div>
 
@@ -915,8 +915,8 @@ export default function GameSelectWidget() {
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <div className="inline-block bg-white/60 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg border border-white/30">
-            <p className="text-gray-600 font-medium">
+          <div className="inline-block bg-white/60 backdrop-blur-sm px-4 md:px-6 py-2 md:py-3 rounded-2xl shadow-lg border border-white/30">
+            <p className="text-gray-600 font-medium text-sm md:text-base">
               🎯 Oyun oyna, performansına göre kupon kazan!
             </p>
           </div>
