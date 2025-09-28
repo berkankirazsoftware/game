@@ -7,6 +7,7 @@ import {
   Settings, 
   Gift, 
   Code, 
+  CreditCard,
   Menu, 
   X,
   ChevronLeft,
@@ -26,6 +27,7 @@ export default function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Kuponlar', href: '/coupons', icon: Gift },
+    { name: 'Abonelik', href: '/subscription', icon: CreditCard },
     { name: 'Entegrasyon', href: '/integration', icon: Code },
     { name: 'Ayarlar', href: '/settings', icon: Settings },
   ]

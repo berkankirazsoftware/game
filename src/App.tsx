@@ -9,6 +9,7 @@ import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import Dashboard from './pages/Dashboard'
 import CouponsPage from './pages/CouponsPage'
+import SubscriptionPage from './pages/SubscriptionPage'
 import SnakeGame from './pages/SnakeGame'
 import IntegrationPage from './pages/IntegrationPage'
 import GameSelectWidget from './pages/GameSelectWidget'
@@ -45,6 +46,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <CouponsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/subscription"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SubscriptionPage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -45,6 +45,38 @@ export const isSupabaseConfigured = isValidConfig
 export type Database = {
   public: {
     Tables: {
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          plan_type: 'basic' | 'advanced'
+          is_active: boolean
+          start_date: string
+          expiration_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          plan_type: 'basic' | 'advanced'
+          is_active?: boolean
+          start_date?: string
+          expiration_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          plan_type?: 'basic' | 'advanced'
+          is_active?: boolean
+          start_date?: string
+          expiration_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       coupons: {
         Row: {
           id: string
