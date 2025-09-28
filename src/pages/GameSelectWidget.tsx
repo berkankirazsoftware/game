@@ -1170,4 +1170,6 @@ export default function GameSelectWidget() {
                       {game.name}
                     </h3>
                     
-                    <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-lg
+                    <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-lg">
+                      {game.description}
+                    </p>
