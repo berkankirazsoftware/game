@@ -539,6 +539,9 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     
     try {
       // Supabase Edge Function ile email gönder
+      console.log('📧 Sending email to:', email)
+      console.log('🎁 Coupon:', wonCoupon.code)
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-coupon-email`, {
         method: 'POST',
         headers: {
@@ -555,7 +558,9 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         })
       })
 
+      console.log('📤 Email API response status:', response.status)
       const result = await response.json()
+      console.log('📧 Email API result:', result)
       
       if (!response.ok) {
         throw new Error(result.error || 'Email gönderilemedi')

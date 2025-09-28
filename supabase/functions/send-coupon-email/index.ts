@@ -16,6 +16,8 @@ interface EmailRequest {
 }
 
 Deno.serve(async (req: Request) => {
+  console.log('🔍 Email function called')
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -26,6 +28,8 @@ Deno.serve(async (req: Request) => {
 
   try {
     const { email, couponCode, couponDescription, discountType, discountValue, gameType }: EmailRequest = await req.json()
+
+    console.log('📧 Email request data:', { email, couponCode, gameType })
 
     // Validate input
     if (!email || !couponCode) {
@@ -123,6 +127,9 @@ Deno.serve(async (req: Request) => {
     // Send email using Resend (you can also use SendGrid, Mailgun, etc.)
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     
+    console.log('🔑 Resend API Key exists:', !!resendApiKey)
+    console.log('🔑 API Key length:', resendApiKey?.length || 0)
+    
     if (!resendApiKey) {
       // Fallback: Log email instead of sending (for development)
       console.log('📧 Email would be sent to:', email)
@@ -151,16 +158,18 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Booste <noreply@booste.online>',
+        from: 'Booste <onboarding@resend.dev>',
         to: [email],
         subject: `🎉 Kupon Kazandınız! ${couponCode} - ${discountText} İndirim`,
         html: htmlContent,
       }),
     })
 
+    console.log('📤 Email API response status:', emailResponse.status)
+    
     if (!emailResponse.ok) {
       const errorData = await emailResponse.text()
-      console.error('Email send error:', errorData)
+      console.error('❌ Email send error:', errorData)
       
       return new Response(
         JSON.stringify({ error: "Email gönderilemedi" }),
