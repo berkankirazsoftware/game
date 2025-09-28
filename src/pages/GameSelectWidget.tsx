@@ -694,10 +694,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
               </p>
               
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl mb-6">
-                <div className="flex items-center justify-center mb-3">
-                  <Gift className="h-8 w-8 text-green-600 mr-3" />
-                
-                </div>
+               
                 <p className="text-green-700 font-semibold text-lg">
                   {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
                 </p>
