@@ -278,7 +278,7 @@ export default function SubscriptionPage() {
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-900 mb-2">Abonelik Nasıl Alınır?</h3>
                 <p className="text-blue-800 text-sm">
-                  Abonelik planları manuel olarak yönetilmektedir.
+                  <strong>Site Sahibi:</strong> Aboneliğinizi aktif etmek için Booste ile iletişime geçin
                   Abonelik almak için lütfen bizimle iletişime geçin.
                 </p>
               </div>

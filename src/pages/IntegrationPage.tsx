@@ -63,7 +63,7 @@ export default function IntegrationPage() {
   }
 
   const generateIframeUrl = () => {
-    const baseUrl = window.location.origin
+    const baseUrl = 'https://booste.online'
     return `${baseUrl}/game-widget?userId=${user?.id}&debug=true`
   }
 
