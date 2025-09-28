@@ -160,8 +160,8 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Booste <berkankirazsoftware@gmail.com>',
-        to: ['berkankirazsoftware@gmail.com'], // Test için sabit email
+        from: 'onboarding@resend.dev', // Resend'in test email adresi
+        to: [email], // Kullanıcının girdiği email
         subject: `🎉 Kupon Kazandınız! ${couponCode} - ${discountText} İndirim`,
         html: htmlContent,
       }),
