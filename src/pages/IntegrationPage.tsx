@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, ExternalLink, CheckCircle, Plus, AlertCircle } from 'lucide-react'
+import { Copy, ExternalLink, CheckCircle, Plus, AlertCircle, XCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
+type Subscription = Database['public']['Tables']['subscriptions']['Row']
 
 export default function IntegrationPage() {
   const { user } = useAuth()
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [levelCounts, setLevelCounts] = useState({ 1: 0, 2: 0, 3: 0 })
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetchCoupons()
+    fetchSubscription()
   }, [user])
 
 
@@ -36,6 +39,26 @@ export default function IntegrationPage() {
         counts[coupon.level as keyof typeof counts]++
       })
       setLevelCounts(counts)
+    }
+  }
+
+  const fetchSubscription = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Subscription fetch error:', error)
+      } else {
+        setSubscription(data)
+      }
+    } catch (error) {
+      console.error('Subscription error:', error)
     }
   }
 
@@ -67,13 +90,15 @@ export default function IntegrationPage() {
     const hasAllLevels = missingLevels.length === 0
     const totalCoupons = Object.values(levelCounts).reduce((sum, count) => sum + count, 0)
     const availableCoupons = coupons.filter(coupon => coupon.quantity > coupon.used_count).length
+    const hasActiveSubscription = subscription?.is_active === true
     
     return {
       hasAllLevels,
       missingLevels,
       totalCoupons,
       availableCoupons,
-      isReady: hasAllLevels && availableCoupons > 0
+      hasActiveSubscription,
+      isReady: hasAllLevels && availableCoupons > 0 && hasActiveSubscription
     }
   }
 
@@ -193,6 +218,38 @@ export default function IntegrationPage() {
           <div className="bg-white p-8 rounded-lg shadow-sm border">
             <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">🔧 Widget Entegrasyon Kodu</h3>
             
+            {/* Subscription Status Check */}
+            {!widgetStatus.hasActiveSubscription && (
+              <div className="mb-6">
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <XCircle className="h-5 w-5 text-red-600 mr-2" />
+                    <span className="font-semibold text-red-800">Aktif Abonelik Gerekli! ❌</span>
+                  </div>
+                  <div className="text-red-700 text-sm space-y-1">
+                    <p>• Widget'ı kullanabilmek için aktif bir aboneliğiniz olmalı</p>
+                    <p>• Şu anda aboneliğiniz {subscription ? 'pasif durumda' : 'bulunmuyor'}</p>
+                    <p>• Aboneliğinizi aktif etmek için bizimle iletişime geçin</p>
+                    <p className="font-medium">Widget test edildiğinde "Abonelik Gerekli" mesajı gösterecektir.</p>
+                  </div>
+                  <div className="mt-4 flex space-x-4">
+                    <a
+                      href="mailto:info@gamecoupon.com"
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+                    >
+                      E-posta Gönder
+                    </a>
+                    <Link
+                      to="/subscription"
+                      className="border border-red-600 text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm"
+                    >
+                      Abonelik Durumu
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Widget Status Check */}
             <div className="mb-6">
               {widgetStatus.isReady ? (
@@ -215,10 +272,13 @@ export default function IntegrationPage() {
                     {!widgetStatus.hasAllLevels && (
                       <p>• Eksik seviyeler: {widgetStatus.missingLevels.map(level => `Level ${level}`).join(', ')}</p>
                     )}
+                    {!widgetStatus.hasActiveSubscription && (
+                      <p>• Aktif abonelik gerekli. Aboneliğiniz şu anda {subscription ? 'pasif durumda' : 'bulunmuyor'}.</p>
+                    )}
                     {widgetStatus.availableCoupons === 0 && widgetStatus.hasAllLevels && (
                       <p>• Tüm kuponların stoku tükendi. Yeni kuponlar ekleyin veya miktarları artırın.</p>
                     )}
-                    <p className="font-medium">Widget test edildiğinde "Widget Hazır Değil" mesajı gösterecektir.</p>
+                    <p className="font-medium">Widget test edildiğinde uygun hata mesajı gösterecektir.</p>
                   </div>
                 </div>
               )}
@@ -251,8 +311,9 @@ export default function IntegrationPage() {
                 </button>
                 {!widgetStatus.isReady && (
                   <div className="mt-2 text-sm text-red-600">
-                    ⚠️ Test ettiğinizde "Widget Hazır Değil" mesajı göreceksiniz. 
-                    Önce tüm seviyelerde kupon tanımlayın.
+                    ⚠️ Test ettiğinizde uygun hata mesajı göreceksiniz. 
+                    {!widgetStatus.hasActiveSubscription && 'Önce aboneliğinizi aktif ettirin. '}
+                    {!widgetStatus.hasAllLevels && 'Tüm seviyelerde kupon tanımlayın. '}
                   </div>
                 )}
                 </div>
@@ -303,6 +364,7 @@ export default function IntegrationPage() {
                   <h4 className="font-semibold text-yellow-800 mb-1">⚠️ Sorun Giderme:</h4>
                   <div className="text-yellow-700 text-sm space-y-1">
                     <p>• <strong>"Widget Hazır Değil" hatası:</strong> 3 seviyenin tamamında kupon tanımladığınızdan emin olun</p>
+                    <p>• <strong>"Abonelik Gerekli" hatası:</strong> Aktif bir aboneliğiniz olduğundan emin olun</p>
                     <p>• <strong>"Kupon bulunamadı" hatası:</strong> Kupon stoklarının tükenmediğini kontrol edin</p>
                     <p>• <strong>Widget yüklenmiyor:</strong> User ID'nin doğru olduğundan emin olun</p>
                     <p>• <strong>Kupon kodu çalışmıyor:</strong> Kupon kodlarının kendi e-ticaret sisteminizde tanımlı olduğunu kontrol edin</p>

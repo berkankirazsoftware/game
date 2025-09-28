@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Play, Gift, RotateCcw, Trophy, ArrowLeft, Clock, Brain, Zap, Target } from 'lucide-react'
+import { Play, Gift, RotateCcw, Trophy, ArrowLeft, Clock, Brain, Zap, Target, XCircle, CreditCard } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
+type Subscription = Database['public']['Tables']['subscriptions']['Row']
 
 // Sabit oyun listesi
 const GAMES = [
@@ -622,25 +623,94 @@ export default function GameSelectWidget() {
   const [searchParams] = useSearchParams()
   const [selectedGame, setSelectedGame] = useState<string | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const userId = searchParams.get('userId')
+  const testMode = searchParams.get('testMode') === 'true'
 
   useEffect(() => {
     fetchCoupons()
+    if (!testMode) {
+      fetchSubscription()
+    }
   }, [])
 
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .order('level', { ascending: true })
+      if (userId && !testMode) {
+        const { data, error } = await supabase
+          .from('coupons')
+          .select('*')
+          .eq('user_id', userId)
+          .order('level', { ascending: true })
 
-      if (error) throw error
-      setCoupons(data || [])
+        if (error) throw error
+        setCoupons(data || [])
+      } else if (testMode) {
+        // Test modu için varsayılan kuponlar
+        setCoupons([
+          {
+            id: 'test-1',
+            user_id: userId || '',
+            code: 'TEST20',
+            description: 'Test kuponu - %20 indirim',
+            discount_type: 'percentage',
+            discount_value: 20,
+            level: 1,
+            quantity: 10,
+            used_count: 0,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'test-2',
+            user_id: userId || '',
+            code: 'TEST30',
+            description: 'Test kuponu - %30 indirim',
+            discount_type: 'percentage',
+            discount_value: 30,
+            level: 2,
+            quantity: 10,
+            used_count: 0,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'test-3',
+            user_id: userId || '',
+            code: 'TEST50',
+            description: 'Test kuponu - %50 indirim',
+            discount_type: 'percentage',
+            discount_value: 50,
+            level: 3,
+            quantity: 10,
+            used_count: 0,
+            created_at: new Date().toISOString()
+          }
+        ])
+      }
     } catch (error) {
       console.error('Error fetching coupons:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSubscription = async () => {
+    if (!userId) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Subscription fetch error:', error)
+      } else {
+        setSubscription(data)
+      }
+    } catch (error) {
+      console.error('Subscription error:', error)
     }
   }
 
@@ -665,6 +735,50 @@ export default function GameSelectWidget() {
     )
   }
 
+  // Abonelik kontrolü
+  if (!testMode && (!subscription || !subscription.is_active)) {
+    return (
+      <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
+        <div className="max-w-md w-full mx-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-red-100 text-center">
+            <div className="bg-gradient-to-br from-red-500 to-orange-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <XCircle className="h-10 w-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Abonelik Gerekli
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Bu widget'ı kullanabilmek için aktif bir aboneliğiniz olmalı. 
+              Lütfen site sahibi ile iletişime geçin.
+            </p>
+            <div className="bg-orange-50 border border-orange-200 p-4 rounded-2xl mb-6">
+              <div className="flex items-center justify-center mb-2">
+                <CreditCard className="h-5 w-5 text-orange-600 mr-2" />
+                <span className="font-semibold text-orange-800">Abonelik Durumu</span>
+              </div>
+              <p className="text-orange-700 text-sm">
+                {!subscription ? 'Abonelik bulunamadı' : 'Abonelik pasif durumda'}
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                <p className="text-blue-800 text-sm">
+                  <strong>Site Sahibi:</strong> Aboneliğinizi aktif etmek için GameCoupon ile iletişime geçin
+                </p>
+              </div>
+              <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl">
+                <p className="text-gray-700 text-xs">
+                  Widget ID: {userId?.substring(0, 8)}...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Kupon kontrolü
   if (selectedGame === 'timing') {
     return <TimingGame onBack={handleBackToSelection} coupons={coupons} />
   }
