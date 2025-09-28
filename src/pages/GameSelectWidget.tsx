@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseUrl } from '../lib/supabase'
 import { Play, Gift, RotateCcw, Trophy, ArrowLeft, Clock, Brain, Zap, Target, XCircle, CreditCard } from 'lucide-react'
 import type { Database } from '../lib/supabase'
 
@@ -762,7 +762,7 @@ export default function GameSelectWidget() {
   }
 
   // Abonelik kontrolü
-  const hasActiveSubscription =  subscription.is_active === true
+  const hasActiveSubscription = subscription?.is_active === true
   console.log(subscription)
     console.log(subscription.is_active)
 
