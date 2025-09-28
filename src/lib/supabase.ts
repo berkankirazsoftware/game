@@ -25,6 +25,47 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 export type Database = {
   public: {
     Tables: {
+      email_logs: {
+        Row: {
+          id: string
+          user_id: string
+          email: string
+          coupon_code: string
+          game_type: string
+          discount_type: 'percentage' | 'fixed'
+          discount_value: number
+          email_service_id: string | null
+          status: 'sent' | 'failed' | 'pending'
+          sent_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          email: string
+          coupon_code: string
+          game_type: string
+          discount_type: 'percentage' | 'fixed'
+          discount_value: number
+          email_service_id?: string | null
+          status?: 'sent' | 'failed' | 'pending'
+          sent_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          email?: string
+          coupon_code?: string
+          game_type?: string
+          discount_type?: 'percentage' | 'fixed'
+          discount_value?: number
+          email_service_id?: string | null
+          status?: 'sent' | 'failed' | 'pending'
+          sent_at?: string
+          created_at?: string
+        }
+      }
       subscriptions: {
         Row: {
           id: string

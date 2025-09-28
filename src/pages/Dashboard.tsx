@@ -2,23 +2,27 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Bell, BarChart3, Gift, AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import { Bell, BarChart3, Gift, AlertCircle, CheckCircle, Clock, Mail } from 'lucide-react'
 
 import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
+type EmailLog = Database['public']['Tables']['email_logs']['Row']
 
 export default function Dashboard() {
   const { user } = useAuth()
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [emailLogs, setEmailLogs] = useState<EmailLog[]>([])
   const [stats, setStats] = useState({
     totalCoupons: 0,
     totalUsedCoupons: 0,
-    totalAvailableCoupons: 0
+    totalAvailableCoupons: 0,
+    totalEmailsSent: 0
   })
 
   useEffect(() => {
     fetchCoupons()
+    fetchEmailLogs()
   }, [user])
 
 
@@ -39,8 +43,28 @@ export default function Dashboard() {
       setStats({
         totalCoupons: data.length,
         totalUsedCoupons: totalUsed,
-        totalAvailableCoupons: totalAvailable
+        totalAvailableCoupons: totalAvailable,
+        totalEmailsSent: 0
       })
+    }
+  }
+
+  const fetchEmailLogs = async () => {
+    if (!user) return
+    
+    const { data } = await supabase
+      .from('email_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('sent_at', { ascending: false })
+      .limit(5)
+    
+    if (data) {
+      setEmailLogs(data)
+      setStats(prev => ({
+        ...prev,
+        totalEmailsSent: data.filter(log => log.status === 'sent').length
+      }))
     }
   }
 
@@ -65,6 +89,13 @@ export default function Dashboard() {
       icon: Gift,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Gönderilen Email',
+      value: stats.totalEmailsSent,
+      icon: Mail,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
     }
   ]
 
@@ -108,6 +139,7 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon
           return (
