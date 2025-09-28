@@ -9,7 +9,7 @@ console.log('Environment variables:', {
 })
 
 // Check if we have valid Supabase configuration
-const isValidConfig = supabaseUrl && 
+export const isSupabaseConfigured = supabaseUrl && 
   supabaseKey && 
   supabaseUrl !== 'https://placeholder.supabase.co' && 
   supabaseKey !== 'placeholder-key' &&
@@ -20,12 +20,12 @@ const isValidConfig = supabaseUrl &&
 console.log('Supabase config:', { 
   url: supabaseUrl, 
   hasKey: !!supabaseKey, 
-  isValid: isValidConfig,
+  isValid: isSupabaseConfigured,
   urlValid: supabaseUrl.includes('.supabase.co'),
   keyValid: supabaseKey.startsWith('eyJ')
 })
 // Create Supabase client with proper configuration
-export const supabase = isValidConfig
+export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: true,
