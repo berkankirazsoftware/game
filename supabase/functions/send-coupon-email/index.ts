@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
     console.log('🔑 Resend API Key exists:', !!resendApiKey)
     console.log('🔑 API Key length:', resendApiKey?.length || 0)
     
-    if (!resendApiKey) {
+    if (!resendApiKey || resendApiKey === 'placeholder-key') {
       // Fallback: Log email instead of sending (for development)
       console.log('📧 Email would be sent to:', email)
       console.log('🎁 Coupon:', couponCode)
@@ -139,7 +139,7 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "Email gönderildi (development mode)",
+          message: "Email gönderildi (development mode - API key yok)",
           email: email,
           coupon: couponCode
         }),
@@ -151,6 +151,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // Send actual email with Resend
+    console.log('📤 Sending email via Resend API...')
+    
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -158,7 +160,7 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Booste <onboarding@resend.dev>',
+        from: 'Booste <noreply@resend.dev>',
         to: [email],
         subject: `🎉 Kupon Kazandınız! ${couponCode} - ${discountText} İndirim`,
         html: htmlContent,
@@ -167,12 +169,20 @@ Deno.serve(async (req: Request) => {
 
     console.log('📤 Email API response status:', emailResponse.status)
     
+    const responseText = await emailResponse.text()
+    console.log('📤 Email API response body:', responseText)
+    
     if (!emailResponse.ok) {
-      const errorData = await emailResponse.text()
-      console.error('❌ Email send error:', errorData)
+      console.error('❌ Email send error:', responseText)
+      console.error('❌ Response status:', emailResponse.status)
+      console.error('❌ Response headers:', Object.fromEntries(emailResponse.headers.entries()))
       
       return new Response(
-        JSON.stringify({ error: "Email gönderilemedi" }),
+        JSON.stringify({ 
+          error: "Email gönderilemedi", 
+          details: responseText,
+          status: emailResponse.status 
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -180,7 +190,14 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const emailResult = await emailResponse.json()
+    let emailResult
+    try {
+      emailResult = JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError)
+      emailResult = { id: 'unknown', raw: responseText }
+    }
+    
     console.log('✅ Email sent successfully:', emailResult)
 
     return new Response(
