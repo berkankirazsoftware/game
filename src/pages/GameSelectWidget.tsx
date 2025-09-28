@@ -697,6 +697,10 @@ export default function GameSelectWidget() {
   const fetchSubscription = async () => {
     if (!userId) return
     
+    if (debugMode) {
+      console.log('🔍 Fetching subscription for userId:', userId)
+    }
+    
     try {
       const { data, error } = await supabase
         .from('subscriptions')
@@ -704,11 +708,17 @@ export default function GameSelectWidget() {
         .eq('user_id', userId)
         .single()
       
+      if (debugMode) {
+        console.log('🔍 Subscription query result:', { data, error })
+      }
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Subscription fetch error:', error)
       } else {
         setSubscription(data)
-        console.log('Subscription data:', data) // Debug için
+        if (debugMode) {
+          console.log('🔍 Subscription set to state:', data)
+        }
       }
     } catch (error) {
       console.error('Subscription error:', error)
@@ -738,7 +748,17 @@ export default function GameSelectWidget() {
 
   // Abonelik kontrolü
   const hasActiveSubscription = subscription && subscription.is_active === true
-  console.log('Subscription check:', { subscription, hasActiveSubscription, testMode }) // Debug için
+  
+  if (debugMode) {
+    console.log('🔍 Final subscription check:', { 
+      subscription, 
+      hasActiveSubscription, 
+      testMode,
+      userId,
+      subscriptionExists: !!subscription,
+      isActive: subscription?.is_active
+    })
+  }
   
   if (!testMode && !hasActiveSubscription) {
     return (
@@ -770,6 +790,12 @@ export default function GameSelectWidget() {
                   <p>Bitiş: {subscription.expiration_date || 'Belirsiz'}</p>
                 </div>
               )}
+              <div className="text-orange-600 text-xs mt-2 bg-orange-100 p-2 rounded">
+                <p><strong>Debug:</strong></p>
+                <p>User ID: {userId || 'Yok'}</p>
+                <p>Subscription: {subscription ? 'Var' : 'Yok'}</p>
+                <p>Active: {subscription?.is_active ? 'True' : 'False'}</p>
+              </div>
             </div>
             <div className="space-y-3">
               <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">

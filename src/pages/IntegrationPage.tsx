@@ -64,7 +64,7 @@ export default function IntegrationPage() {
 
   const generateIframeUrl = () => {
     const baseUrl = window.location.origin
-    return `${baseUrl}/game-widget?userId=${user?.id}`
+    return `${baseUrl}/game-widget?userId=${user?.id}&debug=true`
   }
 
   const generateIframeCode = () => {
