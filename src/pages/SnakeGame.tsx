@@ -206,10 +206,7 @@ export default function SnakeGame() {
                   </p>
                   
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
-                    <div className="flex items-center justify-center mb-2">
-                      <Gift className="h-6 w-6 text-green-600 mr-2" />
-                      <span className="text-lg font-bold text-green-800">{wonCoupon.code}</span>
-                    </div>
+                  
                     <p className="text-green-700 font-medium">
                       {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
                     </p>
