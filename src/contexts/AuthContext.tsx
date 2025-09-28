@@ -76,14 +76,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     if (!error && data.user) {
-      // Create profile
-      await supabase.from('profiles').insert([
-        {
-          id: data.user.id,
-          email: data.user.email!,
-          full_name: fullName,
-        },
-      ])
+      try {
+        // Create profile
+        await supabase.from('profiles').insert([
+          {
+            id: data.user.id,
+            email: data.user.email!,
+            full_name: fullName,
+          },
+        ])
+
+        // Create default subscription (inactive)
+        await supabase.from('subscriptions').insert([
+          {
+            user_id: data.user.id,
+            plan_type: 'basic',
+            is_active: false,
+            start_date: new Date().toISOString(),
+            expiration_date: null
+          },
+        ])
+      } catch (profileError) {
+        console.error('Error creating user profile/subscription:', profileError)
+      }
     }
 
     return { data, error }
