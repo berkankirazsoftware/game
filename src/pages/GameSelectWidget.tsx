@@ -822,7 +822,7 @@ export default function GameSelectWidget() {
               </div>
               <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl">
                 <p className="text-gray-700 text-xs">
-                  Widget ID: {userId?.substring(0, 8)}...
+                  Widget URL: booste.online/game-widget
                 </p>
               </div>
             </div>
