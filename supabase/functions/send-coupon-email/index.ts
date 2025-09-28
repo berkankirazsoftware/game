@@ -160,7 +160,7 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev', // Resend'in test email adresi
+        from: 'Booste <noreply@booste.online>', // Netlify domain'iniz
         to: [email], // Kullanıcının girdiği email
         subject: `🎉 Kupon Kazandınız! ${couponCode} - ${discountText} İndirim`,
         html: htmlContent,
