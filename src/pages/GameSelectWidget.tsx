@@ -703,12 +703,14 @@ export default function GameSelectWidget() {
     }
     
     try {
-      // First try with anon access (for widget usage)
-      let { data, error } = await supabase
+      // Query returns array, get first item
+      let { data: dataArray, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle()
+      
+      // Convert array to single object
+      const data = dataArray && dataArray.length > 0 ? dataArray[0] : null
       
       // If no data and we have an error, try with service role or check RLS
       if (!data && !error) {
@@ -728,7 +730,7 @@ export default function GameSelectWidget() {
       }
       
       if (debugMode) {
-        console.log('🔍 Subscription query result:', { data, error })
+        console.log('🔍 Subscription query result:', { dataArray, data, error })
         console.log('🔍 Query URL would be:', `${supabaseUrl}/rest/v1/subscriptions?select=*&user_id=eq.${userId}`)
       }
       
