@@ -708,6 +708,7 @@ export default function GameSelectWidget() {
         console.error('Subscription fetch error:', error)
       } else {
         setSubscription(data)
+        console.log('Subscription data:', data) // Debug için
       }
     } catch (error) {
       console.error('Subscription error:', error)
@@ -736,7 +737,10 @@ export default function GameSelectWidget() {
   }
 
   // Abonelik kontrolü
-  if (!testMode && (!subscription || !subscription.is_active)) {
+  const hasActiveSubscription = subscription && subscription.is_active === true
+  console.log('Subscription check:', { subscription, hasActiveSubscription, testMode }) // Debug için
+  
+  if (!testMode && !hasActiveSubscription) {
     return (
       <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
         <div className="max-w-md w-full mx-4">
@@ -757,8 +761,15 @@ export default function GameSelectWidget() {
                 <span className="font-semibold text-orange-800">Abonelik Durumu</span>
               </div>
               <p className="text-orange-700 text-sm">
-                {!subscription ? 'Abonelik bulunamadı' : 'Abonelik pasif durumda'}
+                {!subscription ? 'Abonelik bulunamadı' : `Abonelik durumu: ${subscription.is_active ? 'Aktif' : 'Pasif'}`}
               </p>
+              {subscription && (
+                <div className="text-orange-600 text-xs mt-2">
+                  <p>Plan: {subscription.plan_type}</p>
+                  <p>Aktif: {subscription.is_active ? 'Evet' : 'Hayır'}</p>
+                  <p>Bitiş: {subscription.expiration_date || 'Belirsiz'}</p>
+                </div>
+              )}
             </div>
             <div className="space-y-3">
               <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
