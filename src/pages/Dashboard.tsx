@@ -160,63 +160,54 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Kupon İstatistikleri */}
+        {/* Email Logları */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2" />
-              Kupon İstatistikleri
+              <Mail className="h-5 w-5 mr-2" />
+              Son Gönderilen Kuponlar
             </h3>
-            <Link to="/coupons" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-              Tümünü Gör
-            </Link>
           </div>
           <div className="space-y-4">
-            {coupons.length > 0 ? coupons.map((coupon) => {
-              const usagePercentage = coupon.quantity > 0 ? (coupon.used_count / coupon.quantity) * 100 : 0
-              const remaining = coupon.quantity - coupon.used_count
+            {emailLogs.length > 0 ? emailLogs.map((log) => {
+              const gameTypeText = log.game_type === 'timing' ? 'Zamanlama' : 'Hafıza'
+              const discountText = log.discount_type === 'percentage' ? `%${log.discount_value}` : `${log.discount_value}₺`
               
               return (
-                <div key={coupon.id} className="p-4 bg-gray-50 rounded-lg">
+                <div key={log.id} className="p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <h4 className="font-medium text-gray-900">{coupon.code}</h4>
-                      <p className="text-sm text-gray-600">{coupon.description}</p>
+                      <h4 className="font-medium text-gray-900">{log.coupon_code}</h4>
+                      <p className="text-sm text-gray-600">{log.email}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-green-600">
-                        {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
-                      </p>
+                      <p className="text-lg font-bold text-green-600">{discountText}</p>
+                      <p className="text-xs text-gray-500">{gameTypeText} Oyunu</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">
-                      Kullanılan: {coupon.used_count}/{coupon.quantity}
+                      Gönderilme: {new Date(log.sent_at).toLocaleDateString('tr-TR')}
                     </span>
-                    <span className={`font-medium ${remaining > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {remaining > 0 ? `${remaining} kalan` : 'Tükendi'}
+                    <span className={`font-medium px-2 py-1 rounded-full text-xs ${
+                      log.status === 'sent' ? 'bg-green-100 text-green-800' : 
+                      log.status === 'failed' ? 'bg-red-100 text-red-800' : 
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {log.status === 'sent' ? '✅ Gönderildi' : 
+                       log.status === 'failed' ? '❌ Başarısız' : 
+                       '⏳ Bekliyor'}
                     </span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${usagePercentage >= 80 ? 'bg-red-500' : usagePercentage >= 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
-                        style={{ width: `${usagePercentage}%` }}
-                      ></div>
-                    </div>
                   </div>
                 </div>
               )
             }) : (
               <div className="text-center py-8 text-gray-500">
-                <Gift className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>Henüz kupon oluşturmadınız</p>
-                <Link
-                  to="/coupons"
-                  className="inline-block mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                >
-                  İlk kuponunuzu oluşturun
-                </Link>
+                <Mail className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>Henüz email gönderilmedi</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Oyuncular kupon kazandığında burada görünecek
+                </p>
               </div>
             )}
           </div>

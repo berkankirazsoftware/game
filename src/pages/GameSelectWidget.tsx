@@ -538,9 +538,47 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
     setEmailLoading(true)
     
     try {
-      // Burada email gönderme API'si çağrılacak
-      // Şimdilik simüle ediyoruz
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Supabase Edge Function ile email gönder
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-coupon-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email: email,
+          couponCode: wonCoupon.code,
+          couponDescription: wonCoupon.description,
+          discountType: wonCoupon.discount_type,
+          discountValue: wonCoupon.discount_value,
+          gameType: 'memory'
+        })
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Email gönderilemedi')
+      }
+
+      // Email log kaydet (opsiyonel)
+      if (userId && !testMode) {
+        try {
+          await supabase.from('email_logs').insert([{
+            user_id: userId,
+            email: email,
+            coupon_code: wonCoupon.code,
+            game_type: 'memory',
+            discount_type: wonCoupon.discount_type,
+            discount_value: wonCoupon.discount_value,
+            email_service_id: result.emailId,
+            status: 'sent'
+          }])
+        } catch (logError) {
+          console.error('Email log error:', logError)
+          // Log hatası email gönderimini engellemez
+        }
+      }
       
       setEmailSent(true)
       setShowEmailModal(false)
@@ -552,6 +590,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       }, 3000)
     } catch (error) {
       console.error('Email gönderme hatası:', error)
+      alert('Email gönderilirken hata oluştu. Lütfen tekrar deneyin.')
     } finally {
       setEmailLoading(false)
     }
