@@ -1060,18 +1060,19 @@ export default function GameSelectWidget() {
       })
 
       const result = await emailResponse.json()
-      console.log('📧 Email API response:', result)
       
-      if (result && result.success) {
+      if (emailResponse.ok && result.success) {
         setEmailResult({
-          type: 'success',
-          message: 'Email başarıyla gönderildi! Spam klasörünüzü de kontrol etmeyi unutmayın.',
+          success: true,
+          message: 'Kupon kodunuz email adresinize başarıyla gönderildi! Email kutunuzu kontrol edin.',
           show: true
         })
+        setShowEmailModal(false)
+        setEmail('')
       } else {
         setEmailResult({
-          type: 'error',
-          message: (result && result.error) || 'Email gönderilemedi',
+          success: false,
+          message: result.error || 'Email gönderilirken hata oluştu. Lütfen tekrar deneyin.',
           show: true
         })
       }
