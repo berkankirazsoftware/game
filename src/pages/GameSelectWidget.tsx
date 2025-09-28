@@ -707,13 +707,13 @@ export default function GameSelectWidget() {
         .from('subscriptions')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
       
       if (debugMode) {
         console.log('🔍 Subscription query result:', { data, error })
       }
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Subscription fetch error:', error)
       } else {
         setSubscription(data)
