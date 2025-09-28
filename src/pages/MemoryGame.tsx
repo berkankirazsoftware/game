@@ -215,14 +215,9 @@ export default function MemoryGame() {
                     </p>
                     <p className="text-green-600 text-sm mt-1">
                       {wonCoupon.description}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 text-gray-900"
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4">
-                    <p className="text-blue-800 text-sm">
-                      📧 Kupon kodunuz <strong>{email || 'email adresinize'}</strong> gönderilecek
                     </p>
                   </div>
+                  
                   <button
                     onClick={resetGame}
                     className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
