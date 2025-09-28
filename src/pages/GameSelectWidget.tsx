@@ -894,6 +894,15 @@ export default function GameSelectWidget() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
+  const [email, setEmail] = useState('')
+  const [emailSending, setEmailSending] = useState(false)
+  const [emailResult, setEmailResult] = useState<{
+    success: boolean
+    message: string
+    show: boolean
+  }>({ success: false, message: '', show: false })
   const userId = searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
   const debugMode = searchParams.get('debug') === 'true'
@@ -1022,6 +1031,62 @@ export default function GameSelectWidget() {
     setSelectedGame(null)
   }
 
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !wonCoupon) return
+
+    try {
+      setEmailSending(true)
+      setEmailResult({ success: false, message: '', show: false })
+      
+      // Log email attempt
+      console.log('📧 Sending email to:', email)
+      console.log('🎁 Coupon:', wonCoupon.code)
+      
+      const emailResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-coupon-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email: email,
+          couponCode: wonCoupon.code,
+          couponDescription: wonCoupon.description,
+          discountType: wonCoupon.discount_type,
+          discountValue: wonCoupon.discount_value,
+          gameType: 'general'
+        })
+      })
+
+      if (emailResponse.ok) {
+        setEmailResult({
+          success: true,
+          message: 'Kupon kodunuz email adresinize başarıyla gönderildi! Email kutunuzu kontrol edin.',
+          show: true
+        })
+        setEmail('')
+        setShowEmailModal(false)
+      } else {
+        const errorData = await emailResponse.json()
+        setEmailResult({
+          success: false,
+          message: 'Email gönderilirken hata oluştu: ' + (errorData.error || 'Bilinmeyen hata'),
+          show: true
+        })
+      }
+    } catch (error) {
+      console.error('Email send error:', error)
+      setEmailResult({
+        success: false,
+        message: 'Email gönderilirken beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.',
+        show: true
+      })
+    } finally {
+      setEmailSending(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
@@ -1136,6 +1201,101 @@ export default function GameSelectWidget() {
             <p className="text-purple-100 mt-2">Oyun oyna, kupon kazan!</p>
           </div>
         </div>
+
+        {/* Email Result Modal */}
+        {emailResult.show && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
+              <div className={`text-6xl mb-4 ${emailResult.success ? '' : ''}`}>
+                {emailResult.success ? '✅' : '❌'}
+              </div>
+              <h3 className={`text-2xl font-bold mb-4 ${
+                emailResult.success ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {emailResult.success ? 'Email Gönderildi!' : 'Email Gönderilemedi'}
+              </h3>
+              <p className={`mb-6 ${
+                emailResult.success ? 'text-green-700' : 'text-red-700'
+              }`}>
+                {emailResult.message}
+              </p>
+              
+              {emailResult.success && (
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+                  <p className="text-blue-800 text-sm">
+                    <strong>💡 İpucu:</strong> Email gelmezse spam klasörünüzü kontrol edin.
+                  </p>
+                </div>
+              )}
+              
+              <button
+                onClick={() => setEmailResult({ success: false, message: '', show: false })}
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                  emailResult.success 
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
+              >
+                Tamam
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Email Modal */}
+        {showEmailModal && wonCoupon && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
+              <div className="text-6xl mb-4">🎉</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Tebrikler! Kupon Kazandınız!
+              </h3>
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6">
+                <p className="text-green-800 font-semibold text-lg">
+                  {wonCoupon.code}
+                </p>
+                <p className="text-green-700">
+                  {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
+                </p>
+                <p className="text-green-600 text-sm mt-2">
+                  {wonCoupon.description}
+                </p>
+              </div>
+              
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="E-posta adresinizi girin"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-gray-600 text-sm mt-2">
+                    Kupon kodunuz bu adrese gönderilecek
+                  </p>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={emailSending}
+                    className="flex-1 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    {emailSending ? 'Gönderiliyor...' : 'Kuponu Gönder'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Games Grid */}
         <div className="flex-1 flex items-center justify-center">
