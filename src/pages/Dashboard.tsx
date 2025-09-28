@@ -52,19 +52,30 @@ export default function Dashboard() {
   const fetchEmailLogs = async () => {
     if (!user) return
     
-    const { data } = await supabase
-      .from('email_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('sent_at', { ascending: false })
-      .limit(5)
-    
-    if (data) {
-      setEmailLogs(data)
-      setStats(prev => ({
-        ...prev,
-        totalEmailsSent: data.filter(log => log.status === 'sent').length
-      }))
+    try {
+      const { data, error } = await supabase
+        .from('email_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('sent_at', { ascending: false })
+        .limit(5)
+      
+      if (error) {
+        console.log('Email logs table not found, skipping...')
+        setEmailLogs([])
+        return
+      }
+      
+      if (data) {
+        setEmailLogs(data)
+        setStats(prev => ({
+          ...prev,
+          totalEmailsSent: data.filter(log => log.status === 'sent').length
+        }))
+      }
+    } catch (error) {
+      console.log('Email logs error:', error)
+      setEmailLogs([])
     }
   }
 
