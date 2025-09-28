@@ -627,6 +627,7 @@ export default function GameSelectWidget() {
   const [loading, setLoading] = useState(true)
   const userId = searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
+  const debugMode = searchParams.get('debug') === 'true'
 
   useEffect(() => {
     fetchCoupons()
