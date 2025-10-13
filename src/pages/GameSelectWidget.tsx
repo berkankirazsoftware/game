@@ -157,23 +157,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       }
 
       // Email log kaydet (opsiyonel)
-      if (userId && !testMode) {
-        try {
-          await supabase.from('email_logs').insert([{
-            user_id: userId,
-            email: email,
-            coupon_code: wonCoupon.code,
-            game_type: 'timing',
-            discount_type: wonCoupon.discount_type,
-            discount_value: wonCoupon.discount_value,
-            email_service_id: result.emailId,
-            status: 'sent'
-          }])
-        } catch (logError) {
-          console.error('Email log error:', logError)
-          // Log hatası email gönderimini engellemez
-        }
-      }
+    
       
       setEmailSent(true)
       setShowEmailModal(false)
