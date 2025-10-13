@@ -1039,84 +1039,81 @@ export default function GameSelectWidget() {
       setEmailSending(true)
       setEmailResult({ success: false, message: '', show: false })
       
-      let emailSuccess = false
-      let emailResult = null
-      
-      try {
-        // Email gönder
-        const response = await fetch(`${supabaseUrl}/functions/v1/send-coupon-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseKey}`
-          },
-          body: JSON.stringify({
-            email: emailInput,
-            couponCode: selectedCoupon.code,
-            couponDescription: selectedCoupon.description,
-            discountType: selectedCoupon.discount_type,
-            discountValue: selectedCoupon.discount_value,
-            gameType: gameType
-          })
+      // Email gönder
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-coupon-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+        body: JSON.stringify({
+          email: emailInput,
+          couponCode: selectedCoupon.code,
+          couponDescription: selectedCoupon.description,
+          discountType: selectedCoupon.discount_type,
+          discountValue: selectedCoupon.discount_value,
+          gameType: gameType
         })
+      })
 
-        emailResult = await response.json()
-        console.log('Email API response:', emailResult)
-
-        if (response.ok && emailResult && emailResult.success) {
-          emailSuccess = true
-          console.log('✅ Email başarıyla gönderildi')
-        } else {
-          console.error('❌ Email gönderme hatası:', emailResult)
-        }
-      } catch (emailError) {
-        console.error('❌ Email gönderme exception:', emailError)
-      }
-
-      // Email başarılıysa log kaydet (arka planda, hata olsa bile ana işlemi etkilemesin)
-      if (emailSuccess) {
-        // Log kaydını arka planda yap
-        setTimeout(async () => {
-          try {
-            const { error: logError } = await supabase
-              .from('email_logs')
-              .insert([{
-                user_id: userId || null,
-                email: emailInput,
-                coupon_code: selectedCoupon.code,
-                game_type: gameType,
-                discount_type: selectedCoupon.discount_type,
-                discount_value: selectedCoupon.discount_value,
-                email_service_id: emailResult && emailResult.emailId ? emailResult.emailId : null,
-                status: 'sent'
-              }])
-            
-            if (logError) {
-              console.error('Email log kaydetme hatası:', logError)
-            } else {
-              console.log('✅ Email log başarıyla kaydedildi')
-            }
-          } catch (logError) {
-            console.error('Email log exception:', logError)
-          }
-        }, 100)
-
-        // Başarı modalı göster
-        setEmailModalType('success')
-        setEmailModalMessage('Email başarıyla gönderildi! Spam klasörünüzü de kontrol etmeyi unutmayın.')
+      const emailResult = await response.json()
+      console.log('📧 Email API response:', emailResult)
+      
+      // Email başarılıysa başarı modalını göster, hatalıysa hata modalını göster
+      if (emailResult && emailResult.success) {
+        setEmailModalData({
+          type: 'success',
+          title: 'Kupon Gönderildi! 🎉',
+          message: 'Kupon kodunuz email adresinize gönderildi. Spam klasörünüzü de kontrol etmeyi unutmayın.',
+          email: email,
+          coupon: selectedCoupon
+        })
         setShowEmailModal(true)
-        setEmailInput('')
       } else {
-        // Hata modalı göster
-        setEmailModalType('error')
-        setEmailModalMessage(`Email gönderilirken hata oluştu: ${(emailResult && emailResult.error) || 'Bilinmeyen hata'}`)
+        // Email gönderimi başarısız
+        setEmailModalData({
+          type: 'error',
+          title: 'Email Gönderilirken Hata Oluştu',
+          message: 'Kupon email olarak gönderilemedi. Lütfen tekrar deneyin.',
+          email: email,
+          coupon: selectedCoupon
+        })
         setShowEmailModal(true)
       }
-
+      
+      // Email log kaydını arka planda yap (hata olsa bile ana işlemi etkilemesin)
+      try {
+        const { error: logError } = await supabase
+          .from('email_logs')
+          .insert([{
+            user_id: userId || null,
+            email: emailInput,
+            coupon_code: selectedCoupon.code,
+            game_type: gameType,
+            discount_type: selectedCoupon.discount_type,
+            discount_value: selectedCoupon.discount_value,
+            email_service_id: emailResult && emailResult.emailId ? emailResult.emailId : null,
+            status: emailResult && emailResult.success ? 'sent' : 'failed'
+          }])
+        
+        if (logError) {
+          console.log('⚠️ Email log kaydedilemedi:', logError)
+        } else {
+          console.log('✅ Email log kaydedildi')
+        }
+      } catch (logError) {
+        console.log('⚠️ Email log kaydedilemedi (ana işlem etkilenmedi):', logError)
+      }
+      
     } catch (error) {
-      console.error('Email gönderme genel hatası:', error)
-      setEmailModalType('error')
-      setEmailModalMessage('Email gönderilirken beklenmeyen bir hata oluştu.')
+      console.error('Email gönderimi hatası:', error)
+      setEmailModalData({
+        type: 'error',
+        title: 'Email Gönderilirken Hata Oluştu',
+        message: 'Kupon email olarak gönderilemedi. Lütfen tekrar deneyin.',
+        email: email,
+        coupon: selectedCoupon
+      })
       setShowEmailModal(true)
     } finally {
       setEmailSending(false)
