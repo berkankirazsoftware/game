@@ -1064,6 +1064,9 @@ export default function GameSelectWidget() {
           .from('coupons')
           .update({ 
             used_count: wonCoupon.used_count + 1 
+        })
+        .eq('id', wonCoupon.id)
+
       console.log('📧 Email response status:', response.status)
       console.log('📧 Email response ok:', response.ok)
       
