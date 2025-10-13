@@ -183,7 +183,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       }, 3000)
     } catch (error) {
       console.error('Email gönderme hatası:', error)
-      alert('Email gönderilirken hata oluştu. Lütfen tekrar deneyin.')
+   
     } finally {
       setEmailLoading(false)
     }
@@ -642,7 +642,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       }, 3000)
     } catch (error) {
       console.error('Email gönderme hatası:', error)
-      alert('Email gönderilirken hata oluştu. Lütfen tekrar deneyin.')
+     
     } finally {
       setEmailLoading(false)
     }
