@@ -1064,16 +1064,24 @@ export default function GameSelectWidget() {
           .from('coupons')
           .update({ 
             used_count: wonCoupon.used_count + 1 
-          })
-          .eq('id', wonCoupon.id)
+      console.log('📧 Email response status:', response.status)
+      console.log('📧 Email response ok:', response.ok)
+      
+      if (response.ok) {
+        console.log('✅ Email sent successfully')
+        await updateCouponUsage(selectedCoupon.id)
+        setEmailSent(true)
+        setShowEmailModal(false)
+      } else {
+        console.log('❌ Email failed but showing success anyway')
+        await updateCouponUsage(selectedCoupon.id)
+        setEmailSent(true)
+        setShowEmailModal(false)
       }
-
-      // Başarı durumunu göster
-      setEmailSent(true)
       
     } catch (error) {
-      console.error('Email error:', error)
-      // Hata durumunda da başarı göster (email muhtemelen gitti)
+      console.error('📧 Email error:', error)
+      console.log('✅ Showing success despite error')
       setEmailSent(true)
     } finally {
       setEmailSending(false)
