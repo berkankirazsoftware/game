@@ -178,7 +178,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       
       // 3 saniye sonra success mesajını kapat
       setTimeout(() => {
-        setEmailSent(false)
+     
         resetGame()
       }, 3000)
     } catch (error) {
