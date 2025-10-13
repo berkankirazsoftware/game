@@ -166,7 +166,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       setTimeout(() => {
      
         resetGame()
-      }, 3000)
+      }, 5000)
     } catch (error) {
       console.error('Email gönderme hatası:', error)
    
@@ -608,7 +608,7 @@ function MemoryGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       // 3 saniye sonra success mesajını kapat
       setTimeout(() => {
         resetGame()
-      }, 3000)
+      }, 5000)
     } catch (error) {
       console.error('Email gönderme hatası:', error)
      
