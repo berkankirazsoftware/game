@@ -22,7 +22,14 @@ export default function LoginPage() {
       if (error) throw error
       navigate('/dashboard')
     } catch (error: any) {
-      setError(error.message)
+      // Provide user-friendly error messages
+      if (error.message.includes('Invalid login credentials')) {
+        setError('E-posta veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.')
+      } else if (error.message.includes('Email not confirmed')) {
+        setError('E-posta adresinizi doğrulamanız gerekiyor. Gelen kutunuzu kontrol edin.')
+      } else {
+        setError('Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.')
+      }
     } finally {
       setLoading(false)
     }
