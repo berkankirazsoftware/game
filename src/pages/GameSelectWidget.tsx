@@ -220,7 +220,7 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
         </div>
 
         {/* Game Won Modal */}
-        {showEmailModal && wonCoupon && !emailSent && (
+        {showEmailModal && wonCoupon  && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-3xl max-w-md w-full mx-4 text-center shadow-2xl border border-purple-100">
               <div className="bg-gradient-to-br from-yellow-400 to-orange-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
