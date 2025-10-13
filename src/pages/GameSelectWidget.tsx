@@ -150,9 +150,9 @@ function TimingGame({ onBack, coupons }: { onBack: () => void, coupons: Coupon[]
       const result = await response.json()
       console.log('📧 Email API result:', result)
 
-      console.log("response",response)
+      console.log("result",result)
       
-      if (!response.ok) {
+      if (!result.success) {
         throw new Error(result.error || 'Email gönderilemedi')
       }
 
