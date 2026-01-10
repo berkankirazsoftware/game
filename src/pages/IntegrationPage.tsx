@@ -124,7 +124,7 @@ export default function IntegrationPage() {
       games: selectedBooste.games,
       theme: selectedBooste.theme,
       userId: user.id,
-      autoOpen: true
+      autoOpen: false
     }
 
     const containerHtml = selectedBooste.type === 'embedded' ? `<div id="booste-game-container"></div>\n` : ''

@@ -99,6 +99,17 @@
   });
 &lt;/script&gt;</code></pre>
         </div>
+
+        <div class="card" style="border-left: 5px solid #9c27b0;">
+            <h3>🟣 Popup Mod Testi</h3>
+            <p>Popup modunu test etmek için aşağıdaki butona basın. Sayfanın sağ altında yüzen butonu görmelisiniz.</p>
+            <button onclick="testPopupWidget()" style="padding: 10px 20px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Popup Widget Başlat
+            </button>
+            <button onclick="window.Booste && window.Booste.destroy()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+                Widget'ı Kapat (Destroy)
+            </button>
+        </div>
         
         <div class="card">
             <h3>✅ CORS Testi</h3>
@@ -213,6 +224,29 @@
         // Log page info
         console.log('=== External Site Test ===');
         console.log('Page URL:', window.location.href);
+
+        // Function for manual popup test
+        window.testPopupWidget = function() {
+            console.log('🟣 Starting Popup Test...');
+            if (window.Booste) {
+                // Clean up previous instance
+                try { window.Booste.destroy(); } catch(e) {}
+                
+                // Init popup
+                window.Booste.init({
+                    target: 'body', // Popup attaches to body usually
+                    games: ['snake', 'wheel', 'memory'],
+                    type: 'popup',
+                    theme: 'colorful',
+                    userId: 'external-user-popup-test',
+                    autoOpen: false // Explicitly closed
+                });
+                console.log('✅ Popup initialized (Float button should appear)');
+                alert('Popup başlatıldı! Sağ alt köşedeki butona bakın.');
+            } else {
+                alert('Widget script henüz yüklenmedi!');
+            }
+        };
     </script>
 </body>
 </html>
