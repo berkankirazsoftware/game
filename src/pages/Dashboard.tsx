@@ -53,6 +53,7 @@ export default function Dashboard() {
     if (!user) return
     
     try {
+      // Fetch latest logs
       const { data, error } = await supabase
         .from('email_logs')
         .select('*')
@@ -60,6 +61,13 @@ export default function Dashboard() {
         .order('sent_at', { ascending: false })
         .limit(5)
       
+      // Fetch total count
+      const { count } = await supabase
+        .from('email_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'sent')
+
       if (error) {
         console.log('Email logs table not found, skipping...')
         setEmailLogs([])
@@ -70,7 +78,7 @@ export default function Dashboard() {
         setEmailLogs(data)
         setStats(prev => ({
           ...prev,
-          totalEmailsSent: data.filter(log => log.status === 'sent').length
+          totalEmailsSent: count || 0
         }))
       }
     } catch (error) {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { Gift, Trophy, Star } from 'lucide-react'
+import { Gift, Star } from 'lucide-react'
+import GameWinModal from '../components/GameWinModal'
 
 // Mock Data Types
 interface Segment {
@@ -205,33 +206,25 @@ export default function WheelGame({ embedded = false, theme }: WheelGameProps) {
                         {isSpinning ? 'Bol Şans...' : 'ÇEVİR'}
                     </button>
                 ) : (
-                    <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-2xl animate-fade-in-up">
-                        <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-2 animate-bounce" />
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">
-                            {wonSegment.value === '0' ? 'Üzgünüz :(' : 'Tebrikler!'}
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                            {wonSegment.value === '0' 
-                                ? 'Bu sefer boş, tekrar deneyebilirsin!' 
-                                : `${wonSegment.label} kazandınız!`}
-                        </p>
-                        {wonSegment.value !== '0' && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                                <code className="text-green-700 font-mono font-bold text-lg">
-                                    {testMode ? 'TEST1234' : 'KOD-X-Y-Z'}
-                                </code>
-                            </div>
-                        )}
-                        <button
-                            onClick={() => {
-                                setIsSpinning(false)
-                                setWonSegment(null)
-                            }}
-                            className="text-indigo-600 font-medium hover:text-indigo-800"
-                        >
-                            Tekrar Oyna
-                        </button>
-                    </div>
+                    <GameWinModal 
+                        coupon={{
+                            id: 'wheel-win',
+                            user_id: 'wheel-game',
+                            code: testMode ? 'TEST1234' : 'KOD-X-Y-Z',
+                            description: wonSegment.label,
+                            discount_type: wonSegment.value.includes('TRY') ? 'fixed' : 'percentage',
+                            discount_value: parseInt(wonSegment.value) || 0,
+                            level: 1,
+                            quantity: 1,
+                            used_count: 0,
+                            created_at: new Date().toISOString()
+                        }}
+                        onReset={() => {
+                            setIsSpinning(false)
+                            setWonSegment(null)
+                        }}
+                        gameType="wheel"
+                    />
                 )}
             </div>
         </div>

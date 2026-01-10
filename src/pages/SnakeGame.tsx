@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Gift, Star, Trophy } from 'lucide-react'
+import GameWinModal from '../components/GameWinModal'
 
 import type { Database } from '../lib/supabase'
 
@@ -217,34 +218,12 @@ export default function SnakeGame({ embedded = false, theme, userId: propUserId,
           <div className="p-6">
             {/* Game Won Modal */}
             {gameCompleted && wonCoupon && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center">
-                  <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Tebrikler! 🎉
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Oyunu başarıyla tamamladınız ve kupon kazandınız!
-                  </p>
-                  
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg mb-6">
-                  
-                    <p className="text-green-700 font-medium">
-                      {wonCoupon.discount_type === 'percentage' ? '%' : '₺'}{wonCoupon.discount_value} İndirim
-                    </p>
-                    <p className="text-green-600 text-sm mt-1">
-                      {wonCoupon.description}
-                    </p>
-                  </div>
-                  
-                  <button
-                    onClick={resetGame}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    Tekrar Oyna
-                  </button>
-                </div>
-              </div>
+              <GameWinModal 
+                score={score}
+                coupon={wonCoupon}
+                onReset={resetGame}
+                gameType="snake"
+              />
             )}
 
             {/* Game Over Modal */}
