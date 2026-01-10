@@ -1,25 +1,18 @@
-import React, { useState } from 'react'
-import { X, Gift, Play, Monitor, Smartphone, Grid, ArrowLeft } from 'lucide-react'
-import SnakeGame from '../pages/SnakeGame'
-import WheelGame from '../pages/WheelGame'
-import MemoryGame from '../pages/MemoryGame'
+import React, { useState } from 'react';
 
 interface WidgetConfig {
-  target: string
-  games: string[]
-  type: 'popup' | 'embedded'
-  theme: string
-  userId?: string
+  target: string;
+  games: string[];
+  type: 'popup' | 'embedded';
+  theme: string;
+  userId?: string;
 }
 
-interface ThemeStyles {
-  background: string
-  text: string
-  primary: string
-  secondary: string
+interface BoosteWidgetAppProps {
+  config: WidgetConfig;
 }
 
-const THEMES: Record<string, ThemeStyles> = {
+const THEMES: Record<string, any> = {
   light: {
     background: '#ffffff',
     text: '#1f2937',
@@ -38,147 +31,280 @@ const THEMES: Record<string, ThemeStyles> = {
     primary: 'rgba(255, 255, 255, 0.2)',
     secondary: 'rgba(255, 255, 255, 0.1)'
   }
-}
-
-interface BoosteWidgetAppProps {
-  config: WidgetConfig
-}
+};
 
 export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<string | null>(
     config.games.length === 1 ? config.games[0] : null
-  )
+  );
 
-  const themeStyles = THEMES[config.theme] || THEMES.light
-  
-  // If embedded, we are always "open", but if we have multiple games and none selected, 
-  // we show the selector.
-  // If popup, we toggle visibility.
-  const isVisible = config.type === 'embedded' || isOpen
+  const themeStyles = THEMES[config.theme] || THEMES.light;
+  const isVisible = config.type === 'embedded' || isOpen;
 
   const handleGameSelect = (gameId: string) => {
-    setSelectedGame(gameId)
-  }
+    setSelectedGame(gameId);
+  };
 
   const handleClose = () => {
     if (config.type === 'popup') {
-      setIsOpen(false)
-      // Reset selection if multiple games, so user sees selector again next time? 
-      // Maybe better UX to keep it or reset it. Let's reset for now if multiple.
-      if (config.games.length > 1) setSelectedGame(null)
+      setIsOpen(false);
+      if (config.games.length > 1) setSelectedGame(null);
     }
-  }
+  };
 
   const renderGame = () => {
-    const commonProps = {
-      embedded: true,
-      userId: config.userId,
-      testMode: false,
-      theme: {
-        background: themeStyles.background,
-        primaryColor: themeStyles.primary,
-        textColor: themeStyles.text
-      }
-    }
+    const gameStyle: React.CSSProperties = {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: themeStyles.text
+    };
 
-    switch (selectedGame) {
-      case 'snake':
-        return <SnakeGame {...commonProps} />
-      case 'wheel':
-        return <WheelGame {...commonProps} />
-      case 'memory':
-        return <MemoryGame {...commonProps} />
-      default:
-        return <div>Oyun bulunamadı</div>
-    }
-  }
+    const gameContent = {
+      snake: { emoji: '🐍', name: 'Yılan Oyunu', desc: 'Klasik yılan oyunu' },
+      wheel: { emoji: '🎡', name: 'Çarkıfelek', desc: 'Şansını dene!' },
+      memory: { emoji: '🧩', name: 'Hafıza Oyunu', desc: 'Kartları eşleştir' }
+    };
 
-  const renderContent = () => {
-    // 1. If multiple games and none selected -> Show Selector
-    if (config.games.length > 1 && !selectedGame) {
-      return (
-        <div 
-          className="flex flex-col items-center justify-center h-full p-6 text-center"
-          style={{ background: themeStyles.background, color: themeStyles.text }}
-        >
-          <h2 className="text-2xl font-bold mb-6">Bir Oyun Seç</h2>
-          <div className="grid grid-cols-2 gap-4 w-full">
-            {config.games.map(gameId => (
-              <button
-                key={gameId}
-                onClick={() => handleGameSelect(gameId)}
-                className="p-4 rounded-xl flex flex-col items-center justify-center transition-transform hover:scale-105"
-                style={{ background: themeStyles.secondary }}
-              >
-                <span className="text-4xl mb-2">
-                  {gameId === 'snake' ? '🐍' : gameId === 'wheel' ? '🎡' : '🧩'}
-                </span>
-                <span className="font-bold capitalize">
-                  {gameId === 'snake' ? 'Yılan' : gameId === 'wheel' ? 'Çark' : 'Hafıza'}
-                </span>
-              </button>
-            ))}
+    const game = gameContent[selectedGame as keyof typeof gameContent];
+
+    return (
+      <div style={gameStyle}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '80px', marginBottom: '20px' }}>{game?.emoji}</div>
+          <div style={{ fontSize: '32px', marginBottom: '10px' }}>{game?.name}</div>
+          <div style={{ fontSize: '16px', opacity: 0.7 }}>{game?.desc}</div>
+          <div style={{ marginTop: '30px', fontSize: '14px', opacity: 0.5 }}>
+            Oyun yükleniyor...
           </div>
         </div>
-      )
+      </div>
+    );
+  };
+
+  const renderContent = () => {
+    // Game selector
+    if (config.games.length > 1 && !selectedGame) {
+      const containerStyle: React.CSSProperties = {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        padding: '40px',
+        textAlign: 'center',
+        background: themeStyles.background,
+        color: themeStyles.text
+      };
+
+      const gridStyle: React.CSSProperties = {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+        gap: '20px',
+        width: '100%',
+        maxWidth: '600px',
+        marginTop: '30px'
+      };
+
+      const buttonStyle: React.CSSProperties = {
+        padding: '30px 20px',
+        borderRadius: '16px',
+        background: themeStyles.secondary,
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'transform 0.2s',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: themeStyles.text
+      };
+
+      const gameIcons = {
+        snake: { emoji: '🐍', name: 'Yılan' },
+        wheel: { emoji: '🎡', name: 'Çark' },
+        memory: { emoji: '🧩', name: 'Hafıza' }
+      };
+
+      return (
+        <div style={containerStyle}>
+          <h2 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '10px' }}>
+            Bir Oyun Seç
+          </h2>
+          <p style={{ opacity: 0.7, marginBottom: '20px' }}>
+            Oynamak istediğin oyunu seç
+          </p>
+          <div style={gridStyle}>
+            {config.games.map(gameId => {
+              const game = gameIcons[gameId as keyof typeof gameIcons];
+              return (
+                <button
+                  key={gameId}
+                  onClick={() => handleGameSelect(gameId)}
+                  style={buttonStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <div style={{ fontSize: '48px', marginBottom: '10px' }}>
+                    {game?.emoji}
+                  </div>
+                  <div>{game?.name}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
     }
 
-    // 2. If game selected (or only one game) -> Render Game
+    // Game view
     return (
-      <div className="relative h-full">
-        {/* Back button if we have multiple games and are in a game */}
+      <div style={{ position: 'relative', height: '100%' }}>
         {config.games.length > 1 && selectedGame && (
           <button
             onClick={() => setSelectedGame(null)}
-            className="absolute top-4 left-4 z-50 p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
-            style={{ color: themeStyles.text }}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              zIndex: 50,
+              padding: '10px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: 'none',
+              cursor: 'pointer',
+              color: themeStyles.text,
+              fontSize: '20px',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           >
-            <ArrowLeft className="w-6 h-6" />
+            ←
           </button>
         )}
         {renderGame()}
       </div>
-    )
-  }
+    );
+  };
 
-  // Popup Trigger Button
+  // Popup trigger button
   if (config.type === 'popup' && !isOpen) {
+    const triggerStyle: React.CSSProperties = {
+      position: 'fixed',
+      bottom: '24px',
+      right: '24px',
+      zIndex: 9999,
+      width: '64px',
+      height: '64px',
+      borderRadius: '50%',
+      boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      border: 'none',
+      background: themeStyles.background === '#ffffff' ? '#4f46e5' : themeStyles.background,
+      color: 'white',
+      fontSize: '32px',
+      transition: 'transform 0.2s',
+      animation: 'bounce 1s infinite'
+    };
+
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-[9999] w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 animate-bounce"
-        style={{ background: themeStyles.background === '#ffffff' ? '#4f46e5' : themeStyles.background }}
+        style={triggerStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+        }}
       >
-        <Gift className="w-8 h-8 text-white" />
+        🎁
       </button>
-    )
+    );
   }
 
-  // Modal / Container Structure
+  // Main container
+  const containerStyle: React.CSSProperties = config.type === 'popup' ? {
+    position: 'fixed',
+    inset: '0',
+    zIndex: 9999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
+    padding: '20px'
+  } : {
+    width: '100%',
+    height: '100%',
+    minHeight: '500px'
+  };
+
+  const widgetStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    maxWidth: config.type === 'popup' ? '900px' : '100%',
+    height: config.type === 'popup' ? 'auto' : '100%',
+    aspectRatio: config.type === 'popup' ? '4/3' : undefined,
+    maxHeight: '90vh',
+    overflow: 'hidden',
+    borderRadius: '16px',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+    background: themeStyles.background
+  };
+
+  const closeButtonStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    zIndex: 60,
+    padding: '8px',
+    borderRadius: '50%',
+    background: 'rgba(0, 0, 0, 0.2)',
+    border: 'none',
+    cursor: 'pointer',
+    color: 'white',
+    fontSize: '24px',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background 0.2s'
+  };
+
   return (
-    <div className={`
-      ${config.type === 'popup' ? 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4' : 'w-full h-full min-h-[500px]'}
-    `}>
-      <div 
-        className={`
-          relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl
-          ${config.type === 'embedded' ? 'h-[600px]' : 'aspect-[4/3]'}
-        `}
-        style={{ background: themeStyles.background }}
-      >
-        {/* Close Button for Popup */}
+    <div style={containerStyle}>
+      <div style={widgetStyle}>
         {config.type === 'popup' && (
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 z-[60] p-2 rounded-full bg-black/20 hover:bg-black/30 text-white transition-colors"
+            style={closeButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)';
+            }}
           >
-            <X className="w-6 h-6" />
+            ✕
           </button>
         )}
-
         {renderContent()}
       </div>
     </div>
-  )
+  );
 }

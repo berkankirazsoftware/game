@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booste Widget - Entegrasyon Kılavuzu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .code-block code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+        
+        .copy-btn.copied {
+            background: #22c55e;
+        }
+        
+        .demo-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .widget-preview {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Booste Widget Entegrasyon Kılavuzu</h1>
+        <p class="subtitle">Web sitenize kolayca oyun widget'ı ekleyin ve kullanıcılarınızı etkileşime geçirin!</p>
+        
+        <div class="success-box">
+            <strong>✨ CORS ve ORB Güvenli!</strong> Bu widget herhangi bir web sitesinde sorunsuz çalışacak şekilde tasarlanmıştır.
+        </div>
+        
+        <!-- Features Section -->
+        <div class="section">
+            <h2>📋 Özellikler</h2>
+            <ul class="feature-list">
+                <li>Tek satır kod ile entegrasyon</li>
+                <li>CORS ve ORB hatalarından korunma</li>
+                <li>Popup veya gömülü mod desteği</li>
+                <li>Responsive tasarım</li>
+                <li>Özelleştirilebilir temalar</li>
+                <li>Çoklu oyun desteği</li>
+                <li>Hafif ve hızlı yükleme</li>
+            </ul>
+        </div>
+        
+        <!-- Installation Section -->
+        <div class="section">
+            <h2>🚀 Hızlı Başlangıç</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('embedded')">Gömülü Mod</button>
+                <button class="tab" onclick="switchTab('popup')">Popup Mod</button>
+            </div>
+            
+            <!-- Embedded Tab -->
+            <div id="embedded" class="tab-content active">
+                <p><strong>Adım 1:</strong> Widget script'ini sayfanıza ekleyin:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this, 'code1')">Kopyala</button>
+                    <code id="code1">&lt;!-- Booste Widget Script --&gt;
+&lt;script src="https://your-domain.com/widget.js"&gt;&lt;/script&gt;</code>
+                </div>
+                
+                <p><strong>Adım 2:</strong> Widget container'ını HTML'inize ekleyin:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this, 'code2')">Kopyala</button>
+                    <code id="code2">&lt;div id="booste-game" style="width: 100%; height: 500px;"&gt;&lt;/div&gt;</code>
+                </div>
+                
+                <p><strong>Adım 3:</strong> Widget'ı başlatın:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this, 'code3')">Kopyala</button>
+                    <code id="code3">&lt;script&gt;
+  window.addEventListener('BoosteWidgetReady', function() {
+    window.Booste.init({
+      target: '#booste-game',
+      games: ['snake', 'wheel', 'memory'],
+      type: 'embedded',
+      theme: 'dark',
+      userId: 'user-123'
+    });
+  });
+&lt;/script&gt;</code>
+                </div>
+            </div>
+            
+            <!-- Popup Tab -->
+            <div id="popup" class="tab-content">
+                <p><strong>Adım 1:</strong> Widget script'ini sayfanıza ekleyin:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this, 'code4')">Kopyala</button>
+                    <code id="code4">&lt;!-- Booste Widget Script --&gt;
+&lt;script src="https://your-domain.com/widget.js"&gt;&lt;/script&gt;</code>
+                </div>
+                
+                <p><strong>Adım 2:</strong> Popup açma butonu ekleyin:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this, 'code5')">Kopyala</button>
+                    <code id="code5">&lt;button onclick="openBoosteWidget()"&gt;Oyun Oyna&lt;/button&gt;</code>
+                </div>
+                
+                <p><strong>Adım 3:</strong> Popup fonksiyonunu tanımlayın:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this, 'code6')">Kopyala</button>
+                    <code id="code6">&lt;script&gt;
+  function openBoosteWidget() {
+    if (window.Booste) {
+      window.Booste.init({
+        target: '#booste-game',
+        games: ['snake', 'wheel', 'memory'],
+        type: 'popup',
+        theme: 'colorful',
+        userId: 'user-123'
+      });
+    }
+  }
+&lt;/script&gt;</code>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Configuration Section -->
+        <div class="section">
+            <h2>⚙️ Konfigürasyon Seçenekleri</h2>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this, 'code7')">Kopyala</button>
+                <code id="code7">window.Booste.init({
+  // Gerekli
+  target: '#booste-game',        // Widget container selector
+  games: ['snake', 'wheel'],     // Oyun listesi
+  type: 'embedded',              // 'embedded' veya 'popup'
+  theme: 'dark',                 // 'light', 'dark', 'colorful'
+  
+  // Opsiyonel
+  userId: 'user-123',            // Kullanıcı ID
+  boosteId: 'booste-xyz',        // Booste kampanya ID
+  apiUrl: 'https://api.example.com' // Özel API URL (CORS için)
+});</code>
+            </div>
+        </div>
+        
+        <!-- Advanced Usage -->
+        <div class="section">
+            <h2>🔧 İleri Seviye Kullanım</h2>
+            
+            <h3>Widget'ı Kapatma</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this, 'code8')">Kopyala</button>
+                <code id="code8">// Widget'ı kapat ve temizle
+window.Booste.destroy();</code>
+            </div>
+            
+            <h3>Event Listener Kullanımı</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this, 'code9')">Kopyala</button>
+                <code id="code9">// Widget hazır olduğunda
+window.addEventListener('BoosteWidgetReady', function(event) {
+  console.log('Widget version:', event.detail.version);
+  // Widget'ı başlat
+  window.Booste.init({...});
+});</code>
+            </div>
+        </div>
+        
+        <!-- CORS Information -->
+        <div class="section">
+            <h2>🔒 CORS ve Güvenlik</h2>
+            <div class="info-box">
+                <strong>CORS Nedir?</strong><br>
+                Cross-Origin Resource Sharing (CORS), farklı domainler arasında kaynak paylaşımını kontrol eden bir güvenlik mekanizmasıdır.
+            </div>
+            
+            <div class="success-box">
+                <strong>✓ Bu widget CORS-safe'dir!</strong><br>
+                Widget, tüm kaynakları (CSS, JS, vb.) tek bir dosyada paketleyerek CORS sorunlarını önler. 
+                Herhangi bir web sitesine güvenle ekleyebilirsiniz.
+            </div>
+            
+            <h3>Özellikler:</h3>
+            <ul class="feature-list">
+                <li>Tek dosya dağıtımı (self-contained)</li>
+                <li>CSS inline injection</li>
+                <li>IIFE (Immediately Invoked Function Expression) formatı</li>
+                <li>Global namespace kirliliğini önleme</li>
+                <li>Shadow DOM desteği (opsiyonel)</li>
+            </ul>
+        </div>
+        
+        <!-- Demo Section -->
+        <div class="section">
+            <h2>🎯 Canlı Demo</h2>
+            <div class="demo-container">
+                <p>Widget'ın canlı önizlemesi:</p>
+                <div id="booste-demo" class="widget-preview"></div>
+            </div>
+        </div>
+        
+        <!-- Troubleshooting -->
+        <div class="section">
+            <h2>🔍 Sorun Giderme</h2>
+            
+            <h3>Widget görünmüyor?</h3>
+            <div class="warning-box">
+                <strong>Kontrol Listesi:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Script doğru yüklenmiş mi? (Console'da kontrol edin)</li>
+                    <li>Target selector doğru mu?</li>
+                    <li>Container'ın yüksekliği var mı?</li>
+                    <li>BoosteWidgetReady eventi tetiklendi mi?</li>
+                </ul>
+            </div>
+            
+            <h3>Console Komutları:</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this, 'code10')">Kopyala</button>
+                <code id="code10">// Widget yüklü mü kontrol et
+console.log(window.Booste);
+
+// Widget versiyonunu kontrol et
+console.log(window.Booste.version);
+
+// Widget'ı manuel başlat
+window.Booste.init({...});</code>
+            </div>
+        </div>
+        
+        <!-- Support Section -->
+        <div class="section">
+            <h2>💬 Destek</h2>
+            <p>Sorunuz mu var? Yardıma mı ihtiyacınız var?</p>
+            <a href="mailto:support@booste.com" class="btn">Destek Ekibiyle İletişime Geç</a>
+        </div>
+    </div>
+    
+    <!-- Load the actual widget for demo -->
+    <script src="./dist-widget/widget.js"></script>
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Copy code functionality
+        function copyCode(button, codeId) {
+            const code = document.getElementById(codeId).textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = '✓ Kopyalandı!';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = 'Kopyala';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        // Initialize demo widget when ready
+        window.addEventListener('BoosteWidgetReady', function() {
+            console.log('Booste Widget Ready!');
+            if (window.Booste) {
+                window.Booste.init({
+                    target: '#booste-demo',
+                    games: ['snake', 'wheel', 'memory'],
+                    type: 'embedded',
+                    theme: 'dark',
+                    userId: 'demo-user-123'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

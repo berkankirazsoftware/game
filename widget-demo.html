@@ -5,43 +5,181 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booste Widget Demo</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+        }
+        h1 { 
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
         .widget-placeholder {
             width: 100%;
-            height: 500px; /* Widget container height */
-            border: 2px dashed #ccc;
+            height: 600px;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
             margin-top: 20px;
             overflow: hidden;
+            background: #f8f9fa;
+        }
+        .status {
+            padding: 15px;
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .status.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+        .btn.danger {
+            background: #dc3545;
+        }
+        .btn.danger:hover {
+            background: #c82333;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Booste Widget Integration Demo</h1>
-        <p>This page demonstrates how the game widget can be embedded into any website.</p>
+        <h1>🎮 Booste Widget Demo</h1>
+        <p class="subtitle">Bu sayfa, widget'ın herhangi bir web sitesinde nasıl çalıştığını gösterir.</p>
+        
+        <div id="status" class="status">
+            ⏳ Widget yükleniyor...
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="initWidget()">Widget'ı Başlat</button>
+            <button class="btn danger" onclick="destroyWidget()">Widget'ı Kapat</button>
+        </div>
         
         <div id="booste-game" class="widget-placeholder"></div>
+    </div>
+    
+    <script>
+        const statusEl = document.getElementById('status');
+        let widgetInitialized = false;
         
-        <script src="./dist-widget/widget.js"></script>
-        <script>
-            console.log('Initializing Booste Widget...');
-            if (window.Booste) {
+        // Widget ready event listener - MUST be before script load
+        window.addEventListener('BoosteWidgetReady', function(event) {
+            console.log('✅ Booste Widget Ready!', event.detail);
+            statusEl.className = 'status success';
+            statusEl.innerHTML = `✅ Widget yüklendi! (v${event.detail.version})`;
+            
+            // Auto-initialize widget
+            if (!widgetInitialized) {
+                setTimeout(initWidget, 100); // Small delay to ensure DOM is ready
+            }
+        });
+        
+        function initWidget() {
+            if (widgetInitialized) {
+                console.log('Widget already initialized');
+                return;
+            }
+            
+            if (!window.Booste) {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '❌ Widget bulunamadı!';
+                console.error('Booste library not found!');
+                return;
+            }
+            
+            try {
                 window.Booste.init({
                     target: '#booste-game',
-                    games: ['snake', 'wheel', 'memory'], // Multiple games to show selector
-                    type: 'embedded', // or 'popup'
-                    theme: 'dark', // 'light', 'dark', or 'colorful'
+                    games: ['snake', 'wheel', 'memory'],
+                    type: 'embedded',
+                    theme: 'dark',
                     userId: 'demo-user-123'
                 });
-            } else {
-                console.error('Booste library not found!');
+                
+                widgetInitialized = true;
+                statusEl.className = 'status success';
+                statusEl.innerHTML = '✅ Widget başlatıldı!';
+                console.log('Widget initialized successfully');
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '❌ Widget başlatılamadı: ' + error.message;
+                console.error('Widget initialization error:', error);
             }
-        </script>
-    </div>
+        }
+        
+        function destroyWidget() {
+            if (!window.Booste) {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '❌ Widget bulunamadı!';
+                return;
+            }
+            
+            try {
+                window.Booste.destroy();
+                widgetInitialized = false;
+                statusEl.className = 'status';
+                statusEl.innerHTML = '⏹️ Widget kapatıldı';
+                console.log('Widget destroyed');
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '❌ Widget kapatılamadı: ' + error.message;
+                console.error('Widget destroy error:', error);
+            }
+        }
+        
+        // Log page info
+        console.log('Page loaded. Waiting for Booste Widget...');
+    </script>
+    
+    <!-- Widget Script - Load AFTER event listener is set -->
+    <script src="./dist-widget/widget.js"></script>
+    
+    <!-- Fallback: If event didn't fire, try to init after a delay -->
+    <script>
+        setTimeout(function() {
+            if (!widgetInitialized && window.Booste) {
+                console.log('Fallback: Initializing widget...');
+                initWidget();
+            }
+        }, 1000);
+    </script>
 </body>
 </html>
-<!-- Booste Game Widget -->
-<div id="booste-game-container"></div>
+
