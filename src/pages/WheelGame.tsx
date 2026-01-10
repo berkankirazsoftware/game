@@ -15,6 +15,7 @@ interface Segment {
 
 interface WheelGameProps {
   embedded?: boolean;
+  userId?: string;
   theme?: {
     background?: string;
     primaryColor?: string;
@@ -22,8 +23,9 @@ interface WheelGameProps {
   };
 }
 
-export default function WheelGame({ embedded = false, theme }: WheelGameProps) {
+export default function WheelGame({ embedded = false, userId: propUserId, theme }: WheelGameProps) {
   const [searchParams] = useSearchParams()
+  const userId = propUserId || searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
   
   const [isSpinning, setIsSpinning] = useState(false)
@@ -209,7 +211,7 @@ export default function WheelGame({ embedded = false, theme }: WheelGameProps) {
                     <GameWinModal 
                         coupon={{
                             id: 'wheel-win',
-                            user_id: 'wheel-game',
+                            user_id: userId || '', // Must be a valid UUID from profiles
                             code: testMode ? 'TEST1234' : 'KOD-X-Y-Z',
                             description: wonSegment.label,
                             discount_type: wonSegment.value.includes('TRY') ? 'fixed' : 'percentage',

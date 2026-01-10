@@ -1,226 +1,97 @@
-// Deno.serve kullan, import etme
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { Resend } from "npm:resend"
+
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface EmailRequest {
+interface CouponEmailRequest {
   email: string
   couponCode: string
-  couponDescription: string
-  discountType: 'percentage' | 'fixed'
   discountValue: number
+  discountType: 'percentage' | 'fixed'
   gameType: string
 }
 
-Deno.serve(async (req: Request) => {
-  console.log('🔍 Email function called')
-  
+serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    })
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { email, couponCode, couponDescription, discountType, discountValue, gameType }: EmailRequest = await req.json()
+    const { email, couponCode, discountValue, discountType, gameType } = await req.json() as CouponEmailRequest
 
-    console.log('📧 Email request data:', { email, couponCode, gameType })
-
-    // Validate input
     if (!email || !couponCode) {
-      return new Response(
-        JSON.stringify({ error: "Email ve kupon kodu gerekli" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      )
+      throw new Error('Email and couponCode are required')
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({ error: "Geçersiz email formatı" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      )
+    const gameNames: Record<string, string> = {
+      snake: 'Yılan Oyunu',
+      wheel: 'Çarkıfelek',
+      memory: 'Hafıza Oyunu'
     }
 
-    // Create HTML email template
-    const discountText = discountType === 'percentage' ? `%${discountValue}` : `${discountValue}₺`
-    const gameTypeText = gameType === 'timing' ? 'Zamanlama Oyunu' : 'Hafıza Oyunu'
-    
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Kupon Kazandınız!</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; background-color: white; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; }
-            .content { padding: 40px 20px; }
-            .coupon-box { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin: 20px 0; }
-            .coupon-code { font-size: 32px; font-weight: bold; letter-spacing: 3px; margin: 10px 0; }
-            .discount { font-size: 24px; margin: 10px 0; }
-            .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; }
-            .game-info { background-color: #e3f2fd; padding: 20px; border-radius: 10px; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🎉 Tebrikler!</h1>
-                <p>Booste oyununda kupon kazandınız!</p>
-            </div>
-            
-            <div class="content">
-                <div class="game-info">
-                    <h3>🎮 ${gameTypeText}</h3>
-                    <p>Harika bir performans sergileyerek kupon kazandınız!</p>
-                </div>
-                
-                <div class="coupon-box">
-                    <h2>🎁 Kupon Kodunuz</h2>
-                    <div class="coupon-code">${couponCode}</div>
-                    <div class="discount">${discountText} İndirim</div>
-                    <p>${couponDescription}</p>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <h3>📝 Nasıl Kullanılır?</h3>
-                    <ol style="text-align: left; display: inline-block;">
-                        <li>Alışveriş sepetinize ürünleri ekleyin</li>
-                        <li>Ödeme sayfasında kupon kodu alanını bulun</li>
-                        <li>Kupon kodunuzu girin: <strong>${couponCode}</strong></li>
-                        <li>İndiriminiz otomatik olarak uygulanacak</li>
-                    </ol>
-                </div>
-                
-                <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <p><strong>⚠️ Önemli:</strong> Bu kupon kodunu güvenli bir yerde saklayın. Tekrar gönderilmeyecektir.</p>
-                </div>
+    const gameName = gameNames[gameType] || 'Şans Oyunu';
+    const discountText = discountType === 'percentage'
+      ? `%${discountValue}`
+      : `${discountValue}₺`;
+
+    // Email Template
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .card { background: #fdfdfd; padding: 30px; border-radius: 12px; border: 1px solid #eaeaea; text-align: center; }
+            .code { font-size: 32px; font-weight: bold; color: #4f46e5; letter-spacing: 2px; margin: 20px 0; background: #EEF2FF; padding: 15px; border-radius: 8px; display: inline-block; }
+            .footer { margin-top: 30px; font-size: 12px; color: #888; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="card">
+              <h1>Tebrikler! 🎉</h1>
+              <p><strong>${gameName}</strong> oynayarak harika bir indirim kazandınız!</p>
+              
+              <p>İşte kupon kodunuz:</p>
+              <div class="code">${couponCode}</div>
+              
+              <p>Bu kodu sepetinizde kullanarak <strong>${discountText}</strong> indirimden yararlanabilirsiniz.</p>
+              
+              <br/>
+              <a href="#" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Hemen Alışverişe Başla</a>
             </div>
             
             <div class="footer">
-                <p>Bu email Booste oyun platformu tarafından gönderilmiştir.</p>
-                <p>© 2024 Booste. Tüm hakları saklıdır.</p>
-                <p style="font-size: 12px; color: #999;">
-                    Bu otomatik bir emaildir, lütfen yanıtlamayın.
-                </p>
+              <p>Bu email Booste Widget tarafından gönderilmiştir.</p>
             </div>
-        </div>
-    </body>
-    </html>
+          </div>
+        </body>
+      </html>
     `
 
-    // Send email using Resend (you can also use SendGrid, Mailgun, etc.)
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-    
-    console.log('🔑 Resend API Key exists:', !!resendApiKey)
-    console.log('🔑 API Key length:', resendApiKey?.length || 0)
-    
-    if (!resendApiKey || resendApiKey === 'placeholder-key') {
-      // Fallback: Log email instead of sending (for development)
-      console.log('📧 Email would be sent to:', email)
-      console.log('🎁 Coupon:', couponCode)
-      console.log('💰 Discount:', discountText)
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "Email gönderildi (development mode - API key yok)",
-          email: email,
-          coupon: couponCode
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      )
-    }
-
-    // Send actual email with Resend
-    console.log('📤 Sending email via Resend API...')
-    
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Booste <noreply@booste.online>', // Netlify domain'iniz
-        to: [email], // Kullanıcının girdiği email
-        subject: `🎉 Kupon Kazandınız! ${couponCode} - ${discountText} İndirim`,
-        html: htmlContent,
-      }),
+    const data = await resend.emails.send({
+      from: 'Booste Game <onboarding@resend.dev>', // Kullanıcı kendi domainini ekleyene kadar test domaini
+      to: email,
+      subject: `🎉 Tebrikler! ${discountText} İndirim Kuponunuz`,
+      html: html,
     })
 
-    console.log('📤 Email API response status:', emailResponse.status)
-    
-    const responseText = await emailResponse.text()
-    console.log('📤 Email API response body:', responseText)
-    
-    if (!emailResponse.ok) {
-      console.error('❌ Email send error:', responseText)
-      console.error('❌ Response status:', emailResponse.status)
-      console.error('❌ Response headers:', Object.fromEntries(emailResponse.headers.entries()))
-      
-      return new Response(
-        JSON.stringify({ 
-          error: "Email gönderilemedi", 
-          details: responseText,
-          status: emailResponse.status 
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      )
-    }
-
-    let emailResult
-    try {
-      emailResult = JSON.parse(responseText)
-    } catch (parseError) {
-      console.error('❌ JSON parse error:', parseError)
-      emailResult = { id: 'unknown', raw: responseText }
-    }
-    
-    console.log('✅ Email sent successfully:', emailResult)
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Email başarıyla gönderildi",
-        emailId: emailResult.id
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    )
-
-  } catch (error) {
-    console.error('Function error:', error)
-    
-    return new Response(
-      JSON.stringify({ error: "Sunucu hatası" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    )
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
+  } catch (error: any) {
+    console.error('Error sending email:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })
