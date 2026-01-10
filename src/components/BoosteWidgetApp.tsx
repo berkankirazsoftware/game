@@ -36,9 +36,7 @@ const THEMES: Record<string, any> = {
 
 export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [isOpen, setIsOpen] = useState(config.autoOpen || false);
-  const [selectedGame, setSelectedGame] = useState<string | null>(
-    config.games.length === 1 ? config.games[0] : null
-  );
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
   const themeStyles = THEMES[config.theme] || THEMES.light;
   const isVisible = config.type === 'embedded' || isOpen;
@@ -50,7 +48,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const handleClose = () => {
     if (config.type === 'popup') {
       setIsOpen(false);
-      if (config.games.length > 1) setSelectedGame(null);
+      setSelectedGame(null);
     }
   };
 
@@ -90,7 +88,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
 
   const renderContent = () => {
     // Game selector
-    if (config.games.length > 1 && !selectedGame) {
+    if (!selectedGame) {
       const containerStyle: React.CSSProperties = {
         display: 'flex',
         flexDirection: 'column',
@@ -168,7 +166,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     // Game view
     return (
       <div style={{ position: 'relative', height: '100%' }}>
-        {config.games.length > 1 && selectedGame && (
+        {selectedGame && (
           <button
             onClick={() => setSelectedGame(null)}
             style={{
