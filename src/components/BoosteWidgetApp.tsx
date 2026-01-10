@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import SnakeGame from '../pages/SnakeGame';
+import WheelGame from '../pages/WheelGame';
+import MemoryGame from '../pages/MemoryGame';
 
 interface WidgetConfig {
   target: string;
@@ -53,37 +56,44 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const renderGame = () => {
-    const gameStyle: React.CSSProperties = {
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: themeStyles.text
+    // Props suitable for game components
+    const gameProps = {
+      embedded: true,
+      userId: config.userId,
+      theme: {
+        background: 'transparent',
+        textColor: themeStyles.text
+      },
+      // Pass a flag to indicate it's in a widget to possibly adjust layout if needed
+      testMode: false // Or config.testMode if you add it
     };
 
-    const gameContent = {
-      snake: { emoji: '🐍', name: 'Yılan Oyunu', desc: 'Klasik yılan oyunu' },
-      wheel: { emoji: '🎡', name: 'Çarkıfelek', desc: 'Şansını dene!' },
-      memory: { emoji: '🧩', name: 'Hafıza Oyunu', desc: 'Kartları eşleştir' }
-    };
-
-    const game = gameContent[selectedGame as keyof typeof gameContent];
-
-    return (
-      <div style={gameStyle}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '80px', marginBottom: '20px' }}>{game?.emoji}</div>
-          <div style={{ fontSize: '32px', marginBottom: '10px' }}>{game?.name}</div>
-          <div style={{ fontSize: '16px', opacity: 0.7 }}>{game?.desc}</div>
-          <div style={{ marginTop: '30px', fontSize: '14px', opacity: 0.5 }}>
-            Oyun yükleniyor...
+    switch (selectedGame) {
+      case 'snake':
+        return (
+          <div style={{ height: '100%', overflow: 'auto' }}>
+            <SnakeGame {...gameProps} />
           </div>
-        </div>
-      </div>
-    );
+        );
+      case 'wheel':
+        return (
+          <div style={{ height: '100%', overflow: 'auto' }}>
+             <WheelGame {...gameProps} />
+          </div>
+        );
+      case 'memory':
+        return (
+          <div style={{ height: '100%', overflow: 'auto' }}>
+             <MemoryGame {...gameProps} />
+          </div>
+        );
+      default:
+        return (
+          <div style={{ color: themeStyles.text, textAlign: 'center', padding: '20px' }}>
+            Oyun bulunamadı
+          </div>
+        );
+    }
   };
 
   const renderContent = () => {
