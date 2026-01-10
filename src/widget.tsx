@@ -39,6 +39,14 @@ interface BoosteAPI {
     
     init: (config: WidgetConfig) => {
       try {
+        // Ensure DOM is ready before trying anything
+        if (document.readyState === 'loading' || !document.body) {
+          window.addEventListener('DOMContentLoaded', () => {
+            BoosteWidget.init(config);
+          });
+          return;
+        }
+
         // Validate config
         if (!config.target) {
           console.error('Booste Widget: target is required');
