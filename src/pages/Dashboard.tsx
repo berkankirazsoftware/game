@@ -139,13 +139,22 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          Hoş geldiniz! 👋
-        </h1>
-        <p className="text-indigo-100">
-          Booste ile e-ticaret sitenizi daha etkileşimli hale getirin
-        </p>
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-6 text-white flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">
+            Hoş geldiniz! 👋
+          </h1>
+          <p className="text-indigo-100">
+            Booste ile e-ticaret sitenizi daha etkileşimli hale getirin
+          </p>
+        </div>
+        <Link 
+          to="/campaigns/new" 
+          className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors shadow-lg flex items-center"
+        >
+          <Gift className="h-5 w-5 mr-2" />
+          Kampanya Oluştur
+        </Link>
       </div>
 
       {/* Stats */}

@@ -11,7 +11,8 @@ import {
   Menu, 
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Megaphone
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -26,6 +27,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Boostelerim', href: '/my-boostes', icon: Megaphone },
     { name: 'Kuponlar', href: '/coupons', icon: Gift },
     { name: 'Abonelik', href: '/subscription', icon: CreditCard },
     { name: 'Entegrasyon', href: '/integration', icon: Code },

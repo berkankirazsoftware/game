@@ -12,9 +12,12 @@ import CouponsPage from './pages/CouponsPage'
 import SubscriptionPage from './pages/SubscriptionPage'
 import SnakeGame from './pages/SnakeGame'
 import IntegrationPage from './pages/IntegrationPage'
-import GameSelectWidget from './pages/GameSelectWidget'
+import WidgetPreviewPage from './pages/WidgetPreviewPage'
 import MemoryGame from './pages/MemoryGame'
+import CreateCampaign from './pages/CreateCampaign'
+import MyBoostesPage from './pages/MyBoostesPage'
 import PricingPage from './pages/PricingPage'
+import WheelGame from './pages/WheelGame'
 
 function App() {
   return (
@@ -26,8 +29,10 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/game/snake-demo" element={<SnakeGame />} />
+          <Route path="/game/wheel-demo" element={<WheelGame />} />
           <Route path="/game/:gameId" element={<SnakeGame />} />
-          <Route path="/game-widget" element={<GameSelectWidget />} />
+          <Route path="/game-widget" element={<WidgetPreviewPage />} />
           <Route path="/memory/:gameId" element={<MemoryGame />} />
           
           <Route
@@ -36,6 +41,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-boostes"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <MyBoostesPage />
                 </Layout>
               </ProtectedRoute>
             }
@@ -56,6 +71,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <SubscriptionPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/campaigns/new"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CreateCampaign />
                 </Layout>
               </ProtectedRoute>
             }

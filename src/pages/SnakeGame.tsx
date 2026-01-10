@@ -7,11 +7,24 @@ import type { Database } from '../lib/supabase'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
-export default function SnakeGame() {
+interface SnakeGameProps {
+  embedded?: boolean;
+  theme?: {
+    background?: string; // CSS background value
+    primaryColor?: string;
+    textColor?: string;
+  };
+  userId?: string; // Optional direct prop override
+  testMode?: boolean;
+}
+
+export default function SnakeGame({ embedded = false, theme, userId: propUserId, testMode: propTestMode }: SnakeGameProps) {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
-  const userId = searchParams.get('userId')
-  const testMode = searchParams.get('testMode') === 'true'
+  // Use prop if available, otherwise fallback to URL params
+  const userId = propUserId || searchParams.get('userId')
+  const testMode = propTestMode ?? (searchParams.get('testMode') === 'true')
+  
   
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [gameCompleted, setGameCompleted] = useState(false)
@@ -40,7 +53,10 @@ export default function SnakeGame() {
           description: 'Test kuponu - %20 indirim',
           discount_type: 'percentage',
           discount_value: 20,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          level: 1,
+          quantity: 100,
+          used_count: 0
         }
       ])
     }
@@ -175,7 +191,13 @@ export default function SnakeGame() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
+    <div 
+      className={`p-4 ${embedded ? 'h-full w-full' : 'min-h-screen'}`}
+      style={{ 
+        background: theme?.background || 'linear-gradient(to bottom right, #a78bfa, #ec4899, #ef4444)',
+        color: theme?.textColor
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           {/* Header */}
@@ -249,52 +271,66 @@ export default function SnakeGame() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Game Area */}
-              <div className="lg:col-span-2">
-                <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-20 gap-0 w-full max-w-md mx-auto">
-                    {Array.from({ length: 400 }, (_, index) => {
-                      const row = Math.floor(index / 20)
-                      const col = index % 20
-                      
-                      let cellClass = "w-4 h-4 border border-gray-700"
-                      
-                      // Snake body
-                      if (snake.some(segment => segment[0] === row && segment[1] === col)) {
-                        cellClass += " bg-green-500"
-                      }
-                      // Food
-                      else if (food[0] === row && food[1] === col) {
-                        cellClass += " bg-red-500"
-                      }
-                      // Empty cell
-                      else {
-                        cellClass += " bg-gray-800"
-                      }
-                      
-                      return <div key={index} className={cellClass}></div>
-                    })}
+              <div className="lg:col-span-2 flex flex-col items-center">
+                <div className="w-full max-w-md bg-gray-900 rounded-lg p-2 sm:p-4 mb-4 shadow-xl border-4 border-gray-800">
+                  <div className="aspect-square w-full relative">
+                    <div className="grid grid-cols-20 gap-0 w-full h-full">
+                      {Array.from({ length: 400 }, (_, index) => {
+                        const row = Math.floor(index / 20)
+                        const col = index % 20
+                        
+                        let cellClass = "w-full h-full border-[0.5px] border-gray-800/30"
+                        
+                        // Snake body
+                        if (snake.some(segment => segment[0] === row && segment[1] === col)) {
+                          cellClass += " bg-green-500 rounded-sm shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                        }
+                        // Food
+                        else if (food[0] === row && food[1] === col) {
+                          cellClass += " bg-red-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]"
+                        }
+                        // Empty cell
+                        else {
+                          cellClass += " bg-gray-900/50"
+                        }
+                        
+                        return <div key={index} className={cellClass}></div>
+                      })}
+                    </div>
                   </div>
                 </div>
 
-                <div className="text-center space-y-4">
+                <div className="text-center space-y-4 w-full">
                   {!gameRunning && !gameOver && !gameCompleted && (
                     <div>
                       <button
                         onClick={startGame}
-                        className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                        className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg hover:shadow-green-500/30 transform hover:-translate-y-1 w-full sm:w-auto"
                       >
                         Oyunu Başlat
                       </button>
-                      <p className="text-gray-600 text-sm mt-2">
+                      <p className="text-gray-600 text-sm mt-2 hidden sm:block">
                         Ok tuşları ile yönlendirin
                       </p>
                     </div>
                   )}
                   
                   {gameRunning && (
-                    <p className="text-gray-600">
-                      Ok tuşları ile yılanı yönlendirin. Kırmızı noktaları yakalayın!
-                    </p>
+                    <div className="flex flex-col items-center w-full">
+                        <p className="text-gray-600 mb-4 hidden sm:block">
+                        Ok tuşları ile yılanı yönlendirin. Kırmızı noktaları yakalayın!
+                        </p>
+                        
+                        {/* Mobile D-Pad */}
+                        <div className="grid grid-cols-3 gap-2 sm:hidden w-48 mx-auto">
+                            <div></div>
+                            <button className="bg-gray-200 p-4 rounded-lg active:bg-gray-300 shadow-md text-2xl" onClick={() => setDirection([-1, 0])}>⬆️</button>
+                            <div></div>
+                            <button className="bg-gray-200 p-4 rounded-lg active:bg-gray-300 shadow-md text-2xl" onClick={() => setDirection([0, -1])}>⬅️</button>
+                            <button className="bg-gray-200 p-4 rounded-lg active:bg-gray-300 shadow-md text-2xl" onClick={() => setDirection([1, 0])}>⬇️</button>
+                            <button className="bg-gray-200 p-4 rounded-lg active:bg-gray-300 shadow-md text-2xl" onClick={() => setDirection([0, 1])}>➡️</button>
+                        </div>
+                    </div>
                   )}
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
 interface AuthContextType {
@@ -32,14 +32,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Session error:', error)
-        // Clear any invalid session data
-        localStorage.removeItem('supabase.auth.token')
-        setSession(null)
-        setUser(null)
-      } else {
-        setSession(session)
-        setUser(session?.user ?? null)
       }
+      setSession(session)
+      setUser(session?.user ?? null)
       setLoading(false)
     }).catch((error) => {
       console.error('Auth initialization error:', error)
@@ -52,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

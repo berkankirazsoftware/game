@@ -14,11 +14,22 @@ interface Card {
   isMatched: boolean
 }
 
-export default function MemoryGame() {
+interface MemoryGameProps {
+  embedded?: boolean
+  userId?: string
+  testMode?: boolean
+  theme?: {
+    background?: string;
+    primaryColor?: string;
+    textColor?: string;
+  }
+}
+
+export default function MemoryGame({ embedded, userId: propUserId, testMode: propTestMode, theme }: MemoryGameProps = {}) {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
-  const userId = searchParams.get('userId')
-  const testMode = searchParams.get('testMode') === 'true'
+  const userId = propUserId || searchParams.get('userId')
+  const testMode = propTestMode || searchParams.get('testMode') === 'true'
   
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [cards, setCards] = useState<Card[]>([])
@@ -32,7 +43,7 @@ export default function MemoryGame() {
   const symbols = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎺', '🎸']
 
   useEffect(() => {
-    if (!testMode) {
+    if (userId && !testMode) {
       fetchCoupons()
     }
     
@@ -46,13 +57,16 @@ export default function MemoryGame() {
           description: 'Test kuponu - %15 indirim',
           discount_type: 'percentage',
           discount_value: 15,
+          level: 1,
+          quantity: 100, // Mock fields to satisfy type
+          used_count: 0,
           created_at: new Date().toISOString()
         }
       ])
     }
     
     initializeGame()
-  }, [gameId, userId])
+  }, [gameId, userId, testMode])
 
   // Sabit oyun bilgisi
   const game = {
@@ -175,7 +189,12 @@ export default function MemoryGame() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
+    <div 
+      className="min-h-screen p-4 overflow-auto"
+      style={{
+        background: theme?.background || 'linear-gradient(to bottom right, #a78bfa, #ec4899, #ef4444)'
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           {/* Header */}

@@ -5,46 +5,62 @@ import { Gamepad as GamepadIcon, Check, Star, Zap, Crown, Palette, BarChart3, Sh
 export default function PricingPage() {
   const plans = [
     {
-      name: 'Basic',
-      price: '1.000₺',
-      period: '/yıl',
-      description: 'Küçük işletmeler için ideal başlangıç paketi',
+      name: 'Free',
+      price: '0₺',
+      period: '/ay',
+      description: 'Küçük işletmeler ve denemek isteyenler için',
       features: [
-        'Hafıza ve Zamanlama oyunları',
-        '3 seviye kupon sistemi',
-        'Temel widget entegrasyonu',
-        'Aylık 1.000 oyun oynama',
-        'E-posta desteği',
-        'Temel istatistikler'
+        'Temel Oyunlar (Yılan, vb.)',
+        'Standart Temalar',
+        'E-posta Toplama (Görüntüleme Kapalı)',
+        'Otomatik Kupon Gönderimi',
+        'Aylık 500 oyun hakkı'
       ],
-      buttonText: 'Başlayın',
-      buttonStyle: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+      buttonText: 'Hemen Başla',
+      buttonStyle: 'bg-gray-100 hover:bg-gray-200 text-gray-900',
       popular: false,
       icon: GamepadIcon,
+      gradient: 'from-gray-400 to-gray-600'
+    },
+    {
+      name: 'Growth',
+      price: '1.000₺',
+      period: '/ay',
+      description: 'Büyümek isteyen e-ticaret siteleri için',
+      features: [
+        'Tüm Free özellikler',
+        'Pro Oyunlar (Hafıza, Çarkıfelek)',
+        'WhatsApp & Email Veri Toplama',
+        'Gizli Numara ile Mesajlaşma',
+        'Otomatik Pazarlama Kampanyaları',
+        'Detaylı Analitik & Raporlama',
+        'Özelleştirilebilir Temalar'
+      ],
+      buttonText: 'Ücretsiz Dene',
+      buttonStyle: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200',
+      popular: true,
+      icon: Zap,
       gradient: 'from-indigo-500 to-purple-600'
     },
     {
-      name: 'Advanced',
-      price: 'İletişim',
+      name: 'Enterprise',
+      price: 'Teklif Al',
       period: '',
-      description: 'Büyük işletmeler için özelleştirilmiş çözümler',
+      description: 'Özel çözümler arayan kurumsal markalar için',
       features: [
-        'Tüm Basic özellikler',
-        'Markaya özel oyun tasarımı',
-        'Özel oyun geliştirme',
-        'Sınırsız oyun oynama',
-        'Öncelikli 7/24 destek',
-        'Detaylı analitik raporlar',
-        'API entegrasyonu',
-        'Özel kupon sistemleri',
-        'Beyaz etiket çözümü',
-        'Özel domain desteği'
+        'Markaya Özel Oyun Kurgusu',
+        'Full API Erişimi',
+        'Özel CRM Entegrasyonu',
+        'Özel Dedicated Sunucu',
+        '7/24 Öncelikli Destek',
+        'Custom Domain',
+        'Sınırsız Kullanım'
       ],
       buttonText: 'İletişime Geçin',
-      buttonStyle: 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white',
-      popular: true,
+      buttonStyle: 'bg-white border-2 border-gray-900 text-gray-900 hover:bg-gray-50',
+      popular: false,
       icon: Crown,
-      gradient: 'from-yellow-500 to-orange-500'
+      gradient: 'from-gray-700 to-black'
     }
   ]
 
