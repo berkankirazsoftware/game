@@ -160,24 +160,10 @@
             }
         }
         
-        // Check if script loaded
-        setTimeout(() => {
-            if (window.Booste) {
-                testResults.scriptLoaded = true;
-                testResults.corsCheck = true; // If script loaded, CORS is OK
-                testResults.orbCheck = true;  // If script loaded, ORB is OK
-                updateTestResults();
-                console.log('✅ Script loaded successfully - CORS/ORB check passed');
-            } else {
-                updateTestResults();
-                console.error('❌ Script failed to load - CORS/ORB issue detected');
-            }
-        }, 1000);
-        
-        // Widget ready event
-        window.addEventListener('BoosteWidgetReady', function(event) {
-            console.log('✅ Booste Widget Ready!', event.detail);
+        function initWidget() {
+            if (testResults.widgetInitialized) return;
             
+            console.log('🚀 Attempting to initialize widget...');
             try {
                 // Initialize widget
                 window.Booste.init({
@@ -188,6 +174,9 @@
                     userId: 'external-user-456'
                 });
                 
+                testResults.scriptLoaded = true;
+                testResults.corsCheck = true;
+                testResults.orbCheck = true;
                 testResults.widgetInitialized = true;
                 updateTestResults();
                 console.log('✅ Widget initialized successfully');
@@ -195,12 +184,35 @@
                 console.error('❌ Widget initialization failed:', error);
                 updateTestResults();
             }
-        });
+        }
+
+        // Check if script is already loaded (Race Condition Fix)
+        if (window.Booste) {
+            console.log('✅ Booste object found immediately');
+            initWidget();
+        } else {
+            console.log('⏳ Waiting for BoosteWidgetReady event...');
+            // Widget ready event
+            window.addEventListener('BoosteWidgetReady', function(event) {
+                console.log('✅ BoosteWidgetReady event fired!', event.detail);
+                initWidget();
+            });
+        }
+        
+        // Backup check
+        setTimeout(() => {
+            if (window.Booste && !testResults.widgetInitialized) {
+                console.log('⚠️ Fallback initialization triggered');
+                initWidget();
+            } else if (!window.Booste) {
+                console.error('❌ Script failed to load after timeout');
+                updateTestResults();
+            }
+        }, 2000);
         
         // Log page info
         console.log('=== External Site Test ===');
         console.log('Page URL:', window.location.href);
-        console.log('Waiting for Booste Widget...');
     </script>
 </body>
 </html>

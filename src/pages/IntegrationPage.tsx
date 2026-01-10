@@ -132,7 +132,17 @@ export default function IntegrationPage() {
     return `<!-- Booste Game Widget -->
 ${containerHtml}<script src="https://booste.online/widget.js"></script>
 <script>
-  Booste.init(${JSON.stringify(config, null, 4)});
+  (function() {
+    function initWidget() {
+      Booste.init(${JSON.stringify(config, null, 4)});
+    }
+    
+    if (window.Booste) {
+      initWidget();
+    } else {
+      window.addEventListener('BoosteWidgetReady', initWidget);
+    }
+  })();
 </script>`
   }
 

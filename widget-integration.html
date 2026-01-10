@@ -250,15 +250,21 @@
                 <div class="code-block">
                     <button class="copy-btn" onclick="copyCode(this, 'code3')">Kopyala</button>
                     <code id="code3">&lt;script&gt;
-  window.addEventListener('BoosteWidgetReady', function() {
+  function initBooste() {
     window.Booste.init({
-      target: '#booste-game',
+      target: '#booste-game',        
       games: ['snake', 'wheel', 'memory'],
       type: 'embedded',
       theme: 'dark',
       userId: 'user-123'
     });
-  });
+  }
+
+  if (window.Booste) {
+    initBooste();
+  } else {
+    window.addEventListener('BoosteWidgetReady', initBooste);
+  }
 &lt;/script&gt;</code>
                 </div>
             </div>
@@ -332,12 +338,17 @@ window.Booste.destroy();</code>
             <h3>Event Listener Kullanımı</h3>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this, 'code9')">Kopyala</button>
-                <code id="code9">// Widget hazır olduğunda
-window.addEventListener('BoosteWidgetReady', function(event) {
-  console.log('Widget version:', event.detail.version);
-  // Widget'ı başlat
-  window.Booste.init({...});
-});</code>
+                <code id="code9">// Widget hazır olduğunda (Modern Yöntem)
+function onBoosteReady() {
+   console.log('Widget version:', window.Booste.version);
+   window.Booste.init({...});
+}
+
+if (window.Booste) {
+   onBoosteReady();
+} else {
+   window.addEventListener('BoosteWidgetReady', onBoosteReady);
+}</code>
             </div>
         </div>
         
