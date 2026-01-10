@@ -31,14 +31,10 @@
             if (window.Booste) {
                 window.Booste.init({
                     target: '#booste-game',
-                    gameId: 'snake',
-                    // Optional: Custom Theme
-                    theme: {
-                        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', // Dark theme
-                        textColor: '#ffffff',
-                        primaryColor: '#3b82f6'
-                    },
-                    testMode: true
+                    games: ['snake', 'wheel', 'memory'], // Multiple games to show selector
+                    type: 'embedded', // or 'popup'
+                    theme: 'dark', // 'light', 'dark', or 'colorful'
+                    userId: 'demo-user-123'
                 });
             } else {
                 console.error('Booste library not found!');
@@ -47,3 +43,5 @@
     </div>
 </body>
 </html>
+<!-- Booste Game Widget -->
+<div id="booste-game-container"></div>

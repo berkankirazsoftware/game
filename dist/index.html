@@ -10,6 +10,23 @@
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Booste Game Widget -->
+    <div id="booste-game-container"></div>
+    <script src="../dist-widget/widget.js"></script>
+    <script>
+      console.log('Initializing Booste Widget...');
+      if (window.Booste) {
+        window.Booste.init({
+          target: '#booste-game-container',
+          games: ['snake', 'memory', 'puzzle'],
+          type: 'embedded',
+          theme: 'dark',
+          testMode: true
+        });
+      } else {
+        console.error('Booste library not found!');
+      }
+    </script>
   </body>
-
 </html>
