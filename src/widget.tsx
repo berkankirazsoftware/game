@@ -12,6 +12,7 @@ interface WidgetConfig {
   userId?: string;
   boosteId?: string;
   apiUrl?: string; // Allow custom API URL to avoid CORS
+  autoOpen?: boolean;
 }
 
 interface BoosteAPI {

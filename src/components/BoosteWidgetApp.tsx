@@ -6,6 +6,7 @@ interface WidgetConfig {
   type: 'popup' | 'embedded';
   theme: string;
   userId?: string;
+  autoOpen?: boolean;
 }
 
 interface BoosteWidgetAppProps {
@@ -34,7 +35,7 @@ const THEMES: Record<string, any> = {
 };
 
 export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(config.autoOpen || false);
   const [selectedGame, setSelectedGame] = useState<string | null>(
     config.games.length === 1 ? config.games[0] : null
   );
