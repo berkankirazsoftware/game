@@ -299,6 +299,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     transition: 'background 0.2s'
   };
 
+  if (!isVisible && config.type !== 'popup') {
+    return null;
+  }
+
   return (
     <div style={containerStyle}>
       <div style={widgetStyle}>

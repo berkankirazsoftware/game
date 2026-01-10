@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import BoosteWidgetApp from './components/BoosteWidgetApp';
 import './index.css';
 
@@ -86,7 +87,9 @@ interface BoosteAPI {
         currentRoot = createRoot(container);
         currentRoot.render(
           <React.StrictMode>
-            <BoosteWidgetApp config={config} />
+            <MemoryRouter>
+              <BoosteWidgetApp config={config} />
+            </MemoryRouter>
           </React.StrictMode>
         );
 
