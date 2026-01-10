@@ -199,26 +199,29 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   // Popup trigger button
+  // Popup trigger button
   if (config.type === 'popup' && !isOpen) {
+    // Explicitly using React.CSSProperties to ensure type safety
     const triggerStyle: React.CSSProperties = {
       position: 'fixed',
       bottom: '24px',
       right: '24px',
-      zIndex: 9999,
+      zIndex: 2147483647, // Max z-index supported by browsers
       width: '64px',
       height: '64px',
       borderRadius: '50%',
-      boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.2)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       cursor: 'pointer',
       border: 'none',
+      outline: 'none',
       background: themeStyles.background === '#ffffff' ? '#4f46e5' : themeStyles.background,
       color: 'white',
       fontSize: '32px',
-      transition: 'transform 0.2s',
-      animation: 'bounce 1s infinite'
+      transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      animation: 'none' // Remove unsupported 'bounce' unless defined in global css
     };
 
     return (
@@ -231,6 +234,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)';
         }}
+        aria-label="Open Game Widget"
       >
         🎁
       </button>
