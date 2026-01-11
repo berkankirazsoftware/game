@@ -191,36 +191,6 @@ export type Database = {
                 }
                 Relationships: []
             }
-            user_games: {
-                Row: {
-                    created_at: string | null
-                    game_type: string | null
-                    guest_id: string | null
-                    id: string
-                    metadata: Json | null
-                    score: number | null
-                    user_id: string | null
-                }
-                Insert: {
-                    created_at?: string | null
-                    game_type?: string | null
-                    guest_id?: string | null
-                    id?: string
-                    metadata?: Json | null
-                    score?: number | null
-                    user_id?: string | null
-                }
-                Update: {
-                    created_at?: string | null
-                    game_type?: string | null
-                    guest_id?: string | null
-                    id?: string
-                    metadata?: Json | null
-                    score?: number | null
-                    user_id?: string | null
-                }
-                Relationships: []
-            }
         }
         Views: {
             [_ in never]: never
