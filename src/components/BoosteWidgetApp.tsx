@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Clock, Copy, Check } from 'lucide-react';
 import CircleDashGame from '../pages/CircleDashGame';
 import WheelGame from '../pages/WheelGame';
 import MemoryGame from '../pages/MemoryGame';
+import type { Database } from '../lib/database.types';
+
+type Coupon = Database['public']['Tables']['coupons']['Row'];
 
 interface WidgetConfig {
   target: string;
@@ -43,32 +46,48 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [availableGames, setAvailableGames] = useState<string[]>(config.games || []);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
-
   const themeStyles = THEMES[config.theme] || THEMES.light;
-  // Initialize availability state
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
-  
+
+  // Cooldown & Result States
+  const [isGamePlayable, setIsGamePlayable] = useState(true);
+  const [showCooldownView, setShowCooldownView] = useState(false);
+  const [latestCoupon, setLatestCoupon] = useState<Coupon | null>(null);
+  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
+  const [cooldownTimerStr, setCooldownTimerStr] = useState<string>('');
+  const [remoteCooldownMinutes, setRemoteCooldownMinutes] = useState(1440);
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     checkAvailability();
     
-    // Timer interval
+    // Timer interval for both Time Limit and Cooldown Display
     const timer = setInterval(() => {
         updateTimeRemaining();
+        updateCooldownDisplay();
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [config.userId]);
+  }, [config.userId, cooldownEndTime]);
+
+  const updateCooldownDisplay = () => {
+    if (!cooldownEndTime) return;
+    
+    const now = Date.now();
+    const diff = cooldownEndTime - now;
+    
+    if (diff <= 0) {
+        setCooldownTimerStr('Hazır!');
+        // Ideally we could re-check availability here to unlock the game
+    } else {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        setCooldownTimerStr(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    }
+  };
 
   const updateTimeRemaining = () => {
-      const visitStart = localStorage.getItem('booste_visit_start');
-      // We need to access the config here. But config prop might not have the full remote config.
-      // We stored the remote config in checkAvailability but didn't save it to state.
-      // Let's rely on localStorage logic or save remote config to state.
-      // Better: Save 'limitEnd' timestamp to localStorage?
-      // Or just re-calculate based on what we know.
-      // Problem: 'checkAvailability' has the 'time_limit_minutes' from remote.
-      // Let's store the expiry time in localStorage when we first get the config.
-      
       const expiry = localStorage.getItem('booste_limit_expiry');
       if (expiry) {
           const expiryTime = parseInt(expiry);
@@ -77,7 +96,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
           
           if (diff <= 0) {
               setTimeRemaining('00:00');
-              // Optionally force close here if not already handled by logic
           } else {
               const minutes = Math.floor(diff / 60000);
               const seconds = Math.floor((diff % 60000) / 1000);
@@ -87,30 +105,28 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const checkAvailability = async () => {
-    // If no userId, assume allowed (e.g. demo mode) or handle as needed
     if (!config.userId) {
       setIsAllowed(true);
       return;
     }
 
     try {
-      // Import needed if not available globally. Assuming supabase client is passed or imported.
-      // We need to import supabase here.
       const { data, error } = await import('../lib/supabase').then(m => 
         m.supabase.rpc('check_widget_status', { p_user_id: config.userId! })
       );
       
       if (error) {
         console.error('Widget check error:', error);
-        // Fallback to allowed on error to avoid breaking site?
         setIsAllowed(true); 
       } else {
         const result = data as any;
-        
-        // Check Cooldown
         const remoteConfig = result.config || { cooldown_minutes: 1440 }; // Default 24h
-        const cooldownMinutes = remoteConfig.cooldown_minutes;
+        const cooldownMinutes = remoteConfig.cooldown_minutes || 1440;
+        setRemoteCooldownMinutes(cooldownMinutes);
+
+        // Check Cooldown
         const lastPlayed = localStorage.getItem('booste_last_played');
+        let isCooldownActive = false;
         
         if (lastPlayed) {
             const lastPlayedTime = parseInt(lastPlayed);
@@ -119,8 +135,22 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
             
             if (elapsedMinutes < cooldownMinutes) {
                 console.log(`Booste Widget: Cool down active. Wait ${cooldownMinutes - elapsedMinutes} minutes.`);
-                setIsAllowed(false);
-                return;
+                isCooldownActive = true;
+                
+                // Set Cooldown State
+                setIsGamePlayable(false);
+                setShowCooldownView(true);
+                setCooldownEndTime(lastPlayedTime + cooldownMinutes * 60 * 1000);
+                
+                // Load cached coupon
+                const cachedCoupon = localStorage.getItem('booste_latest_coupon');
+                if (cachedCoupon) {
+                    try {
+                        setLatestCoupon(JSON.parse(cachedCoupon));
+                    } catch (e) {
+                        console.error("Error parsing cached coupon", e);
+                    }
+                }
             }
         }
 
@@ -139,8 +169,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
                 localStorage.setItem('booste_visit_start', visitStart);
                 localStorage.setItem('booste_limit_expiry', limitExpiry);
             } else if (!limitExpiry) {
-                 // Existing visit but new feature enabled? Or missing expiry?
-                 // Recalculate based on start
                  const startTime = parseInt(visitStart);
                  limitExpiry = (startTime + timeLimitMinutes * 60 * 1000).toString();
                  localStorage.setItem('booste_limit_expiry', limitExpiry);
@@ -149,15 +177,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
             const now = Date.now();
             if (now > parseInt(limitExpiry!)) {
                 console.log('Booste Widget: Time limit expired.');
-                setIsAllowed(false);
+                setIsAllowed(false); // Widget is hidden if time limit expired
                 return;
             } else {
-                 // Initial update
                  const diff = parseInt(limitExpiry!) - now;
-                 const minutes = Math.floor(diff / 60000);
-                 const seconds = Math.floor((diff % 60000) / 1000);
-                 setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-                 
                  // Set timeout to close
                  setTimeout(() => {
                      setIsAllowed(false);
@@ -165,20 +188,22 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
                  }, diff);
             }
         } else {
-            // If feature disabled, clear legacy
             localStorage.removeItem('booste_limit_expiry');
             setTimeRemaining(null);
         }
 
+        // Note: isAllowed is primarily for "Is the widget overall enabled/visible?". 
+        // If cooldown is active, we STILL want it visible (isAllowed = true), just showing a different view.
+        // Unless result.allowed is false (e.g. passive campaign), then we hide it completely.
         setIsAllowed(result.allowed);
         
+        // If allowed by backend, but cooldown is active, we keep isAllowed=true but set isGamePlayable=false (handled above)
+        
         let gamesToUse = result.games || [];
-        // If games array is empty but game_type exists (legacy), use it
         if (gamesToUse.length === 0 && result.game_type) {
             gamesToUse = [result.game_type];
         }
 
-        // If we found games, use them. If only one, auto select.
         if (result.allowed && gamesToUse.length > 0) {
             if (gamesToUse.length === 1) {
                 setSelectedGame(gamesToUse[0]);
@@ -193,19 +218,120 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     }
   };
 
-  const handleGameComplete = () => {
-    // Set cool down timestamp
-    localStorage.setItem('booste_last_played', Date.now().toString());
+  const handleGameComplete = (coupon: Coupon | null) => {
+    // Save state
+    const now = Date.now();
+    localStorage.setItem('booste_last_played', now.toString());
+    if (coupon) {
+        localStorage.setItem('booste_latest_coupon', JSON.stringify(coupon));
+    }
+    
+    // Update local state
+    setLatestCoupon(coupon);
+    setIsGamePlayable(false);
+    setShowCooldownView(true);
+    setCooldownEndTime(now + remoteCooldownMinutes * 60 * 1000);
   };
 
-  // Only show if type logic meets AND isAllowed is true.
-  // Wait for check to complete (isAllowed !== null) to avoid flash?
-  // Or start hidden.
+  const handleCopyCode = () => {
+      if (latestCoupon?.code) {
+          navigator.clipboard.writeText(latestCoupon.code);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+      }
+  };
+
+  const renderCooldownView = () => {
+      return (
+          <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              padding: '24px',
+              textAlign: 'center',
+              color: themeStyles.text,
+              background: themeStyles.background
+          }}>
+              <div style={{
+                  padding: '16px',
+                  borderRadius: '50%',
+                  background: 'rgba(79, 70, 229, 0.1)',
+                  marginBottom: '24px'
+              }}>
+                  <Trophy size={48} className="text-indigo-600" style={{ color: themeStyles.primary }} />
+              </div>
+              
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+                  {latestCoupon ? 'Tebrikler!' : 'Oyun Tamamlandı'}
+              </h2>
+              
+              <p style={{ opacity: 0.8, marginBottom: '24px' }}>
+                  {latestCoupon ? 'Ödülünü kazandın. Bir sonraki şans için bekle.' : 'Bugünlük şansını denedin. Yarın tekrar gel!'}
+              </p>
+
+              {latestCoupon && (
+                  <div style={{
+                      background: themeStyles.secondary,
+                      padding: '20px',
+                      borderRadius: '16px',
+                      width: '100%',
+                      marginBottom: '24px',
+                      position: 'relative'
+                  }}>
+                      <div style={{ fontSize: '14px', opacity: 0.7, marginBottom: '4px' }}>Kupon Kodun</div>
+                      <div style={{ 
+                          fontSize: '24px', 
+                          fontWeight: 'bold', 
+                          letterSpacing: '2px',
+                          color: themeStyles.primary,
+                          marginBottom: '8px'
+                      }}>
+                          {latestCoupon.code}
+                      </div>
+                      <button 
+                          onClick={handleCopyCode}
+                          style={{
+                              position: 'absolute',
+                              right: '12px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              color: copied ? '#10B981' : themeStyles.text,
+                              opacity: 0.8
+                          }}
+                      >
+                          {copied ? <Check size={20} /> : <Copy size={20} />}
+                      </button>
+                      <div style={{ fontSize: '14px', fontWeight: '500' }}>
+                           {latestCoupon.discount_type === 'percentage' ? `%${latestCoupon.discount_value}` : `${latestCoupon.discount_value}₺`} İndirim
+                      </div>
+                  </div>
+              )}
+
+              <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(0,0,0,0.05)',
+                  padding: '12px 20px',
+                  borderRadius: '999px',
+                  fontSize: '14px',
+                  fontWeight: '500'
+              }}>
+                  <Clock size={16} />
+                  <span>Sonraki Oyun: {cooldownTimerStr}</span>
+              </div>
+          </div>
+      );
+  };
+
   const isVisible = (config.type === 'embedded' || isOpen) && (isAllowed === true);
 
-  // If check is pending, what to render?
-  // If embedded, maybe skeleton? If popup, nothing.
-  if (isAllowed === null) return null; // Don't render until checked
+  if (isAllowed === null) return null; 
 
 
   const handleGameSelect = (gameId: string) => {
@@ -220,7 +346,8 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const renderGame = () => {
-    // Props suitable for game components
+    if (!isGamePlayable) return null; // Should not reach here if logic correct, but safety
+
     const gameProps = {
       embedded: true,
       userId: config.userId,
@@ -228,8 +355,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         background: 'transparent',
         textColor: themeStyles.text
       },
-      // Pass a flag to indicate it's in a widget to possibly adjust layout if needed
-      testMode: false, // Or config.testMode if you add it
+      testMode: false,
       onGameComplete: handleGameComplete
     };
 
@@ -262,8 +388,14 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const renderContent = () => {
-    // Game selector
+    // Priority: Cooldown View -> Game Selector -> Game View
+    
+    if (showCooldownView) {
+        return renderCooldownView();
+    }
+
     if (!selectedGame) {
+      // Selector Logic
       const containerStyle: React.CSSProperties = {
         display: 'flex',
         flexDirection: 'column',
@@ -371,14 +503,12 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     );
   };
 
-  // Popup trigger button
   if (config.type === 'popup' && !isOpen) {
-    // Explicitly using React.CSSProperties to ensure type safety
     const triggerStyle: React.CSSProperties = {
       position: 'fixed',
       bottom: '24px',
       right: '24px',
-      zIndex: 2147483647, // Max z-index supported by browsers
+      zIndex: 2147483647,
       padding: '12px 24px',
       height: '60px',
       borderRadius: '9999px',
@@ -394,7 +524,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       fontSize: '18px',
       fontWeight: 'bold',
       transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-      animation: 'float 3s ease-in-out infinite' // Add float animation
+      animation: 'float 3s ease-in-out infinite' 
     };
 
     return (
@@ -422,30 +552,29 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     );
   }
 
-  // Main container
   const containerStyle: React.CSSProperties = config.type === 'popup' ? {
     position: 'fixed',
     inset: '0',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: config.type === 'popup' ? themeStyles.background : 'transparent', // Full screen background for popup
+    background: config.type === 'popup' ? themeStyles.background : 'transparent', 
     zIndex: 9999,
-    animation: 'fadeIn 0.3s ease-out forwards' // Add fade in animation
+    animation: 'fadeIn 0.3s ease-out forwards' 
   } : {
     width: '100%',
     height: '100%',
-    minHeight: '100%' // Remove minHeight constraint for embedded if possible, or keep it responsive
+    minHeight: '100%' 
   };
 
   const widgetStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    height: '100%', // Full height
-    maxWidth: '100%', // Full width
-    maxHeight: '100%', // Full height
+    height: '100%', 
+    maxWidth: '100%', 
+    maxHeight: '100%', 
     overflow: 'hidden',
-    borderRadius: config.type === 'popup' ? '0' : '16px', // No radius for full screen popup
+    borderRadius: config.type === 'popup' ? '0' : '16px', 
     boxShadow: config.type === 'popup' ? 'none' : '0 20px 60px rgba(0,0,0,0.3)',
     background: themeStyles.background,
     display: 'flex',
@@ -459,10 +588,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     zIndex: 60,
     padding: '8px',
     borderRadius: '50%',
-    background: 'rgba(0, 0, 0, 0.05)', // Lighter background
+    background: 'rgba(0, 0, 0, 0.05)', 
     border: 'none',
     cursor: 'pointer',
-    color: themeStyles.text, // Use theme text color
+    color: themeStyles.text, 
     fontSize: '24px',
     width: '40px',
     height: '40px',

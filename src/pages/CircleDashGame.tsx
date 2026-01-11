@@ -17,13 +17,12 @@ interface CircleDashGameProps {
     primaryColor?: string
     textColor?: string
   }
-  onGameComplete?: () => void
+  onGameComplete?: (coupon: Coupon | null) => void
 }
 
 export default function CircleDashGame({ embedded = false, userId: propUserId, testMode: propTestMode, theme, onGameComplete }: CircleDashGameProps = {}) {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const { gameId } = useParams()
-  console.log("Game IDw:", gameId) // Log to avoid lint error or remove if strictly not needed
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const [searchParams] = useSearchParams()
   const userId = propUserId || searchParams.get('userId')
@@ -32,24 +31,24 @@ export default function CircleDashGame({ embedded = false, userId: propUserId, t
   // Standard states
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [wonCoupon, setWonCoupon] = useState<Coupon | null>(null)
+  
+  // Game states
   const [gameCompleted, setGameCompleted] = useState(false)
   const [score, setScore] = useState(0)
-
-  // Game specific states
   const [gameRunning, setGameRunning] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [power, setPower] = useState(0)
   const [isCharging, setIsCharging] = useState(false)
   const [projectile, setProjectile] = useState<{ x: number, y: number, active: boolean, speed: number } | null>(null)
   
-  // Game Configuration
-  const TARGET_Y = 50 // Top position %
-  const PLAYER_Y = 90 // Bottom position %
-  const OBSTACLE_Y = 70 // Obstacle Y position %
-  
-  // Refs for loop
+  // Refs
   const requestRef = useRef<number>()
-  const obstacleRef = useRef<number>(0) // Rotation angle
+  const obstacleRef = useRef<number>(0)
+  
+  // Constants
+  const TARGET_Y = 20
+  const OBSTACLE_Y = 50
+  const PLAYER_Y = 85
 
   useEffect(() => {
     if (userId && !testMode) fetchCoupons()
@@ -59,7 +58,7 @@ export default function CircleDashGame({ embedded = false, userId: propUserId, t
         discount_type: 'percentage', discount_value: 20, level: 1, quantity: 100, used_count: 0, created_at: ''
       }])
     }
-  }, [userId])
+  }, [userId, testMode])
 
   const fetchCoupons = async () => {
     if (!userId) return
@@ -67,112 +66,21 @@ export default function CircleDashGame({ embedded = false, userId: propUserId, t
     if (data) setCoupons(data)
   }
 
-  // Game Loop
-  const animate = () => {
-    if (!gameRunning) return
-
-    // Update Obstacles
-    obstacleRef.current = (obstacleRef.current + 2) % 360
-
-    // Update Projectile
-    setProjectile(prev => {
-      if (!prev || !prev.active) return prev
-
-      const newY = prev.y - prev.speed
-      
-      // Collision Checks
-      
-      // 1. Obstacle Collision (Simple horizontal check at specific Y)
-      // Obstacle creates a gap or a block. Let's make it a rotating blocker.
-      // E.g. A bar rotating around center. If projectile Y passes close to obstacle Y, check X collision.
-      // For simplicity in React state (not canvas), let's use a moving horizontal block.
-      // Obstacle moves left-right using Sin wave based on obstacleRef.
-      const obstacleX = 50 + Math.sin(obstacleRef.current * Math.PI / 180) * 40 // Moves between 10% and 90%
-      const obstacleWidth = 20
-      
-      // Check collision with obstacle
-      if (newY < OBSTACLE_Y + 2 && newY > OBSTACLE_Y - 2) {
-        // Projectile is vertically at obstacle level
-        // Assume projectile is at center X (50%)
-        if (Math.abs(50 - obstacleX) < obstacleWidth / 2) {
-            handleGameOver()
-            return { ...prev, active: false }
-        }
-      }
-
-      // 2. Target Collision
-      if (newY <= TARGET_Y) {
-         // Hit!
-         handleHit()
-         return { ...prev, active: false }
-      }
-
-      // 3. Out of bounds (e.g. too slow?)
-      if (newY < 0) {
-        handleGameOver()
-        return { ...prev, active: false }
-      }
-
-      return { ...prev, y: newY }
-    })
-
-    // Charge Power
-    if (isCharging) {
-      setPower(p => (p >= 100 ? 0 : p + 2))
-    }
-
-    requestRef.current = requestAnimationFrame(animate)
-  }
-
-  useEffect(() => {
-    requestRef.current = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(requestRef.current!)
-  }, [gameRunning, isCharging, projectile])
-
-
-  const startCharging = () => {
-    if (!gameRunning || projectile?.active) return
-    setIsCharging(true)
-    setPower(0)
-  }
-
-  const releaseArrow = () => {
-    if (!isCharging) return
-    setIsCharging(false)
-    // Fire!
-    // Speed depends on power. Sweet spot is 80-100? Or just faster = better?
-    // Let's say needs to be fast enough to pass? 
-    // Or maybe power determines if it penetrates?
-    // Let's keep simpler: Power = Speed. Too slow = fail.
-    
-    // Actually user requirement: "Güç parametresi olsun ona göre hedefe saplansın"
-    const speed = 0.5 + (power / 100) * 2 // Speed between 0.5 and 2.5
-    setProjectile({ x: 50, y: PLAYER_Y, active: true, speed })
-  }
-
-  const handleHit = () => {
-    const newScore = score + 1
-    setScore(newScore)
-    setProjectile(null)
-    
-    if (newScore >= 3) {
-      handleGameWin()
-    }
-  }
-
   const handleGameOver = () => {
-    setGameRunning(false)
-    setGameOver(true)
+     setGameRunning(false)
+     setGameOver(true)
   }
 
   const handleGameWin = () => {
     setGameCompleted(true)
     setGameRunning(false)
+    let selectedPlugin: Coupon | null = null;
     if (coupons.length > 0) {
-        setWonCoupon(selectWeightedCoupon(coupons))
+        selectedPlugin = selectWeightedCoupon(coupons)
+        setWonCoupon(selectedPlugin)
     }
-    // Call onGameComplete callback if provided
-    onGameComplete?.()
+    // Call onGameComplete callback with the won coupon
+    onGameComplete?.(selectedPlugin)
   }
 
   const startGame = () => {
@@ -183,6 +91,83 @@ export default function CircleDashGame({ embedded = false, userId: propUserId, t
     setProjectile(null)
     obstacleRef.current = 0
   }
+
+  const animate = () => {
+    if (!gameRunning) return
+
+    // Obstacle rotation
+    obstacleRef.current = (obstacleRef.current + 2) % 360
+    
+    // Power charging
+    if (isCharging) {
+        setPower(prev => (prev + 2) % 100)
+    }
+
+    // Projectile movement
+    if (projectile && projectile.active) {
+        const newY = projectile.y - projectile.speed
+        
+        // Collision Detection
+        const obstacleWidth = 20 
+        
+        // 1. Obstacle at OBSTACLE_Y
+        if (projectile.y > OBSTACLE_Y && newY <= OBSTACLE_Y) {
+            const obstacleX = 50 + Math.sin(obstacleRef.current * Math.PI / 180) * 40
+            // Projectile X is 50
+            if (Math.abs(50 - obstacleX) < obstacleWidth / 2) {
+                handleGameOver()
+                return 
+            }
+        }
+        
+        // 2. Target at TARGET_Y
+        if (newY <= TARGET_Y) {
+            handleHit()
+            // Continue loop but logic handled in handleHit
+            requestRef.current = requestAnimationFrame(animate)
+            return 
+        }
+
+        // 3. Out of bounds
+        if (newY < 0) {
+            handleGameOver()
+            return
+        }
+
+        setProjectile({ ...projectile, y: newY })
+    }
+
+    requestRef.current = requestAnimationFrame(animate)
+  }
+
+  const handleHit = () => {
+    const newScore = score + 1
+    setScore(newScore)
+    setProjectile(null)
+    if (newScore >= 3) {
+        handleGameWin()
+    }
+  }
+
+  const startCharging = () => {
+      if (!gameRunning || projectile?.active) return
+      setIsCharging(true)
+      setPower(0)
+  }
+
+  const releaseArrow = () => {
+      if (!isCharging) return
+      setIsCharging(false)
+      const speed = 1.5 + (power / 100) * 2
+      setProjectile({ x: 50, y: PLAYER_Y, active: true, speed })
+  }
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate)
+    return () => {
+        if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+  }, [gameRunning, isCharging, projectile])
 
   // Visuals
   const obstacleX = 50 + Math.sin(obstacleRef.current * Math.PI / 180) * 40

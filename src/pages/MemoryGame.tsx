@@ -25,7 +25,7 @@ interface MemoryGameProps {
     primaryColor?: string;
     textColor?: string;
   }
-  onGameComplete?: () => void
+  onGameComplete?: (coupon: Coupon | null) => void
 }
 
 export default function MemoryGame({ embedded, userId: propUserId, testMode: propTestMode, theme, onGameComplete }: MemoryGameProps = {}) {
@@ -35,6 +35,8 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
   const testMode = propTestMode || searchParams.get('testMode') === 'true'
   
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  
+  // States
   const [cards, setCards] = useState<Card[]>([])
   const [flippedCards, setFlippedCards] = useState<number[]>([])
   const [matchedPairs, setMatchedPairs] = useState(0)
@@ -164,12 +166,12 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
     setGameCompleted(true)
     setGameStarted(false)
     
-    // Rastgele kupon seç (Weighted)
+    let selectedPlugin: Coupon | null = null;
     if (coupons.length > 0) {
-      const weightedCoupon = selectWeightedCoupon(coupons)
-      setWonCoupon(weightedCoupon)
+      selectedPlugin = selectWeightedCoupon(coupons)
+      setWonCoupon(selectedPlugin)
     }
-    onGameComplete?.()
+    onGameComplete?.(selectedPlugin)
   }
 
   const startGame = () => {

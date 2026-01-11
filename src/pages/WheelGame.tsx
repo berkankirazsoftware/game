@@ -26,7 +26,7 @@ interface WheelGameProps {
     primaryColor?: string;
     textColor?: string;
   };
-  onGameComplete?: () => void;
+  onGameComplete?: (coupon: Coupon | null) => void;
 }
 
 export default function WheelGame({ embedded = false, userId: propUserId, theme, onGameComplete }: WheelGameProps) {
@@ -78,18 +78,10 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
 
   const generateSegments = () => {
     // Generate segments from coupons
-    // We will create 8 segments. If fewer coupons, repeat them.
     const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6']
     const newSegments: Segment[] = []
     
-    // Create pool based on weights to fill 8 slots logic or just repeat
-    // Simple approach: Use available coupons and fill 8 slots
     for (let i = 0; i < 8; i++) {
-        // Pick a weighted coupon for this slot to visualize distribution? 
-        // OR better: Create unique segments for each coupon type, but size them differently?
-        // Wheel UI usually has equal sized segments. 
-        // So we will pick 8 coupons based on their weight to populate the wheel.
-        // This visually represents the probability.
         const coupon = selectWeightedCoupon(coupons)
         if (coupon) {
             newSegments.push({
@@ -121,12 +113,6 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
     // Normalize to 0-360
     const normalizedRotation = newRotation % 360
     
-    // In CSS rotate, 0 is at 3 o'clock usually, or top depending on implementation.
-    // Let's assume standard CSS circle: Top is 0. 
-    // The pointer is usually at the top.
-    // If we rotate the wheel clockwise, the segment at the "Top" changes counter-clockwise relative to the wheel.
-    // Winning Angle = 360 - normalizedRotation.
-    
     // Wait for animation to finish (5s)
     setTimeout(() => {
         setIsSpinning(false)
@@ -135,13 +121,7 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
   }
 
   const calculateWinner = (degrees: number) => {
-    // Correct angle logic for a pointer at the TOP (0deg visually)
-    // If wheel rotates 90deg (clockwise), the segment at 270deg (left) moves to top? 
-    // Actually simpler: 
-    // Segment Index = floor( (360 - (degrees % 360)) / segmentSize )
-    
     const segmentSize = 360 / segments.length
-    // Adjust for offset if needed.
     const winningIndex = Math.floor(((360 - degrees) % 360) / segmentSize)
     const winner = segments[winningIndex]
     
@@ -149,7 +129,7 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
     
     if (winner.value !== '0') {
       triggerConfetti()
-      onGameComplete?.()
+      onGameComplete?.(winner.coupon || null)
     }
   }
 
