@@ -551,7 +551,11 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         <Trophy className="w-6 h-6 mr-2" />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2 }}>
             <span>Oyna Kazan</span>
-            {timeRemaining && (
+            {(showCooldownView || latestCoupon) ? (
+                 <span style={{ fontSize: '10px', opacity: 0.9 }}>
+                    Kuponun Hazır
+                 </span>
+            ) : timeRemaining && (
                 <span style={{ fontSize: '10px', opacity: 0.9 }}>
                     Kalan: {timeRemaining}
                 </span>
