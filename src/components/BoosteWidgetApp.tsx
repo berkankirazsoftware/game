@@ -73,6 +73,24 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         setIsAllowed(true); 
       } else {
         const result = data as any;
+        
+        // Check cooldown
+        const config = result.config || { cooldown_minutes: 1440 }; // Default 24h
+        const cooldownMinutes = config.cooldown_minutes;
+        const lastPlayed = localStorage.getItem('booste_last_played');
+        
+        if (lastPlayed) {
+            const lastPlayedTime = parseInt(lastPlayed);
+            const now = Date.now();
+            const elapsedMinutes = (now - lastPlayedTime) / (1000 * 60);
+            
+            if (elapsedMinutes < cooldownMinutes) {
+                console.log(`Booste Widget: Cool down active. Wait ${cooldownMinutes - elapsedMinutes} minutes.`);
+                setIsAllowed(false);
+                return;
+            }
+        }
+
         setIsAllowed(result.allowed);
         
         let gamesToUse = result.games || [];
@@ -94,6 +112,11 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       console.error('Widget check failed:', err);
       setIsAllowed(true);
     }
+  };
+
+  const handleGameComplete = () => {
+    // Set cool down timestamp
+    localStorage.setItem('booste_last_played', Date.now().toString());
   };
 
   // Only show if type logic meets AND isAllowed is true.
@@ -127,7 +150,8 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         textColor: themeStyles.text
       },
       // Pass a flag to indicate it's in a widget to possibly adjust layout if needed
-      testMode: false // Or config.testMode if you add it
+      testMode: false, // Or config.testMode if you add it
+      onGameComplete: handleGameComplete
     };
 
     switch (selectedGame) {

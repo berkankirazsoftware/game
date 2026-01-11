@@ -29,8 +29,8 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Boostelerim', href: '/my-boostes', icon: Megaphone },
     { name: 'Kuponlar', href: '/coupons', icon: Gift },
-    { name: 'Abonelik', href: '/subscription', icon: CreditCard },
     { name: 'Entegrasyon', href: '/integration', icon: Code },
+    { name: 'Ayarlar', href: '/settings', icon: Settings },
   ]
 
   const handleSignOut = async () => {

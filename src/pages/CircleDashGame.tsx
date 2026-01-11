@@ -17,9 +17,10 @@ interface CircleDashGameProps {
     primaryColor?: string
     textColor?: string
   }
+  onGameComplete?: () => void
 }
 
-export default function CircleDashGame({ embedded = false, userId: propUserId, testMode: propTestMode, theme }: CircleDashGameProps = {}) {
+export default function CircleDashGame({ embedded = false, userId: propUserId, testMode: propTestMode, theme, onGameComplete }: CircleDashGameProps = {}) {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const { gameId } = useParams()
   console.log("Game IDw:", gameId) // Log to avoid lint error or remove if strictly not needed
@@ -170,6 +171,8 @@ export default function CircleDashGame({ embedded = false, userId: propUserId, t
     if (coupons.length > 0) {
         setWonCoupon(selectWeightedCoupon(coupons))
     }
+    // Call onGameComplete callback if provided
+    onGameComplete?.()
   }
 
   const startGame = () => {

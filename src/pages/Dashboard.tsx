@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Bell, Zap, Gift, AlertCircle, CheckCircle, Clock, Mail, Activity } from 'lucide-react'
+import { Bell, Zap, Gift, AlertCircle, CheckCircle, Mail, Activity } from 'lucide-react'
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -11,7 +11,8 @@ export default function Dashboard() {
     emailUsage: 0,
     emailLimit: 100,
     isWidgetActive: false,
-    hasActiveCampaign: false
+    hasActiveCampaign: false,
+    hasValidCoupons: false
   })
   const [notifications, setNotifications] = useState<any[]>([])
 
@@ -33,9 +34,7 @@ export default function Dashboard() {
         .eq('status', 'active')
         .limit(1)
       
-      const hasActiveCampaign = campaignData && campaignData.length > 0
-      const isWidgetActive = hasActiveCampaign // Widget is active if there is a campaign (sub is gone)
-
+      const hasActiveCampaign = !!(campaignData && campaignData.length > 0)
       // 2. Get Monthly Email Usage
       const now = new Date()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
@@ -49,11 +48,30 @@ export default function Dashboard() {
       const currentUsage = emailCount || 0
       const planLimit = 100 // Hardcoded free limit for MVP
 
+      // 3. Check Coupons
+      const { data: coupons } = await supabase
+        .from('coupons')
+        .select('level, quantity, used_count')
+        .eq('user_id', user.id)
+      
+      const levelsMap = new Set()
+      if (coupons) {
+        coupons.forEach(c => {
+            if (c.quantity > c.used_count) {
+                levelsMap.add(c.level)
+            }
+        })
+      }
+      const hasValidCoupons = levelsMap.has(1) && levelsMap.has(2) && levelsMap.has(3)
+
+      const isWidgetActive = !!(hasActiveCampaign && hasValidCoupons && currentUsage < planLimit)
+
       setStats({
         emailUsage: currentUsage,
         emailLimit: planLimit,
         isWidgetActive,
-        hasActiveCampaign
+        hasActiveCampaign,
+        hasValidCoupons
       })
 
       // 3. Generate Derived Notifications
@@ -79,6 +97,16 @@ export default function Dashboard() {
             time: 'Şimdi',
             icon: AlertCircle
           })
+        }
+        if (!hasValidCoupons) {
+            newNotifications.push({
+              id: 'missing-coupons',
+              type: 'error',
+              title: 'Eksik Kuponlar',
+              message: 'Widget\'ın çalışması için her seviye (1, 2, 3) için stokta kupon bulunmalıdır.',
+              time: 'Şimdi',
+              icon: AlertCircle
+            })
         }
       }
 

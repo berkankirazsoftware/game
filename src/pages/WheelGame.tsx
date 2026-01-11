@@ -26,9 +26,10 @@ interface WheelGameProps {
     primaryColor?: string;
     textColor?: string;
   };
+  onGameComplete?: () => void;
 }
 
-export default function WheelGame({ embedded = false, userId: propUserId, theme }: WheelGameProps) {
+export default function WheelGame({ embedded = false, userId: propUserId, theme, onGameComplete }: WheelGameProps) {
   const [searchParams] = useSearchParams()
   const userId = propUserId || searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
@@ -148,6 +149,7 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme 
     
     if (winner.value !== '0') {
       triggerConfetti()
+      onGameComplete?.()
     }
   }
 

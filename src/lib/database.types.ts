@@ -55,7 +55,7 @@ export type Database = {
             }
             coupons: {
                 Row: {
-                    code: string
+                    code: string | null
                     created_at: string | null
                     description: string
                     discount_type: string | null
@@ -67,7 +67,7 @@ export type Database = {
                     user_id: string | null
                 }
                 Insert: {
-                    code: string
+                    code?: string | null
                     created_at?: string | null
                     description: string
                     discount_type?: string | null
@@ -79,7 +79,7 @@ export type Database = {
                     user_id?: string | null
                 }
                 Update: {
-                    code?: string
+                    code?: string | null
                     created_at?: string | null
                     description?: string
                     discount_type?: string | null
@@ -91,6 +91,40 @@ export type Database = {
                     user_id?: string | null
                 }
                 Relationships: []
+            }
+            coupon_codes: {
+                Row: {
+                    code: string
+                    coupon_id: string
+                    user_id: string
+                    created_at: string | null
+                    id: string
+                    is_used: boolean | null
+                }
+                Insert: {
+                    code: string
+                    coupon_id: string
+                    user_id: string
+                    created_at?: string | null
+                    id?: string
+                    is_used?: boolean | null
+                }
+                Update: {
+                    code?: string
+                    coupon_id?: string
+                    created_at?: string | null
+                    id?: string
+                    is_used?: boolean | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "coupon_codes_coupon_id_fkey"
+                        columns: ["coupon_id"]
+                        isOneToOne: false
+                        referencedRelation: "coupons"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
             email_logs: {
                 Row: {
@@ -141,6 +175,7 @@ export type Database = {
                     email: string
                     full_name: string
                     id: string
+                    widget_config: { cooldown_minutes: number } | null
                 }
                 Insert: {
                     business_name?: string | null
@@ -148,6 +183,7 @@ export type Database = {
                     email: string
                     full_name: string
                     id: string
+                    widget_config?: { cooldown_minutes: number } | null
                 }
                 Update: {
                     business_name?: string | null
@@ -155,6 +191,7 @@ export type Database = {
                     email?: string
                     full_name?: string
                     id?: string
+                    widget_config?: { cooldown_minutes: number } | null
                 }
                 Relationships: []
             }

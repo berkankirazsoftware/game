@@ -25,9 +25,10 @@ interface MemoryGameProps {
     primaryColor?: string;
     textColor?: string;
   }
+  onGameComplete?: () => void
 }
 
-export default function MemoryGame({ embedded, userId: propUserId, testMode: propTestMode, theme }: MemoryGameProps = {}) {
+export default function MemoryGame({ embedded, userId: propUserId, testMode: propTestMode, theme, onGameComplete }: MemoryGameProps = {}) {
   const { gameId } = useParams()
   const [searchParams] = useSearchParams()
   const userId = propUserId || searchParams.get('userId')
@@ -168,6 +169,7 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
       const weightedCoupon = selectWeightedCoupon(coupons)
       setWonCoupon(weightedCoupon)
     }
+    onGameComplete?.()
   }
 
   const startGame = () => {

@@ -58,7 +58,7 @@ export default function SubscriptionPage() {
                     <span className="font-bold text-gray-900 text-sm">Paket</span>
                   </div>
                   <p className="text-gray-700 font-medium">
-                    Başlangıç Paketi (MVP)
+                    Başlangıç Paketi 
                   </p>
                 </div>
 

@@ -18,8 +18,12 @@ export default function CouponsPage() {
     discount_type: 'percentage' as 'percentage' | 'fixed',
     discount_value: 0,
     level: 1,
+
     quantity: 1
   })
+  const [couponMode, setCouponMode] = useState<'single' | 'unique'>('single')
+  const [uniqueCodesInput, setUniqueCodesInput] = useState('')
+  const [deleteConfirmation, setDeleteConfirmation] = useState<Coupon | null>(null)
 
   useEffect(() => {
     fetchCoupons()
@@ -50,19 +54,58 @@ export default function CouponsPage() {
     e.preventDefault()
     if (!user) return
 
-    const { error } = await supabase
+    const codesToInsert = couponMode === 'unique' 
+      ? uniqueCodesInput.split('\n').map(c => c.trim()).filter(c => c.length > 0)
+      : []
+
+    if (couponMode === 'unique' && codesToInsert.length === 0) {
+      alert('Lütfen en az bir adet kupon kodu giriniz.')
+      return
+    }
+
+    // 1. Create Coupon Record
+    const { data: newCoupon, error: couponError } = await supabase
       .from('coupons')
       .insert([{
         user_id: user.id,
-        ...couponForm
+        ...couponForm,
+        code: couponMode === 'single' ? couponForm.code : null, // Null for unique mode
+        quantity: couponMode === 'unique' ? codesToInsert.length : couponForm.quantity
       }])
+      .select()
+      .single()
 
-    if (!error) {
-      fetchCoupons()
-      setShowAddModal(false)
-      resetForm()
+    if (couponError) {
+      console.error('Error adding coupon:', couponError)
+      alert('Kupon oluşturulurken bir hata oluştu.')
+      return
     }
+
+    // 2. Insert Unique Codes if needed
+    if (couponMode === 'unique' && newCoupon) {
+      const codeRecords = codesToInsert.map(code => ({
+        coupon_id: newCoupon.id,
+        user_id: user.id,
+        code: code,
+        is_used: false
+      }))
+
+      const { error: codesError } = await supabase
+        .from('coupon_codes')
+        .insert(codeRecords)
+
+      if (codesError) {
+        console.error('Error adding unique codes:', codesError)
+        // Cleanup? or just alert. Ideally utilize transaction but simple for now.
+        alert('Kupon kodları eklenirken bir hata oluştu. Lütfen kontrol ediniz.')
+      }
+    }
+
+    fetchCoupons()
+    setShowAddModal(false)
+    resetForm()
   }
+
 
   const handleUpdateCoupon = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,16 +123,24 @@ export default function CouponsPage() {
     }
   }
 
-  const handleDeleteCoupon = async (couponId: string) => {
-    if (!confirm('Bu kuponu silmek istediğinizden emin misiniz?')) return
+  const confirmDelete = (coupon: Coupon) => {
+    setDeleteConfirmation(coupon)
+  }
+
+  const executeDelete = async () => {
+    if (!deleteConfirmation) return
 
     const { error } = await supabase
       .from('coupons')
       .delete()
-      .eq('id', couponId)
+      .eq('id', deleteConfirmation.id)
 
     if (!error) {
-      fetchCoupons()
+       fetchCoupons()
+       setDeleteConfirmation(null)
+    } else {
+       console.error('Error deleting coupon:', error)
+       alert('Kupon silinirken bir hata oluştu: ' + error.message)
     }
   }
 
@@ -114,6 +165,8 @@ export default function CouponsPage() {
       level: 1,
       quantity: 1
     })
+    setCouponMode('single')
+    setUniqueCodesInput('')
   }
 
   const cancelEdit = () => {
@@ -215,7 +268,9 @@ export default function CouponsPage() {
                 {hasLevel && coupon ? (
                     <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
                         <div className="flex justify-between items-center mb-1">
-                            <code className="text-sm font-bold text-indigo-600 font-mono">{coupon.code}</code>
+                            <code className="text-sm font-bold text-indigo-600 font-mono">
+                                {coupon.code || '(Çoklu Kod)'}
+                            </code>
                             <span className="text-sm font-bold text-green-600">
                                 {coupon.discount_type === 'percentage' ? '%' : '₺'}{coupon.discount_value}
                             </span>
@@ -226,10 +281,17 @@ export default function CouponsPage() {
                                 style={{ width: `${Math.min(100, (coupon.used_count / coupon.quantity) * 100)}%` }}
                             ></div>
                         </div>
+
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>{coupon.used_count} Kullanılan</span>
                             <span>{coupon.quantity} Toplam</span>
                         </div>
+                        {!coupon.code && (
+                             <div className="mt-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 text-center">
+                                 Havuza Tanımlı Kodlar
+                             </div>
+                        )}
+
                     </div>
                 ) : (
                     <div className="h-[76px] flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-white/50">
@@ -288,9 +350,15 @@ export default function CouponsPage() {
                      <tr key={coupon.id} className="hover:bg-gray-50/50 transition-colors">
                        <td className="px-6 py-4">
                          <div className="flex flex-col">
-                           <span className="font-bold text-gray-900 font-mono">{coupon.code}</span>
-                           <span className="text-sm text-gray-500 truncate max-w-[200px]">{coupon.description}</span>
-                         </div>
+                            {coupon.code ? (
+                                <span className="font-bold text-gray-900 font-mono">{coupon.code}</span>
+                            ) : (
+                                <span className="font-bold text-indigo-600 font-mono text-xs bg-indigo-50 px-2 py-1 rounded w-fit">
+                                    {coupon.quantity} Unique Kod
+                                </span>
+                            )}
+                            <span className="text-sm text-gray-500 truncate max-w-[200px]">{coupon.description}</span>
+                          </div>
                        </td>
                        <td className="px-6 py-4">
                          <div className="flex items-center">
@@ -338,7 +406,7 @@ export default function CouponsPage() {
                              <Edit3 className="w-4 h-4" />
                            </button>
                            <button 
-                             onClick={() => handleDeleteCoupon(coupon.id)}
+                             onClick={() => confirmDelete(coupon)}
                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                              title="Sil"
                            >
@@ -418,29 +486,77 @@ export default function CouponsPage() {
                 {getLevelInfo(couponForm.level).name} - {getLevelInfo(couponForm.level).description}
               </p>
 
+              {/* Mode Selection */}
+              <div className="bg-gray-50 p-1 rounded-xl flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCouponMode('single')}
+                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
+                        couponMode === 'single' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Tek Kod (Sabit)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCouponMode('unique')}
+                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
+                        couponMode === 'unique' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Çoklu/Unique Kodlar
+                  </button>
+              </div>
+
               <div className="grid grid-cols-2 gap-5">
-                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Kupon Kodu</label>
-                    <input
-                        type="text"
-                        required
-                        value={couponForm.code}
-                        onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono placeholder-gray-300"
-                        placeholder="YAZ2024"
-                    />
+                 <div className={couponMode === 'unique' ? 'col-span-2' : ''}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {couponMode === 'single' ? 'Kupon Kodu' : 'Kupon Kodları (Her satıra bir adet)'}
+                    </label>
+                    
+                    {couponMode === 'single' ? (
+                        <input
+                            type="text"
+                            required
+                            value={couponForm.code}
+                            onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono placeholder-gray-300"
+                            placeholder="YAZ2024"
+                        />
+                    ) : (
+                        <textarea
+                            required
+                            rows={5}
+                            value={uniqueCodesInput}
+                            onChange={(e) => {
+                                setUniqueCodesInput(e.target.value)
+                                // Auto update quantity based on lines
+                                const count = e.target.value.split('\n').filter(l => l.trim().length > 0).length
+                                setCouponForm({...couponForm, quantity: count})
+                            }}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono placeholder-gray-300 text-sm"
+                            placeholder={"KOD1\nKOD2\nKOD3..."}
+                        />
+                    )}
                  </div>
-                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Toplam Stok</label>
-                    <input
-                        type="number"
-                        required
-                        min="1"
-                        value={couponForm.quantity}
-                        onChange={(e) => setCouponForm({ ...couponForm, quantity: Number(e.target.value) })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                 </div>
+                 
+                 {couponMode === 'single' && (
+                     <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Toplam Stok</label>
+                        <input
+                            type="number"
+                            required
+                            min="1"
+                            value={couponForm.quantity}
+                            onChange={(e) => setCouponForm({ ...couponForm, quantity: Number(e.target.value) })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                     </div>
+                 )}
               </div>
 
               <div>
@@ -601,6 +717,38 @@ export default function CouponsPage() {
 
                </form>
             </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
+              <div className="p-6 text-center">
+                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Trash2 className="w-8 h-8 text-red-600" />
+                 </div>
+                 <h3 className="text-xl font-bold text-gray-900 mb-2">Kuponu Sil</h3>
+                 <p className="text-gray-500 mb-6">
+                    <strong>{deleteConfirmation.code || 'Bu kupon grubu'}</strong> silinecek. 
+                    Bu işlem geri alınamaz ve dağıtılan kodlar geçersiz olabilir.
+                 </p>
+                 
+                 <div className="flex space-x-3">
+                    <button 
+                        onClick={() => setDeleteConfirmation(null)}
+                        className="flex-1 px-5 py-3 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                        Vazgeç
+                    </button>
+                    <button 
+                        onClick={executeDelete}
+                        className="flex-1 px-5 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                    >
+                        Evet, Sil
+                    </button>
+                 </div>
+              </div>
+           </div>
         </div>
       )}
     </div>

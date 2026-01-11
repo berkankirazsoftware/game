@@ -18,6 +18,7 @@ import CreateCampaign from './pages/CreateCampaign'
 import MyBoostesPage from './pages/MyBoostesPage'
 import PricingPage from './pages/PricingPage'
 import WheelGame from './pages/WheelGame'
+import SettingsPage from './pages/SettingsPage'
 
 function App() {
   return (
@@ -100,10 +101,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <div className="text-center py-12">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Ayarlar</h1>
-                    <p className="text-gray-600">Bu sayfa henüz geliştirilmekte...</p>
-                  </div>
+                  <SettingsPage />
                 </Layout>
               </ProtectedRoute>
             }

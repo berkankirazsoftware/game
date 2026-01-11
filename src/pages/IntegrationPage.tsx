@@ -6,21 +6,20 @@ import { Link } from 'react-router-dom'
 import type { Database } from '../lib/database.types'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
-type Subscription = Database['public']['Tables']['subscriptions']['Row']
+// Define base type first
 type Campaign = Database['public']['Tables']['campaigns']['Row']
 
-// Extended type for UI if needed, or just use Campaign
 interface Booste extends Campaign {
-  // Add any UI specific fields if needed
+  type: string
+  theme: string | null
+  games: string[] | null
 }
 
 
 
 export default function IntegrationPage() {
   const { user } = useAuth()
-  const [coupons, setCoupons] = useState<Coupon[]>([])
-  const [subscription, setSubscription] = useState<Subscription | null>(null)
-  const [levelCounts, setLevelCounts] = useState({ 1: 0, 2: 0, 3: 0 })
+  const [coupons, setCoupons] = useState<Database['public']['Tables']['coupons']['Row'][]>([])
   const [copied, setCopied] = useState(false)
   
   const [myBoostes, setMyBoostes] = useState<Booste[]>([])
@@ -29,7 +28,6 @@ export default function IntegrationPage() {
   useEffect(() => {
     if (user) {
       fetchCoupons()
-      fetchSubscription()
       fetchBoostes()
     }
   }, [user])
@@ -66,41 +64,27 @@ export default function IntegrationPage() {
     
     if (data) {
       setCoupons(data)
-      const counts = { 1: 0, 2: 0, 3: 0 }
-      data.forEach(coupon => {
-        counts[coupon.level as keyof typeof counts]++
-      })
-      setLevelCounts(counts)
-    }
-  }
-
-  const fetchSubscription = async () => {
-    if (!user) return
-    try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-      if (data) setSubscription(data)
-    } catch (error) {
-      // console.error('Subscription error:', error)
     }
   }
 
   const getWidgetStatus = () => {
-    const missingLevels = [1, 2, 3].filter(level => levelCounts[level as keyof typeof levelCounts] === 0)
+    // Check which levels have active (stock > 0) coupons
+    const activeLevels = new Set(
+        coupons
+            .filter(c => c.quantity > c.used_count)
+            .map(c => c.level)
+    )
+
+    const missingLevels = [1, 2, 3].filter(level => !activeLevels.has(level))
     const hasAllLevels = missingLevels.length === 0
     const availableCoupons = coupons.filter(coupon => coupon.quantity > coupon.used_count).length
-    const hasActiveSubscription = subscription?.is_active === true // Currently assumes true for demo if null or false check mocked? Let's keep logic strict for now
     
     return {
       hasAllLevels,
       missingLevels,
       totalCoupons: coupons.length,
       availableCoupons,
-      hasActiveSubscription: true, // Forcing true for demo purposes to unblock UI
-      isReady: hasAllLevels && availableCoupons > 0
+      isReady: hasAllLevels
     }
   }
 
@@ -115,7 +99,7 @@ export default function IntegrationPage() {
       target: selectedBooste.type === 'embedded' ? '#booste-game-container' : 'body',
       type: selectedBooste.type,
       // games: selectedBooste.games, // Removed to use active campaign logic
-      theme: selectedBooste.theme,
+      theme: selectedBooste.theme || 'light',
       userId: user.id,
       autoOpen: false
     }
@@ -146,8 +130,8 @@ ${containerHtml}<script src="https://booste.online/widget.js"></script>
     const params = new URLSearchParams()
     params.append('userId', user.id)
     params.append('type', selectedBooste.type)
-    params.append('theme', selectedBooste.theme)
-    params.append('games', selectedBooste.games.join(','))
+    if (selectedBooste.theme) params.append('theme', selectedBooste.theme)
+    if (selectedBooste.games) params.append('games', selectedBooste.games.join(','))
     
     // Use current origin
     const baseUrl = window.location.origin 
@@ -206,7 +190,7 @@ ${containerHtml}<script src="https://booste.online/widget.js"></script>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Oyunlar:</span>
-                      <span className="font-medium uppercase">{selectedBooste.games.join(', ')}</span>
+                      <span className="font-medium uppercase">{selectedBooste.games ? selectedBooste.games.join(', ') : 'Seçili Oyun Yok'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Tema:</span>
@@ -226,7 +210,6 @@ ${containerHtml}<script src="https://booste.online/widget.js"></script>
                 <div className="text-sm text-red-700 space-y-1">
                    {!widgetStatus.hasAllLevels && <p>• 1, 2 veya 3. seviye kuponlar eksik.</p>}
                    {widgetStatus.availableCoupons === 0 && <p>• Hiç aktif kupon stoğu yok.</p>}
-                   {!widgetStatus.hasActiveSubscription && <p>• Aktif abonelik süresi dolmuş.</p>}
                 </div>
               )}
               {widgetStatus.isReady && (
@@ -290,7 +273,13 @@ ${containerHtml}<script src="https://booste.online/widget.js"></script>
                     </button>
                     <button
                         onClick={() => window.open(generatePreviewUrl(), '_blank')}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+                        disabled={!widgetStatus.isReady}
+                        className={`
+                            flex items-center px-4 py-2 rounded text-sm font-medium transition-colors
+                            ${widgetStatus.isReady 
+                                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
+                        `}
                     >
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Widget'ı Önizle
