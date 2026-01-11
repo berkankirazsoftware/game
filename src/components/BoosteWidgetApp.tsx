@@ -48,7 +48,8 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const themeStyles = THEMES[config.theme] || THEMES.light;
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
-
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  
   // Cooldown & Result States
   const [isGamePlayable, setIsGamePlayable] = useState(true);
   const [showCooldownView, setShowCooldownView] = useState(false);
@@ -117,6 +118,8 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       
       if (error) {
         console.error('Widget check error:', error);
+        // On error, we default to showing it to avoid disrupting the UX, 
+        // but we might want to reconsider this if abuse is a concern.
         setIsAllowed(true); 
       } else {
         const result = data as any;
@@ -195,6 +198,11 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         // Note: isAllowed is primarily for "Is the widget overall enabled/visible?". 
         // If cooldown is active, we STILL want it visible (isAllowed = true), just showing a different view.
         // Unless result.allowed is false (e.g. passive campaign), then we hide it completely.
+        if (result.allowed === false) {
+             console.log('Booste Widget: Not allowed. Reason:', result.reason);
+             setRejectionReason(result.reason);
+        }
+
         setIsAllowed(result.allowed);
         
         // If allowed by backend, but cooldown is active, we keep isAllowed=true but set isGamePlayable=false (handled above)
@@ -332,6 +340,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const isVisible = (config.type === 'embedded' || isOpen) && (isAllowed === true);
 
   if (isAllowed === null) return null; 
+  if (isAllowed === false) return null; // Hide completely if not allowed 
 
 
   const handleGameSelect = (gameId: string) => {
