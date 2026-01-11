@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Trophy } from 'lucide-react';
 import SnakeGame from '../pages/SnakeGame';
 import WheelGame from '../pages/WheelGame';
 import MemoryGame from '../pages/MemoryGame';
@@ -258,9 +259,9 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       bottom: '24px',
       right: '24px',
       zIndex: 2147483647, // Max z-index supported by browsers
-      width: '64px',
-      height: '64px',
-      borderRadius: '50%',
+      padding: '12px 24px',
+      height: '60px',
+      borderRadius: '9999px',
       boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.2)',
       display: 'flex',
       alignItems: 'center',
@@ -270,9 +271,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       outline: 'none',
       background: themeStyles.background === '#ffffff' ? '#4f46e5' : themeStyles.background,
       color: 'white',
-      fontSize: '32px',
+      fontSize: '18px',
+      fontWeight: 'bold',
       transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-      animation: 'none' // Remove unsupported 'bounce' unless defined in global css
+      animation: 'float 3s ease-in-out infinite' // Add float animation
     };
 
     return (
@@ -280,14 +282,15 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         onClick={() => setIsOpen(true)}
         style={triggerStyle}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.transform = 'scale(1.05)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)';
         }}
         aria-label="Open Game Widget"
       >
-        🎁
+        <Trophy className="w-6 h-6 mr-2" />
+        <span>Oyna Kazan</span>
       </button>
     );
   }
@@ -296,12 +299,12 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const containerStyle: React.CSSProperties = config.type === 'popup' ? {
     position: 'fixed',
     inset: '0',
-    zIndex: 9999,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     background: config.type === 'popup' ? themeStyles.background : 'transparent', // Full screen background for popup
     zIndex: 9999,
+    animation: 'fadeIn 0.3s ease-out forwards' // Add fade in animation
   } : {
     width: '100%',
     height: '100%',
