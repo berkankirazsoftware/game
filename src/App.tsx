@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
@@ -10,7 +10,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import Dashboard from './pages/Dashboard'
 import CouponsPage from './pages/CouponsPage'
 import SubscriptionPage from './pages/SubscriptionPage'
-import SnakeGame from './pages/SnakeGame'
+import CircleDashGame from './pages/CircleDashGame'
 import IntegrationPage from './pages/IntegrationPage'
 import WidgetPreviewPage from './pages/WidgetPreviewPage'
 import MemoryGame from './pages/MemoryGame'
@@ -29,9 +29,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/game/snake-demo" element={<SnakeGame />} />
+          <Route path="/game/circle-dash-demo" element={<CircleDashGame />} />
           <Route path="/game/wheel-demo" element={<WheelGame />} />
-          <Route path="/game/:gameId" element={<SnakeGame />} />
+          <Route path="/game/:gameId" element={<CircleDashGame />} />
           <Route path="/game-widget" element={<WidgetPreviewPage />} />
           <Route path="/memory/:gameId" element={<MemoryGame />} />
           

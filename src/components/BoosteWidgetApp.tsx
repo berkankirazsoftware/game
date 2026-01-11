@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
-import SnakeGame from '../pages/SnakeGame';
+import CircleDashGame from '../pages/CircleDashGame';
 import WheelGame from '../pages/WheelGame';
 import MemoryGame from '../pages/MemoryGame';
 
@@ -114,10 +114,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     };
 
     switch (selectedGame) {
-      case 'snake':
+      case 'circle-dash':
         return (
           <div style={{ height: '100%', overflow: 'auto' }}>
-            <SnakeGame {...gameProps} />
+            <CircleDashGame {...gameProps} />
           </div>
         );
       case 'wheel':
@@ -178,7 +178,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       };
 
       const gameIcons = {
-        snake: { emoji: '🐍', name: 'Yılan' },
+        'circle-dash': { emoji: '🎯', name: 'Circle Dash' },
         wheel: { emoji: '🎡', name: 'Çark' },
         memory: { emoji: '🧩', name: 'Hafıza' }
       };
