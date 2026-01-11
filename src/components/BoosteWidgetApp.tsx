@@ -74,7 +74,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       } else {
         const result = data as any;
         
-        // Check cooldown
+        // Check Cooldown
         const config = result.config || { cooldown_minutes: 1440 }; // Default 24h
         const cooldownMinutes = config.cooldown_minutes;
         const lastPlayed = localStorage.getItem('booste_last_played');
@@ -88,6 +88,38 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
                 console.log(`Booste Widget: Cool down active. Wait ${cooldownMinutes - elapsedMinutes} minutes.`);
                 setIsAllowed(false);
                 return;
+            }
+        }
+
+        // Check Time Limit
+        if (config.time_limit_enabled) {
+            const timeLimitMinutes = config.time_limit_minutes || 15;
+            let visitStart = localStorage.getItem('booste_visit_start');
+            
+            if (!visitStart) {
+                // First visit, set timestamp
+                visitStart = Date.now().toString();
+                localStorage.setItem('booste_visit_start', visitStart);
+            }
+
+            const startTime = parseInt(visitStart);
+            const now = Date.now();
+            const elapsedSinceStart = (now - startTime) / (1000 * 60); // minutes
+
+            if (elapsedSinceStart >= timeLimitMinutes) {
+                console.log('Booste Widget: Time limit expired.');
+                setIsAllowed(false);
+                return;
+            } else {
+                 console.log(`Booste Widget: Time remaining: ${timeLimitMinutes - elapsedSinceStart} minutes`);
+                 // Set timeout to close widget when time expires? 
+                 // For now, let's just allow it. The next check or page refresh will block it.
+                 // A stronger implementation would set a timer to force close.
+                 setTimeout(() => {
+                     setIsAllowed(false);
+                     setIsOpen(false);
+                     console.log('Booste Widget: Time limit reached during session.');
+                 }, (timeLimitMinutes - elapsedSinceStart) * 60 * 1000);
             }
         }
 

@@ -8,6 +8,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [cooldownMinutes, setCooldownMinutes] = useState<number>(1440) // Default 24 hours
+  const [timeLimitEnabled, setTimeLimitEnabled] = useState(false)
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(15)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   useEffect(() => {
@@ -30,6 +32,10 @@ export default function SettingsPage() {
       if (data?.widget_config) {
         // @ts-ignore - JSON type handling
         setCooldownMinutes(data.widget_config.cooldown_minutes || 1440)
+        // @ts-ignore
+        setTimeLimitEnabled(data.widget_config.time_limit_enabled || false)
+        // @ts-ignore
+        setTimeLimitMinutes(data.widget_config.time_limit_minutes || 15)
       }
     } catch (error) {
       console.error('Error fetching settings:', error)
@@ -46,7 +52,9 @@ export default function SettingsPage() {
       setMessage(null)
 
       const config = {
-        cooldown_minutes: cooldownMinutes
+        cooldown_minutes: cooldownMinutes,
+        time_limit_enabled: timeLimitEnabled,
+        time_limit_minutes: timeLimitMinutes
       }
 
       const { error } = await supabase
@@ -115,6 +123,60 @@ export default function SettingsPage() {
                    Örnek: 1440 dakika = 24 saat.
                 </p>
              </div>
+          </div>
+          
+          {/* Section: Widget Time Limit */}
+          <div className="pt-6 border-t border-gray-200">
+             <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                <Clock className="w-5 h-5 mr-2 text-indigo-600" />
+                Ziyaret Süresi Limiti
+             </h3>
+             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                <div className="flex">
+                   <AlertCircle className="h-5 w-5 text-purple-700 mr-3 mt-0.5" />
+                   <p className="text-sm text-purple-800">
+                      Bu özellik açıldığında, ziyaretçi siteye girdiği andan itibaren belirlenen süre boyunca widget'ı görebilir ve oyunu oynayabilir.
+                      Süre dolduğunda oyun oynanamaz hale gelir.
+                   </p>
+                </div>
+             </div>
+
+             <div className="flex items-start space-x-3 mb-4">
+               <div className="flex items-center h-5">
+                 <input
+                   id="timeLimitEnabled"
+                   name="timeLimitEnabled"
+                   type="checkbox"
+                   checked={timeLimitEnabled}
+                   onChange={(e) => setTimeLimitEnabled(e.target.checked)}
+                   className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                 />
+               </div>
+               <div className="ml-3 text-sm">
+                 <label htmlFor="timeLimitEnabled" className="font-medium text-gray-700">Süre Sınırını Aktif Et</label>
+                 <p className="text-gray-500">Ziyaretçiler için geri sayım başlatır.</p>
+               </div>
+             </div>
+
+             {timeLimitEnabled && (
+                <div className="max-w-md animate-in fade-in slide-in-from-top-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                       Süre Limiti (Dakika)
+                    </label>
+                    <div className="flex items-center space-x-4">
+                       <input
+                          type="number"
+                          min="1"
+                          value={timeLimitMinutes}
+                          onChange={(e) => setTimeLimitMinutes(parseInt(e.target.value) || 0)}
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                       />
+                       <span className="text-gray-500 text-sm whitespace-nowrap">
+                          dakika
+                       </span>
+                    </div>
+                </div>
+             )}
           </div>
 
           <div className="pt-6 border-t border-gray-200">
