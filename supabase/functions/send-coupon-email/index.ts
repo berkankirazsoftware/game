@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
     // 6. Send Email
     const data = await resend.emails.send({
-      from: 'Booste Game <onboarding@resend.dev>',
+      from: 'Booste Game <noreply@booste.online>',
       to: email,
       subject: `🎉 Tebrikler! ${discountText} İndirim Kuponunuz`,
       html: html,
