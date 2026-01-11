@@ -19,6 +19,7 @@ import MyBoostesPage from './pages/MyBoostesPage'
 import PricingPage from './pages/PricingPage'
 import WheelGame from './pages/WheelGame'
 import SettingsPage from './pages/SettingsPage'
+import ReportsPage from './pages/ReportsPage'
 
 function App() {
   return (
@@ -42,6 +43,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ReportsPage />
                 </Layout>
               </ProtectedRoute>
             }

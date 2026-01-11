@@ -14,6 +14,31 @@ export type Database = {
     }
     public: {
         Tables: {
+            analytics_events: {
+                Row: {
+                    created_at: string | null
+                    event_type: string
+                    id: string
+                    metadata: Json | null
+                    user_id: string
+                }
+                Insert: {
+                    created_at?: string | null
+                    event_type: string
+                    id?: string
+                    metadata?: Json | null
+                    user_id: string
+                }
+                Update: {
+                    created_at?: string | null
+                    event_type?: string
+                    id?: string
+                    metadata?: Json | null
+                    user_id?: string
+                }
+                Relationships: []
+            },
+
             campaigns: {
                 Row: {
                     created_at: string | null
@@ -214,6 +239,22 @@ export type Database = {
                     p_guest_id?: string
                 }
                 Returns: Json
+            }
+            get_analytics_report: {
+                Args: {
+                    p_user_id: string
+                    p_start_date?: string
+                    p_end_date?: string
+                }
+                Returns: Json
+            }
+            track_event: {
+                Args: {
+                    p_user_id: string
+                    p_event_type: string
+                    p_metadata?: Json
+                }
+                Returns: void
             }
         }
         Enums: {

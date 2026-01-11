@@ -116,6 +116,21 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       }
   };
 
+  const trackEvent = async (eventType: string, metadata: any = {}) => {
+    if (!config.userId) return;
+    try {
+        await import('../lib/supabase').then(m => 
+            m.supabase.rpc('track_event', {
+                p_user_id: config.userId!,
+                p_event_type: eventType,
+                p_metadata: metadata
+            })
+        );
+    } catch (e) {
+        console.error('Tracking error', e);
+    }
+  };
+
   const checkAvailability = async () => {
     if (!config.userId) {
       setIsAllowed(true);
@@ -215,7 +230,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         }
 
         if (result.allowed && gamesToUse.length > 0) {
-            if (gamesToUse.length === 1) {
+            // Track Impression if allowed
+            trackEvent('impression');
+
+            if ( gamesToUse.length === 1) {
                 setSelectedGame(gamesToUse[0]);
             } else {
                 setAvailableGames(gamesToUse);
@@ -232,6 +250,15 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     // Stage 1: Store pending coupon and show email form
     // Do not save to localStorage yet!
     setPendingCoupon(coupon);
+
+    // Track Game Complete
+    if (coupon) {
+        trackEvent('game_complete', { 
+            game: selectedGame, 
+            coupon_code: coupon.code,
+            discount: coupon.discount_value
+        });
+    }
   };
 
   const handleClaimSubmit = async (e: React.FormEvent) => {
@@ -485,6 +512,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
 
   const handleGameSelect = (gameId: string) => {
     setSelectedGame(gameId);
+    trackEvent('game_select', { game: gameId });
   };
 
   const handleClose = () => {
@@ -682,7 +710,10 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
 
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+            setIsOpen(true);
+            trackEvent('widget_open');
+        }}
         style={triggerStyle}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.05)';
