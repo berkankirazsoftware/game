@@ -11,6 +11,11 @@
     - We strictly limit this to INSERT only. SELECT/UPDATE/DELETE are still protected.
 */
 
+
+-- Drop policy if it exists to allow re-running migration
+DROP POLICY IF EXISTS "Allow public/anon to insert email logs" ON public.email_logs;
+
 CREATE POLICY "Allow public/anon to insert email logs" ON public.email_logs
   FOR INSERT 
   WITH CHECK (true);
+

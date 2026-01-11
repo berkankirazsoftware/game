@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase'
 import { Gift, Star, Trophy } from 'lucide-react'
 import GameWinModal from '../components/GameWinModal'
 
-import type { Database } from '../lib/supabase'
+import type { Database } from '../lib/database.types'
+import { selectWeightedCoupon } from '../lib/gameUtils'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
 
@@ -163,10 +164,10 @@ export default function SnakeGame({ embedded = false, theme, userId: propUserId,
     setGameCompleted(true)
     setGameRunning(false)
     
-    // Rastgele kupon seç
+    // Rastgele kupon seç (Weighted)
     if (coupons.length > 0) {
-      const randomCoupon = coupons[Math.floor(Math.random() * coupons.length)]
-      setWonCoupon(randomCoupon)
+      const weightedCoupon = selectWeightedCoupon(coupons)
+      setWonCoupon(weightedCoupon)
     }
   }
 

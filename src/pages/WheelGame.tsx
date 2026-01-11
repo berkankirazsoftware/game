@@ -3,6 +3,11 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { Gift, Star } from 'lucide-react'
 import GameWinModal from '../components/GameWinModal'
+import { supabase } from '../lib/supabase'
+import type { Database } from '../lib/database.types'
+import { selectWeightedCoupon } from '../lib/gameUtils'
+
+type Coupon = Database['public']['Tables']['coupons']['Row']
 
 // Mock Data Types
 interface Segment {
@@ -10,7 +15,7 @@ interface Segment {
   label: string;
   color: string;
   value: string;
-  probability: number;
+  coupon?: Coupon;
 }
 
 interface WheelGameProps {
@@ -27,6 +32,7 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme 
   const [searchParams] = useSearchParams()
   const userId = propUserId || searchParams.get('userId')
   const testMode = searchParams.get('testMode') === 'true'
+  const [coupons, setCoupons] = useState<Coupon[]>([])
   
   const [isSpinning, setIsSpinning] = useState(false)
   const [rotation, setRotation] = useState(0)
@@ -35,14 +41,67 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme 
   // Confetti Reference
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const segments: Segment[] = [
-    { id: '1', label: '%10 İndirim', color: '#EF4444', value: '10', probability: 0.3 },
-    { id: '2', label: '₺50 Çeki', color: '#F59E0B', value: '50TRY', probability: 0.1 },
-    { id: '3', label: '%20 İndirim', color: '#10B981', value: '20', probability: 0.2 },
-    { id: '4', label: 'Pas', color: '#6B7280', value: '0', probability: 0.2 },
-    { id: '5', label: '%5 İndirim', color: '#3B82F6', value: '5', probability: 0.15 },
-    { id: '6', label: 'Sürpriz', color: '#8B5CF6', value: 'SURPRISE', probability: 0.05 },
-  ]
+  const [segments, setSegments] = useState<Segment[]>([])
+
+  useEffect(() => {
+    if (userId && !testMode) {
+      fetchCoupons()
+    }
+    
+    if (testMode) {
+      // Mock coupons for test
+      setCoupons([
+        { 
+          id: 'test-1', user_id: userId || '', code: 'TEST10', description: '%10 İndirim', 
+          discount_type: 'percentage', discount_value: 10, level: 1, quantity: 100, used_count: 0, created_at: '' 
+        },
+        { 
+          id: 'test-2', user_id: userId || '', code: 'TEST50', description: '50TL İndirim', 
+          discount_type: 'fixed', discount_value: 50, level: 2, quantity: 50, used_count: 0, created_at: '' 
+        }
+      ])
+    }
+  }, [userId, testMode])
+
+  useEffect(() => {
+    if (coupons.length > 0) {
+      generateSegments()
+    }
+  }, [coupons])
+
+  const fetchCoupons = async () => {
+    if (!userId) return
+    const { data } = await supabase.from('coupons').select('*').eq('user_id', userId).gt('quantity', 0)
+    if (data) setCoupons(data)
+  }
+
+  const generateSegments = () => {
+    // Generate segments from coupons
+    // We will create 8 segments. If fewer coupons, repeat them.
+    const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6']
+    const newSegments: Segment[] = []
+    
+    // Create pool based on weights to fill 8 slots logic or just repeat
+    // Simple approach: Use available coupons and fill 8 slots
+    for (let i = 0; i < 8; i++) {
+        // Pick a weighted coupon for this slot to visualize distribution? 
+        // OR better: Create unique segments for each coupon type, but size them differently?
+        // Wheel UI usually has equal sized segments. 
+        // So we will pick 8 coupons based on their weight to populate the wheel.
+        // This visually represents the probability.
+        const coupon = selectWeightedCoupon(coupons)
+        if (coupon) {
+            newSegments.push({
+                id: `${i}`,
+                label: coupon.description,
+                color: colors[i % colors.length],
+                value: coupon.discount_type === 'percentage' ? `${coupon.discount_value}` : `${coupon.discount_value}TRY`,
+                coupon: coupon
+            })
+        }
+    }
+    setSegments(newSegments)
+  }
 
   const spinWheel = () => {
     if (isSpinning) return
@@ -209,18 +268,7 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme 
                     </button>
                 ) : (
                     <GameWinModal 
-                        coupon={{
-                            id: 'wheel-win',
-                            user_id: userId || '', // Must be a valid UUID from profiles
-                            code: testMode ? 'TEST1234' : 'KOD-X-Y-Z',
-                            description: wonSegment.label,
-                            discount_type: wonSegment.value.includes('TRY') ? 'fixed' : 'percentage',
-                            discount_value: parseInt(wonSegment.value) || 0,
-                            level: 1,
-                            quantity: 1,
-                            used_count: 0,
-                            created_at: new Date().toISOString()
-                        }}
+                        coupon={wonSegment.coupon!}
                         onReset={() => {
                             setIsSpinning(false)
                             setWonSegment(null)

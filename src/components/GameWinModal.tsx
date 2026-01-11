@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trophy, Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { Database } from '../lib/supabase';
+import type { Database } from '../lib/database.types';
 
 type Coupon = Database['public']['Tables']['coupons']['Row'];
 
@@ -29,19 +29,21 @@ export default function GameWinModal({ score, coupon, onReset, gameType }: GameW
     setError(null);
 
     try {
-      // 1. Save to email_logs
-      // We assume user_id is the owner of the coupon (the merchant)
-      // created_at and id are auto-generated
-      await supabase.from('email_logs').insert({
-        user_id: coupon.user_id, 
-        email: email,
-        coupon_code: coupon.code,
-        game_type: gameType,
-        discount_type: coupon.discount_type,
-        discount_value: coupon.discount_value,
-        status: 'sent', // Simulating sent for now
-        sent_at: new Date().toISOString()
+      // 1. Call Secure RPC to Claim Coupon (Decrement Stock + Log)
+      const { data: claimData, error: claimError } = await supabase.rpc('claim_coupon', {
+        p_coupon_id: coupon.id,
+        p_email: email,
+        p_game_type: gameType
       });
+
+      if (claimError) throw claimError;
+      
+      // claimData is typed as any/jsonb by default, cast it if needed
+      const result = claimData as { success: boolean; error?: string };
+
+      if (!result.success) {
+        throw new Error(result.error || 'Kupon alınamadı (Stok bitmiş olabilir)');
+      }
 
       // 2. Call Edge Function to send email via Resend
       const { error: emailError } = await supabase.functions.invoke('send-coupon-email', {
@@ -53,6 +55,7 @@ export default function GameWinModal({ score, coupon, onReset, gameType }: GameW
           gameType: gameType
         }
       });
+
 
       if (emailError) throw emailError;
 

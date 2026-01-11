@@ -1,7 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
 import { Resend } from "npm:resend"
-
-
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,33 +7,36 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-interface CouponEmailRequest {
-  email: string
-  couponCode: string
-  discountValue: number
-  discountType: 'percentage' | 'fixed'
-  gameType: string
-}
-
-serve(async (req) => {
-  // Handle CORS preflight requests
+Deno.serve(async (req) => {
+  // 1. Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders, status: 204 })
+    return new Response('ok', { headers: corsHeaders })
   }
-
-  const resendApiKey = Deno.env.get('RESEND_API_KEY');
-  if (!resendApiKey) {
-    console.error('Missing RESEND_API_KEY');
-    return new Response(
-      JSON.stringify({ error: 'Server configuration error: Missing API Key' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
-  }
-
-  const resend = new Resend(resendApiKey);
 
   try {
-    const { email, couponCode, discountValue, discountType, gameType } = await req.json() as CouponEmailRequest
+    // 2. Validate Method
+    if (req.method !== 'POST') {
+      throw new Error(`Method ${req.method} not allowed`)
+    }
+
+    // 3. Check API Key
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      console.error('Missing RESEND_API_KEY');
+      throw new Error('Server configuration error')
+    }
+
+    const resend = new Resend(resendApiKey);
+
+    // 4. Parse Body
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      throw new Error('Invalid JSON body')
+    }
+
+    const { email, couponCode, discountValue, discountType, gameType } = body;
 
     if (!email || !couponCode) {
       throw new Error('Email and couponCode are required')
@@ -52,7 +53,7 @@ serve(async (req) => {
       ? `%${discountValue}`
       : `${discountValue}₺`;
 
-    // Email Template
+    // 5. Generate Email HTML
     const html = `
       <!DOCTYPE html>
       <html>
@@ -88,19 +89,26 @@ serve(async (req) => {
       </html>
     `
 
+    // 6. Send Email
     const data = await resend.emails.send({
-      from: 'Booste Game <onboarding@resend.dev>', // Kullanıcı kendi domainini ekleyene kadar test domaini
+      from: 'Booste Game <onboarding@resend.dev>',
       to: email,
       subject: `🎉 Tebrikler! ${discountText} İndirim Kuponunuz`,
       html: html,
     })
 
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    // 7. Success Response
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
+
   } catch (error: any) {
-    console.error('Error sending email:', error)
+    console.error('Edge Function Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
