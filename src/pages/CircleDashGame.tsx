@@ -22,7 +22,7 @@ interface CircleDashGameProps {
 export default function CircleDashGame({ embedded = false, userId: propUserId, testMode: propTestMode, theme }: CircleDashGameProps = {}) {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const { gameId } = useParams()
-  console.log("Game ID:", gameId) // Log to avoid lint error or remove if strictly not needed
+  console.log("Game IDw:", gameId) // Log to avoid lint error or remove if strictly not needed
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const [searchParams] = useSearchParams()
   const userId = propUserId || searchParams.get('userId')
