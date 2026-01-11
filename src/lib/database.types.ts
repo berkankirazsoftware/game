@@ -6,15 +6,59 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[]
 
-export interface Database {
+export type Database = {
+    // Allows to automatically instantiate createClient with right options
+    // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+    __InternalSupabase: {
+        PostgrestVersion: "13.0.5"
+    }
     public: {
         Tables: {
+            campaigns: {
+                Row: {
+                    created_at: string | null
+                    game_type: string
+                    games: string[] | null
+                    id: string
+                    name: string
+                    status: string | null
+                    theme: string | null
+                    type: string
+                    updated_at: string | null
+                    user_id: string
+                }
+                Insert: {
+                    created_at?: string | null
+                    game_type: string
+                    games?: string[] | null
+                    id?: string
+                    name: string
+                    status?: string | null
+                    theme?: string | null
+                    type?: string
+                    updated_at?: string | null
+                    user_id: string
+                }
+                Update: {
+                    created_at?: string | null
+                    game_type?: string
+                    games?: string[] | null
+                    id?: string
+                    name?: string
+                    status?: string | null
+                    theme?: string | null
+                    type?: string
+                    updated_at?: string | null
+                    user_id?: string
+                }
+                Relationships: []
+            }
             coupons: {
                 Row: {
                     code: string
                     created_at: string | null
                     description: string
-                    discount_type: 'percentage' | 'fixed' | null
+                    discount_type: string | null
                     discount_value: number
                     id: string
                     level: number
@@ -26,11 +70,11 @@ export interface Database {
                     code: string
                     created_at?: string | null
                     description: string
-                    discount_type?: 'percentage' | 'fixed' | null
+                    discount_type?: string | null
                     discount_value: number
                     id?: string
                     level?: number
-                    quantity?: number
+                    quantity: number
                     used_count?: number
                     user_id?: string | null
                 }
@@ -38,7 +82,7 @@ export interface Database {
                     code?: string
                     created_at?: string | null
                     description?: string
-                    discount_type?: 'percentage' | 'fixed' | null
+                    discount_type?: string | null
                     discount_value?: number
                     id?: string
                     level?: number
@@ -46,45 +90,49 @@ export interface Database {
                     used_count?: number
                     user_id?: string | null
                 }
+                Relationships: []
             }
             email_logs: {
                 Row: {
                     coupon_code: string
                     created_at: string | null
-                    discount_type: 'percentage' | 'fixed'
+                    discount_type: string
                     discount_value: number
                     email: string
                     email_service_id: string | null
                     game_type: string
                     id: string
                     sent_at: string | null
-                    status: 'sent' | 'failed' | 'pending'
+                    status: string
                     user_id: string | null
                 }
                 Insert: {
                     coupon_code: string
                     created_at?: string | null
-                    discount_type: 'percentage' | 'fixed'
+                    discount_type: string
                     discount_value: number
                     email: string
                     email_service_id?: string | null
                     game_type: string
-                    status?: 'sent' | 'failed' | 'pending'
+                    id?: string
                     sent_at?: string | null
+                    status?: string
                     user_id?: string | null
                 }
                 Update: {
                     coupon_code?: string
                     created_at?: string | null
-                    discount_type?: 'percentage' | 'fixed'
+                    discount_type?: string
                     discount_value?: number
                     email?: string
                     email_service_id?: string | null
                     game_type?: string
-                    status?: 'sent' | 'failed' | 'pending'
+                    id?: string
                     sent_at?: string | null
+                    status?: string
                     user_id?: string | null
                 }
+                Relationships: []
             }
             profiles: {
                 Row: {
@@ -108,111 +156,185 @@ export interface Database {
                     full_name?: string
                     id?: string
                 }
+                Relationships: []
             }
             subscriptions: {
                 Row: {
                     created_at: string | null
                     expiration_date: string | null
                     id: string
-                    is_active: boolean
-                    plan_type: 'basic' | 'advanced' | 'free'
-                    start_date: string
-                    updated_at: string
-                    user_id: string
+                    is_active: boolean | null
+                    plan_type: string
+                    start_date: string | null
+                    updated_at: string | null
+                    user_id: string | null
                 }
                 Insert: {
                     created_at?: string | null
                     expiration_date?: string | null
                     id?: string
-                    is_active?: boolean
-                    plan_type: 'basic' | 'advanced' | 'free'
-                    start_date?: string
-                    updated_at?: string
-                    user_id: string
+                    is_active?: boolean | null
+                    plan_type: string
+                    start_date?: string | null
+                    updated_at?: string | null
+                    user_id?: string | null
                 }
                 Update: {
                     created_at?: string | null
                     expiration_date?: string | null
                     id?: string
-                    is_active?: boolean
-                    plan_type?: 'basic' | 'advanced' | 'free'
-                    start_date?: string
-                    updated_at?: string
-                    user_id?: string
+                    is_active?: boolean | null
+                    plan_type?: string
+                    start_date?: string | null
+                    updated_at?: string | null
+                    user_id?: string | null
                 }
+                Relationships: []
             }
             user_games: {
                 Row: {
                     created_at: string | null
-                    id: string
-                    user_id: string | null
                     game_type: string | null
-                    score: number | null
-                    metadata: Json | null
                     guest_id: string | null
-                }
-                Insert: {
-                    created_at?: string | null
-                    id?: string
-                    user_id?: string | null
-                    game_type?: string | null
-                    score?: number | null
-                    metadata?: Json | null
-                    guest_id?: string | null
-                }
-                Update: {
-                    created_at?: string | null
-                    id?: string
-                    user_id?: string | null
-                    game_type?: string | null
-                    score?: number | null
-                    metadata?: Json | null
-                    guest_id?: string | null
-                }
-            }
-            campaigns: {
-                Row: {
                     id: string
-                    user_id: string
-                    name: string
-                    game_type: string
-                    status: 'active' | 'draft' | 'ended'
-                    type: string
-                    theme: string
-                    games: string[] | null
-                    created_at: string
-                    updated_at: string
+                    metadata: Json | null
+                    score: number | null
+                    user_id: string | null
                 }
                 Insert: {
+                    created_at?: string | null
+                    game_type?: string | null
+                    guest_id?: string | null
                     id?: string
-                    user_id: string
-                    name: string
-                    game_type: string
-                    status?: 'active' | 'draft' | 'ended'
-                    type?: string
-                    theme?: string
-                    games?: string[] | null
-                    created_at?: string
-                    updated_at?: string
+                    metadata?: Json | null
+                    score?: number | null
+                    user_id?: string | null
                 }
                 Update: {
+                    created_at?: string | null
+                    game_type?: string | null
+                    guest_id?: string | null
                     id?: string
-                    user_id?: string
-                    name?: string
-                    game_type?: string
-                    status?: 'active' | 'draft' | 'ended'
-                    theme?: string
-                    games?: string[] | null
-                    created_at?: string
-                    updated_at?: string
+                    metadata?: Json | null
+                    score?: number | null
+                    user_id?: string | null
                 }
+                Relationships: []
             }
+        }
+        Views: {
+            [_ in never]: never
         }
         Functions: {
             check_widget_status: {
-                Args: { p_user_id: string }
+                Args: {
+                    p_user_id: string
+                }
                 Returns: Json
             }
         }
+        Enums: {
+            [_ in never]: never
+        }
+        CompositeTypes: {
+            [_ in never]: never
+        }
     }
 }
+
+type PublicSchema = Database[Extract<keyof Database, "public">]
+
+export type Tables<
+    PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+            Row: infer R
+        }
+    ? R
+    : never
+    : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+            Row: infer R
+        }
+    ? R
+    : never
+    : never
+
+export type TablesInsert<
+    PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+        Insert: infer I
+    }
+    ? I
+    : never
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+    }
+    ? I
+    : never
+    : never
+
+export type TablesUpdate<
+    PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+        Update: infer U
+    }
+    ? U
+    : never
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+    }
+    ? U
+    : never
+    : never
+
+export type Enums<
+    PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
+    EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+    PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+    CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+        schema: keyof Database
+    }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+    : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never

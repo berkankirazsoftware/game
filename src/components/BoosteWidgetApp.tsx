@@ -41,6 +41,7 @@ const THEMES: Record<string, any> = {
 export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [isOpen, setIsOpen] = useState(config.autoOpen || false);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [availableGames, setAvailableGames] = useState<string[]>(config.games || []);
 
   const themeStyles = THEMES[config.theme] || THEMES.light;
   // Initialize availability state
@@ -74,23 +75,18 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         const result = data as any;
         setIsAllowed(result.allowed);
         
-        let availableGames = result.games || [];
+        let gamesToUse = result.games || [];
         // If games array is empty but game_type exists (legacy), use it
-        if (availableGames.length === 0 && result.game_type) {
-            availableGames = [result.game_type];
+        if (gamesToUse.length === 0 && result.game_type) {
+            gamesToUse = [result.game_type];
         }
 
         // If we found games, use them. If only one, auto select.
-        if (result.allowed && availableGames.length > 0) {
-            if (availableGames.length === 1) {
-                setSelectedGame(availableGames[0]);
+        if (result.allowed && gamesToUse.length > 0) {
+            if (gamesToUse.length === 1) {
+                setSelectedGame(gamesToUse[0]);
             } else {
-                // Determine layout or store available games to filter selection UI
-                // For now, let's assume if there multiple, we just show selection.
-                // We might need to pass these games to the render function though.
-                // Hack: Mutate config.games? Or better, add state.
-                config.games = availableGames; // Updating prop object is technically bad but works for local instance if not re-rendering parent deeply. 
-                // Better: use state for 'availableGames'
+                setAvailableGames(gamesToUse);
             }
         }
       }
@@ -217,7 +213,11 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
               If fallback needed: (config.games || []).map... 
               Actually if no games and no selectedGame (from auto-select), we might show "Loading" or "No Active Game" info.
             */}
-            {(config.games || []).map(gameId => {
+            {/* Only mapped if custom games provided, but now we prefer auto-select. 
+              If fallback needed: (config.games || []).map... 
+              Actually if no games and no selectedGame (from auto-select), we might show "Loading" or "No Active Game" info.
+            */}
+            {availableGames.map(gameId => {
               const game = gameIcons[gameId as keyof typeof gameIcons];
               return (
                 <button

@@ -161,7 +161,7 @@ export default function Dashboard() {
           className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors shadow-lg flex items-center"
         >
           <Gift className="h-5 w-5 mr-2" />
-          Kampanya Oluştur
+          Booste Oluştur
         </Link>
       </div>
 
