@@ -42,6 +42,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [isOpen, setIsOpen] = useState(config.autoOpen || false);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [availableGames, setAvailableGames] = useState<string[]>(config.games || []);
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
   const themeStyles = THEMES[config.theme] || THEMES.light;
   // Initialize availability state
@@ -49,7 +50,41 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   
   useEffect(() => {
     checkAvailability();
+    
+    // Timer interval
+    const timer = setInterval(() => {
+        updateTimeRemaining();
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, [config.userId]);
+
+  const updateTimeRemaining = () => {
+      const visitStart = localStorage.getItem('booste_visit_start');
+      // We need to access the config here. But config prop might not have the full remote config.
+      // We stored the remote config in checkAvailability but didn't save it to state.
+      // Let's rely on localStorage logic or save remote config to state.
+      // Better: Save 'limitEnd' timestamp to localStorage?
+      // Or just re-calculate based on what we know.
+      // Problem: 'checkAvailability' has the 'time_limit_minutes' from remote.
+      // Let's store the expiry time in localStorage when we first get the config.
+      
+      const expiry = localStorage.getItem('booste_limit_expiry');
+      if (expiry) {
+          const expiryTime = parseInt(expiry);
+          const now = Date.now();
+          const diff = expiryTime - now;
+          
+          if (diff <= 0) {
+              setTimeRemaining('00:00');
+              // Optionally force close here if not already handled by logic
+          } else {
+              const minutes = Math.floor(diff / 60000);
+              const seconds = Math.floor((diff % 60000) / 1000);
+              setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+          }
+      }
+  };
 
   const checkAvailability = async () => {
     // If no userId, assume allowed (e.g. demo mode) or handle as needed
@@ -67,16 +102,14 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       
       if (error) {
         console.error('Widget check error:', error);
-        // Fallback to allowed on error to avoid breaking site? Or deny?
-        // Let's safe fail to TRUE for now, or FALSE regarding strictness.
-        // User asked: "hiç görünmemeli". So maybe false on error is safer if strict.
+        // Fallback to allowed on error to avoid breaking site?
         setIsAllowed(true); 
       } else {
         const result = data as any;
         
         // Check Cooldown
-        const config = result.config || { cooldown_minutes: 1440 }; // Default 24h
-        const cooldownMinutes = config.cooldown_minutes;
+        const remoteConfig = result.config || { cooldown_minutes: 1440 }; // Default 24h
+        const cooldownMinutes = remoteConfig.cooldown_minutes;
         const lastPlayed = localStorage.getItem('booste_last_played');
         
         if (lastPlayed) {
@@ -92,35 +125,49 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         }
 
         // Check Time Limit
-        if (config.time_limit_enabled) {
-            const timeLimitMinutes = config.time_limit_minutes || 15;
+        if (remoteConfig.time_limit_enabled) {
+            const timeLimitMinutes = remoteConfig.time_limit_minutes || 15;
             let visitStart = localStorage.getItem('booste_visit_start');
+            let limitExpiry = localStorage.getItem('booste_limit_expiry');
             
             if (!visitStart) {
-                // First visit, set timestamp
-                visitStart = Date.now().toString();
+                // First visit
+                const now = Date.now();
+                visitStart = now.toString();
+                limitExpiry = (now + timeLimitMinutes * 60 * 1000).toString();
+                
                 localStorage.setItem('booste_visit_start', visitStart);
+                localStorage.setItem('booste_limit_expiry', limitExpiry);
+            } else if (!limitExpiry) {
+                 // Existing visit but new feature enabled? Or missing expiry?
+                 // Recalculate based on start
+                 const startTime = parseInt(visitStart);
+                 limitExpiry = (startTime + timeLimitMinutes * 60 * 1000).toString();
+                 localStorage.setItem('booste_limit_expiry', limitExpiry);
             }
 
-            const startTime = parseInt(visitStart);
             const now = Date.now();
-            const elapsedSinceStart = (now - startTime) / (1000 * 60); // minutes
-
-            if (elapsedSinceStart >= timeLimitMinutes) {
+            if (now > parseInt(limitExpiry!)) {
                 console.log('Booste Widget: Time limit expired.');
                 setIsAllowed(false);
                 return;
             } else {
-                 console.log(`Booste Widget: Time remaining: ${timeLimitMinutes - elapsedSinceStart} minutes`);
-                 // Set timeout to close widget when time expires? 
-                 // For now, let's just allow it. The next check or page refresh will block it.
-                 // A stronger implementation would set a timer to force close.
+                 // Initial update
+                 const diff = parseInt(limitExpiry!) - now;
+                 const minutes = Math.floor(diff / 60000);
+                 const seconds = Math.floor((diff % 60000) / 1000);
+                 setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+                 
+                 // Set timeout to close
                  setTimeout(() => {
                      setIsAllowed(false);
                      setIsOpen(false);
-                     console.log('Booste Widget: Time limit reached during session.');
-                 }, (timeLimitMinutes - elapsedSinceStart) * 60 * 1000);
+                 }, diff);
             }
+        } else {
+            // If feature disabled, clear legacy
+            localStorage.removeItem('booste_limit_expiry');
+            setTimeRemaining(null);
         }
 
         setIsAllowed(result.allowed);
@@ -265,14 +312,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
             Oynamak istediğin oyunu seç
           </p>
           <div style={gridStyle}>
-            {/* Only mapped if custom games provided, but now we prefer auto-select. 
-              If fallback needed: (config.games || []).map... 
-              Actually if no games and no selectedGame (from auto-select), we might show "Loading" or "No Active Game" info.
-            */}
-            {/* Only mapped if custom games provided, but now we prefer auto-select. 
-              If fallback needed: (config.games || []).map... 
-              Actually if no games and no selectedGame (from auto-select), we might show "Loading" or "No Active Game" info.
-            */}
             {availableGames.map(gameId => {
               const game = gameIcons[gameId as keyof typeof gameIcons];
               return (
@@ -371,7 +410,14 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         aria-label="Open Game Widget"
       >
         <Trophy className="w-6 h-6 mr-2" />
-        <span>Oyna Kazan</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2 }}>
+            <span>Oyna Kazan</span>
+            {timeRemaining && (
+                <span style={{ fontSize: '10px', opacity: 0.9 }}>
+                    Kalan: {timeRemaining}
+                </span>
+            )}
+        </div>
       </button>
     );
   }
