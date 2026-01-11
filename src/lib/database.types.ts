@@ -115,7 +115,7 @@ export interface Database {
                     expiration_date: string | null
                     id: string
                     is_active: boolean
-                    plan_type: 'basic' | 'advanced'
+                    plan_type: 'basic' | 'advanced' | 'free'
                     start_date: string
                     updated_at: string
                     user_id: string
@@ -125,7 +125,7 @@ export interface Database {
                     expiration_date?: string | null
                     id?: string
                     is_active?: boolean
-                    plan_type: 'basic' | 'advanced'
+                    plan_type: 'basic' | 'advanced' | 'free'
                     start_date?: string
                     updated_at?: string
                     user_id: string
@@ -135,7 +135,7 @@ export interface Database {
                     expiration_date?: string | null
                     id?: string
                     is_active?: boolean
-                    plan_type?: 'basic' | 'advanced'
+                    plan_type?: 'basic' | 'advanced' | 'free'
                     start_date?: string
                     updated_at?: string
                     user_id?: string

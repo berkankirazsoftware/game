@@ -180,25 +180,35 @@ export default function CreateCampaign() {
                       </p>
                     </button>
 
-                    <button
-                      onClick={() => setConfig({ ...config, type: 'embedded' })}
-                      className={`p-6 rounded-xl border-2 text-left transition-all hover:scale-105 ${
-                        config.type === 'embedded' 
-                          ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-200' 
-                          : 'border-gray-200 hover:border-indigo-300'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-white rounded-lg shadow-sm">
-                          <Layout className="h-6 w-6 text-indigo-600" />
-                        </div>
-                        {config.type === 'embedded' && <Check className="h-6 w-6 text-indigo-600" />}
-                      </div>
-                      <h3 className="font-bold text-lg text-gray-900 mb-1">Gömülü (Embedded)</h3>
-                      <p className="text-gray-500 text-sm">
-                        Sayfanızın istediğiniz bir bölümüne (blok olarak) yerleşir.
-                      </p>
-                    </button>
+                  <button
+  disabled // Butonu fonksiyonel olarak devre dışı bırakır
+  onClick={() => setConfig({ ...config, type: 'embedded' })}
+  className={`p-6 rounded-xl border-2 text-left transition-all 
+    ${
+      config.type === 'embedded' 
+        ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-200' 
+        : 'border-gray-200'
+    } 
+    /* Disabled Durumu İçin Eklenen Sınıflar */
+    disabled:opacity-50 
+    disabled:cursor-not-allowed 
+    disabled:hover:scale-100 
+    disabled:grayscale-[0.5]`
+  }
+>
+  <div className="flex justify-between items-start mb-4">
+    <div className="p-3 bg-white rounded-lg shadow-sm">
+      <Layout className="h-6 w-6 text-indigo-600" />
+    </div>
+    {config.type === 'embedded' && <Check className="h-6 w-6 text-indigo-600" />}
+  </div>
+  <h3 className="font-bold text-lg text-gray-900 mb-1">
+    Gömülü (Embedded) <span className="text-xs font-normal text-gray-400">(Yakında)</span>
+  </h3>
+  <p className="text-gray-500 text-sm">
+    Sayfanızın istediğiniz bir bölümüne (blok olarak) yerleşir.
+  </p>
+</button>
                   </div>
                 </div>
               )}

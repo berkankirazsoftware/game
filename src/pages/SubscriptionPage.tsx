@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Crown, Calendar, CheckCircle, XCircle, AlertTriangle, Zap, Star, Shield, Check, Gamepad2 } from 'lucide-react'
-import type { Database } from '../lib/supabase'
+import type { Database } from '../lib/database.types'
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row']
 
@@ -10,6 +10,9 @@ export default function SubscriptionPage() {
   const { user } = useAuth()
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const [usage, setUsage] = useState(0)
+  const limit = 100
+
 
   useEffect(() => {
     fetchSubscription()
@@ -19,19 +22,37 @@ export default function SubscriptionPage() {
     if (!user) return
     
     try {
-      const { data, error } = await supabase
+      // 1. Fetch Subscription
+      const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .single()
       
-      if (error && error.code !== 'PGRST116') {
-        console.error('Subscription fetch error:', error)
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('Subscription fetch error:', subError)
       } else {
-        setSubscription(data)
+        setSubscription(subData)
       }
+
+      // 2. Fetch Usage (if Free Plan or No Plan)
+      // Note: Even paid plans might have limits, but for now we focus on free.
+      // We count emails sent since the start of the current month.
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      
+      const { count, error: usageError } = await supabase
+        .from('email_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', startOfMonth)
+      
+      if (!usageError && count !== null) {
+        setUsage(count)
+      }
+
     } catch (error) {
-      console.error('Subscription error:', error)
+      console.error('Data fetch error:', error)
     } finally {
       setLoading(false)
     }
@@ -198,6 +219,34 @@ export default function SubscriptionPage() {
           </div>
 
           <div className="p-8">
+            {/* Usage Bar (Free Plan Only) */}
+            {activePlan.plan_type === 'free' && (
+              <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-bold text-gray-900 flex items-center">
+                    <Zap className="h-5 w-5 text-indigo-600 mr-2" />
+                    Aylık Kullanım Durumu
+                  </h3>
+                  <span className="text-sm font-medium text-gray-600">
+                    {usage} / {limit} e-posta
+                  </span>
+                </div>
+                
+                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      usage >= limit ? 'bg-red-500' : 'bg-indigo-600'
+                    }`}
+                    style={{ width: `${Math.min((usage / limit) * 100, 100)}%` }}
+                  ></div>
+                </div>
+                
+                <p className="mt-2 text-xs text-gray-500">
+                  *Her ayın 1'inde sıfırlanır. Limite ulaştığınızda yeni oyun oynatılamaz.
+                </p>
+              </div>
+            )}
+
             {/* Stats Grid */}
             {subscription && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

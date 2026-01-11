@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { 
-  LogOut, 
-  Home, 
-  Settings, 
-  Gift, 
-  Code, 
+import {
+  LogOut,
+  Home,
+  Settings,
+  Gift,
+  Code,
   CreditCard,
-  Menu, 
+  Menu,
   X,
   ChevronLeft,
   ChevronRight,
@@ -31,7 +31,6 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Kuponlar', href: '/coupons', icon: Gift },
     { name: 'Abonelik', href: '/subscription', icon: CreditCard },
     { name: 'Entegrasyon', href: '/integration', icon: Code },
-    { name: 'Ayarlar', href: '/settings', icon: Settings },
   ]
 
   const handleSignOut = async () => {
@@ -46,7 +45,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -67,7 +66,7 @@ export default function Layout({ children }: LayoutProps) {
                 Booste
               </Link>
             )}
-            
+
             {/* Desktop collapse button */}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -94,7 +93,7 @@ export default function Layout({ children }: LayoutProps) {
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname === item.href
-              
+
               return (
                 <div key={item.name} className="relative group">
                   <Link
@@ -114,7 +113,7 @@ export default function Layout({ children }: LayoutProps) {
                       <span className="truncate">{item.name}</span>
                     )}
                   </Link>
-                  
+
                   {/* Tooltip for collapsed state */}
                   {sidebarCollapsed && (
                     <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
@@ -137,7 +136,7 @@ export default function Layout({ children }: LayoutProps) {
                 <p className="text-xs text-gray-500">Hesap Sahibi</p>
               </div>
             )}
-            
+
             <div className="relative group">
               <button
                 onClick={handleSignOut}
@@ -149,7 +148,7 @@ export default function Layout({ children }: LayoutProps) {
                 <LogOut className={`h-4 w-4 ${sidebarCollapsed ? '' : 'mr-2'}`} />
                 {!sidebarCollapsed && 'Çıkış Yap'}
               </button>
-              
+
               {/* Tooltip for collapsed logout */}
               {sidebarCollapsed && (
                 <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
