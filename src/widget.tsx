@@ -7,7 +7,7 @@ import './index.css';
 // Type definitions
 interface WidgetConfig {
   target: string;
-  games: string[];
+  games?: string[];
   type: 'popup' | 'embedded';
   theme: string;
   userId?: string;

@@ -170,6 +170,49 @@ export interface Database {
                     guest_id?: string | null
                 }
             }
+            campaigns: {
+                Row: {
+                    id: string
+                    user_id: string
+                    name: string
+                    game_type: string
+                    status: 'active' | 'draft' | 'ended'
+                    type: string
+                    theme: string
+                    games: string[] | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    name: string
+                    game_type: string
+                    status?: 'active' | 'draft' | 'ended'
+                    type?: string
+                    theme?: string
+                    games?: string[] | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    name?: string
+                    game_type?: string
+                    status?: 'active' | 'draft' | 'ended'
+                    theme?: string
+                    games?: string[] | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+        }
+        Functions: {
+            check_widget_status: {
+                Args: { p_user_id: string }
+                Returns: Json
+            }
         }
     }
 }

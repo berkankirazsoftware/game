@@ -1,41 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, ExternalLink, CheckCircle, Plus, AlertCircle, XCircle, Code, Smartphone, Monitor } from 'lucide-react'
+import { Copy, ExternalLink, CheckCircle, Plus, XCircle, Code, Smartphone, Monitor } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import type { Database } from '../lib/supabase'
+import type { Database } from '../lib/database.types'
 
 type Coupon = Database['public']['Tables']['coupons']['Row']
 type Subscription = Database['public']['Tables']['subscriptions']['Row']
+type Campaign = Database['public']['Tables']['campaigns']['Row']
 
-// Mock Booste Type (Same as MyBoostesPage)
-interface Booste {
-  id: string
-  name: string
-  status: 'active' | 'draft' | 'ended'
-  type: 'embedded' | 'popup'
-  games: string[]
-  theme: string
+// Extended type for UI if needed, or just use Campaign
+interface Booste extends Campaign {
+  // Add any UI specific fields if needed
 }
 
-const MOCK_BOOSTES_DEFAULT: Booste[] = [
-  {
-    id: '1',
-    name: 'Yaz İndirimleri Kampanyası',
-    status: 'active',
-    type: 'popup',
-    games: ['wheel'],
-    theme: 'colorful'
-  },
-  {
-    id: '2',
-    name: 'Website Gömülü Oyun',
-    status: 'draft',
-    type: 'embedded',
-    games: ['snake', 'memory'],
-    theme: 'dark'
-  }
-]
+
 
 export default function IntegrationPage() {
   const { user } = useAuth()
@@ -48,17 +27,31 @@ export default function IntegrationPage() {
   const [selectedBoosteId, setSelectedBoosteId] = useState<string>('')
 
   useEffect(() => {
-    fetchCoupons()
-    fetchSubscription()
-    loadBoostes()
+    if (user) {
+      fetchCoupons()
+      fetchSubscription()
+      fetchBoostes()
+    }
   }, [user])
 
-  const loadBoostes = () => {
-    const saved = localStorage.getItem('boostes')
-    const boostes = saved ? [...JSON.parse(saved), ...MOCK_BOOSTES_DEFAULT] : MOCK_BOOSTES_DEFAULT
-    setMyBoostes(boostes)
-    if (boostes.length > 0) {
-      setSelectedBoosteId(boostes[0].id)
+  const fetchBoostes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      if (data) {
+        setMyBoostes(data)
+        if (data.length > 0) {
+          setSelectedBoosteId(data[0].id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching boostes:', error)
     }
   }
 
@@ -121,7 +114,7 @@ export default function IntegrationPage() {
     const config = {
       target: selectedBooste.type === 'embedded' ? '#booste-game-container' : 'body',
       type: selectedBooste.type,
-      games: selectedBooste.games,
+      // games: selectedBooste.games, // Removed to use active campaign logic
       theme: selectedBooste.theme,
       userId: user.id,
       autoOpen: false

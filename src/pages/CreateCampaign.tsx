@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Layout, MessageSquare, Monitor, Smartphone, Palette, Gamepad2, Check, ArrowRight, ArrowLeft, Save } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 // Types
 type CampaignType = 'popup' | 'embedded'
 type ThemeId = 'light' | 'dark' | 'colorful'
-type GameId = 'snake' | 'wheel' | 'memory'
+type GameId = 'circle-dash' | 'wheel' | 'memory'
 
 interface CampaignConfig {
   name: string
@@ -47,10 +48,10 @@ const THEMES = [
 
 const GAMES = [
   { 
-    id: 'snake' as GameId, 
-    name: 'Yılan Oyunu', 
-    description: 'Klasik yılan oyunu ile nostalji',
-    icon: '🐍' 
+    id: 'circle-dash' as GameId, 
+    name: 'Circle Dash', 
+    description: 'Reflekslerini test et ve kazan', 
+    icon: '🎯' 
   },
   { 
     id: 'wheel' as GameId, 
@@ -104,29 +105,35 @@ export default function CreateCampaign() {
     if (step > 1) setStep(step - 1)
   }
 
-  const handleSave = () => {
-    // Create new Booste object
-    const newBooste = {
-      id: crypto.randomUUID(),
-      name: campaignName,
-      status: 'active',
-      type: config.type,
-      games: config.games,
-      views: 0,
-      plays: 0,
-      clicks: 0,
-      createdAt: new Date().toISOString(),
-      theme: config.theme
+  const handleSave = async () => {
+    if (!user) return
+
+    if (config.games.length === 0) {
+      alert('Lütfen en az bir oyun seçin.')
+      return
     }
 
-    // Save to localStorage
-    const saved = localStorage.getItem('boostes')
-    const boostes = saved ? JSON.parse(saved) : []
-    localStorage.setItem('boostes', JSON.stringify([newBooste, ...boostes]))
+    try {
+      // Create new Booste object in Database
+      const { error } = await supabase.from('campaigns').insert({
+        user_id: user.id,
+        name: campaignName,
+        status: 'active',
+        type: config.type,
+        game_type: config.games[0], // Primary game type for legacy/display
+        games: config.games,
+        theme: config.theme
+      })
 
-    console.log('Saving Booste:', newBooste)
-    alert('Booste başarıyla oluşturuldu!')
-    navigate('/my-boostes')
+      if (error) throw error
+
+      console.log('Campaign saved successfully')
+      alert('Booste başarıyla oluşturuldu!')
+      navigate('/my-boostes')
+    } catch (error) {
+      console.error('Error saving campaign:', error)
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.')
+    }
   }
 
   return (

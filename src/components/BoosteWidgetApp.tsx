@@ -6,7 +6,7 @@ import MemoryGame from '../pages/MemoryGame';
 
 interface WidgetConfig {
   target: string;
-  games: string[];
+  games?: string[];
   type: 'popup' | 'embedded';
   theme: string;
   userId?: string;
@@ -61,7 +61,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       // Import needed if not available globally. Assuming supabase client is passed or imported.
       // We need to import supabase here.
       const { data, error } = await import('../lib/supabase').then(m => 
-        m.supabase.rpc('check_widget_status', { p_user_id: config.userId })
+        m.supabase.rpc('check_widget_status', { p_user_id: config.userId! })
       );
       
       if (error) {
@@ -71,7 +71,28 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
         // User asked: "hiç görünmemeli". So maybe false on error is safer if strict.
         setIsAllowed(true); 
       } else {
-        setIsAllowed((data as any).allowed);
+        const result = data as any;
+        setIsAllowed(result.allowed);
+        
+        let availableGames = result.games || [];
+        // If games array is empty but game_type exists (legacy), use it
+        if (availableGames.length === 0 && result.game_type) {
+            availableGames = [result.game_type];
+        }
+
+        // If we found games, use them. If only one, auto select.
+        if (result.allowed && availableGames.length > 0) {
+            if (availableGames.length === 1) {
+                setSelectedGame(availableGames[0]);
+            } else {
+                // Determine layout or store available games to filter selection UI
+                // For now, let's assume if there multiple, we just show selection.
+                // We might need to pass these games to the render function though.
+                // Hack: Mutate config.games? Or better, add state.
+                config.games = availableGames; // Updating prop object is technically bad but works for local instance if not re-rendering parent deeply. 
+                // Better: use state for 'availableGames'
+            }
+        }
       }
     } catch (err) {
       console.error('Widget check failed:', err);
@@ -192,7 +213,11 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
             Oynamak istediğin oyunu seç
           </p>
           <div style={gridStyle}>
-            {config.games.map(gameId => {
+            {/* Only mapped if custom games provided, but now we prefer auto-select. 
+              If fallback needed: (config.games || []).map... 
+              Actually if no games and no selectedGame (from auto-select), we might show "Loading" or "No Active Game" info.
+            */}
+            {(config.games || []).map(gameId => {
               const game = gameIcons[gameId as keyof typeof gameIcons];
               return (
                 <button

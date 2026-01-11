@@ -1,53 +1,57 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Play, Trash2, BarChart2, Calendar, Settings, Gamepad2, Megaphone } from 'lucide-react'
+import { Plus, Play, Trash2, BarChart2, Calendar, Settings, Gamepad2, Megaphone, AlertTriangle, Loader2 } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import type { Database } from '../lib/database.types'
 
-// Mock Data (until we have real data from Supabase)
-interface Booste {
-  id: string
-  name: string
-  status: 'active' | 'draft' | 'ended'
-  type: 'embedded' | 'popup'
-  games: string[]
+type Campaign = Database['public']['Tables']['campaigns']['Row']
+
+interface Booste extends Campaign {
   views: number
   plays: number
   clicks: number
-  createdAt: string
-  theme: string
 }
 
-const MOCK_BOOSTES: Booste[] = [
-  {
-    id: '1',
-    name: 'Yaz İndirimleri Kampanyası',
-    status: 'active',
-    type: 'popup',
-    games: ['wheel'],
-    views: 1250,
-    plays: 450,
-    clicks: 120,
-    createdAt: '2024-06-15',
-    theme: 'colorful'
-  },
-  {
-    id: '2',
-    name: 'Website Gömülü Oyun',
-    status: 'draft',
-    type: 'embedded',
-    games: ['snake', 'memory'],
-    views: 0,
-    plays: 0,
-    clicks: 0,
-    createdAt: '2024-06-20',
-    theme: 'dark'
-  }
-]
+
 
 export default function MyBoostesPage() {
-  const [boostes, setBoostes] = useState<Booste[]>(() => {
-    const saved = localStorage.getItem('boostes')
-    return saved ? [...JSON.parse(saved), ...MOCK_BOOSTES] : MOCK_BOOSTES
-  })
+  const { user } = useAuth()
+  const [boostes, setBoostes] = useState<Booste[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user) {
+      fetchBoostes()
+    }
+  }, [user])
+
+  const fetchBoostes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      if (data) {
+        // Map DB fields to UI fields & Mock stats for now
+        const mappedBoostes = data.map(camp => ({
+          ...camp,
+          views: 0,
+          plays: 0,
+          clicks: 0
+        }))
+        setBoostes(mappedBoostes)
+      }
+    } catch (error) {
+      console.error('Error fetching boostes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusColor = (status: Booste['status']) => {
     switch (status) {
@@ -62,6 +66,40 @@ export default function MyBoostesPage() {
       case 'active': return 'Aktif'
       case 'draft': return 'Taslak'
       case 'ended': return 'Sona Erdi'
+    }
+  }
+
+  /* Delete Modal State */
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [boosteToDelete, setBoosteToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const initiateDelete = (id: string) => {
+    setBoosteToDelete(id)
+    setShowDeleteModal(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!boosteToDelete) return
+    setIsDeleting(true)
+    
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', boosteToDelete)
+
+      if (error) throw error
+
+      const newBoostes = boostes.filter(b => b.id !== boosteToDelete)
+      setBoostes(newBoostes)
+    } catch (error) {
+      console.error('Error deleting booste:', error)
+      alert('Silme işlemi başarısız oldu.')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setBoosteToDelete(null)
     }
   }
 
@@ -113,7 +151,14 @@ export default function MyBoostesPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {boostes.map((booste) => (
+                {loading ? (
+                    <tr>
+                        <td colSpan={6} className="text-center py-8 text-gray-500">
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                            Yükleniyor...
+                        </td>
+                    </tr>
+                ) : boostes.map((booste) => (
                   <tr key={booste.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -133,43 +178,47 @@ export default function MyBoostesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex -space-x-1">
-                        {booste.games.map((g, i) => (
+                        {(booste.games || []).map((g, i) => (
                           <div key={i} className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs" title={g}>
-                            {g === 'wheel' ? '🎡' : g === 'snake' ? '🐍' : '🧩'}
+                            {g === 'wheel' ? '🎡' : g === 'circle-dash' ? '🎯' : '🧩'}
                           </div>
                         ))}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-4 text-xs text-gray-600">
-                         <div className="flex items-center" title="Görüntülenme">
-                           <BarChart2 className="h-3 w-3 mr-1" />
-                           {booste.views}
-                         </div>
-                         <div className="flex items-center" title="Oynanma">
-                           <Play className="h-3 w-3 mr-1" />
-                           {booste.plays}
-                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(booste.createdAt).toLocaleDateString('tr-TR')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded" title="Düzenle">
-                          <Settings className="h-4 w-4" />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded" title="Sil">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-4 text-xs text-gray-600">
+                             <div className="flex items-center" title="Görüntülenme">
+                               <BarChart2 className="h-3 w-3 mr-1" />
+                               {booste.views}
+                             </div>
+                             <div className="flex items-center" title="Oynanma">
+                               <Play className="h-3 w-3 mr-1" />
+                               {booste.plays}
+                             </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {new Date(booste.created_at || '').toLocaleDateString('tr-TR')}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end space-x-2">
+                            <button className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded" title="Düzenle">
+                              <Settings className="h-4 w-4" />
+                            </button>
+                            <button 
+                                onClick={() => initiateDelete(booste.id)}
+                                className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded" 
+                                title="Sil"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>
@@ -192,6 +241,43 @@ export default function MyBoostesPage() {
           </div>
         )}
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
+                <div className="p-6 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
+                        <AlertTriangle className="h-8 w-8 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Booste Silinecek</h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                        Bu kampanyayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    </p>
+                    <div className="flex space-x-3">
+                        <button 
+                            onClick={() => setShowDeleteModal(false)}
+                            disabled={isDeleting}
+                            className="flex-1 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        >
+                            İptal
+                        </button>
+                        <button 
+                            onClick={confirmDelete}
+                            disabled={isDeleting}
+                            className="flex-1 inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Siliniyor...
+                                </>
+                            ) : 'Evet, Sil'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   )
 }
