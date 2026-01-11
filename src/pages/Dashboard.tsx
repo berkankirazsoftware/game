@@ -2,152 +2,168 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Bell, BarChart3, Gift, AlertCircle, CheckCircle, Clock, Mail } from 'lucide-react'
-
-import type { Database } from '../lib/supabase'
-
-type Coupon = Database['public']['Tables']['coupons']['Row']
-type EmailLog = Database['public']['Tables']['email_logs']['Row']
+import { Bell, Zap, Gift, AlertCircle, CheckCircle, Clock, Mail, Activity } from 'lucide-react'
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [coupons, setCoupons] = useState<Coupon[]>([])
-  const [emailLogs, setEmailLogs] = useState<EmailLog[]>([])
+  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
-    totalCoupons: 0,
-    totalUsedCoupons: 0,
-    totalAvailableCoupons: 0,
-    totalEmailsSent: 0
+    emailUsage: 0,
+    emailLimit: 100,
+    isWidgetActive: false,
+    hasActiveCampaign: false
   })
+  const [notifications, setNotifications] = useState<any[]>([])
 
   useEffect(() => {
-    fetchCoupons()
-    fetchEmailLogs()
+    fetchDashboardData()
   }, [user])
 
-
-  const fetchCoupons = async () => {
-    if (!user) return
-    
-    const { data } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(5)
-    
-    if (data) {
-      setCoupons(data)
-      const totalUsed = data.reduce((sum, coupon) => sum + coupon.used_count, 0)
-      const totalAvailable = data.reduce((sum, coupon) => sum + (coupon.quantity - coupon.used_count), 0)
-      setStats({
-        totalCoupons: data.length,
-        totalUsedCoupons: totalUsed,
-        totalAvailableCoupons: totalAvailable,
-        totalEmailsSent: 0
-      })
-    }
-  }
-
-  const fetchEmailLogs = async () => {
+  const fetchDashboardData = async () => {
     if (!user) return
     
     try {
-      // Fetch latest logs
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('sent_at', { ascending: false })
-        .limit(5)
+      setLoading(true)
       
-      // Fetch total count
-      const { count } = await supabase
+      // 1. Get Active Campaign
+      const { data: campaignData } = await supabase
+        .from('campaigns')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .limit(1)
+      
+      const hasActiveCampaign = campaignData && campaignData.length > 0
+      const isWidgetActive = hasActiveCampaign // Widget is active if there is a campaign (sub is gone)
+
+      // 2. Get Monthly Email Usage
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      
+      const { count: emailCount } = await supabase
         .from('email_logs')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('status', 'sent')
-
-      if (error) {
-        console.log('Email logs table not found, skipping...')
-        setEmailLogs([])
-        return
-      }
+        .gte('created_at', startOfMonth)
       
-      if (data) {
-        setEmailLogs(data)
-        setStats(prev => ({
-          ...prev,
-          totalEmailsSent: count || 0
-        }))
+      const currentUsage = emailCount || 0
+      const planLimit = 100 // Hardcoded free limit for MVP
+
+      setStats({
+        emailUsage: currentUsage,
+        emailLimit: planLimit,
+        isWidgetActive,
+        hasActiveCampaign
+      })
+
+      // 3. Generate Derived Notifications
+      const newNotifications = []
+
+      // Widget Status Notification
+      if (isWidgetActive) {
+        newNotifications.push({
+          id: 'widget-active',
+          type: 'success',
+          title: 'Widget Yayında',
+          message: 'Widget\'ınız web sitenizde aktif ve görüntüleniyor.',
+          time: 'Şimdi',
+          icon: Activity
+        })
+      } else {
+        if (!hasActiveCampaign) {
+          newNotifications.push({
+            id: 'no-campaign',
+            type: 'warning',
+            title: 'Aktif Kampanya Yok',
+            message: 'Widget\'ın görünmesi için lütfen bir kampanya oluşturun.',
+            time: 'Şimdi',
+            icon: AlertCircle
+          })
+        }
       }
+
+      // Usage Notification
+      if (currentUsage >= planLimit) {
+        newNotifications.push({
+          id: 'limit-reached',
+          type: 'error',
+          title: 'Limit Aşıldı',
+          message: 'Aylık e-posta limitinize ulaştınız. Widget gösterimi durduruldu.',
+          time: 'Şimdi',
+          icon: AlertCircle
+        })
+      } else if (currentUsage >= planLimit * 0.8) {
+         newNotifications.push({
+          id: 'limit-warning',
+          type: 'warning',
+          title: 'Limit Uyarısı',
+          message: `Aylık limitinizin %80'ine ulaştınız. (${currentUsage}/${planLimit})`,
+          time: 'Şimdi',
+          icon: AlertCircle
+        })
+      } else {
+        newNotifications.push({
+          id: 'usage-info',
+          type: 'info',
+          title: 'Aylık Kullanım',
+          message: `Bu ay ${currentUsage} adet e-posta topladınız.`,
+          time: 'Bu ay',
+          icon: Mail
+        })
+      }
+
+      setNotifications(newNotifications)
+
     } catch (error) {
-      console.log('Email logs error:', error)
-      setEmailLogs([])
+      console.error('Dashboard data fetch error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const statCards = [
     {
-      title: 'Toplam Kupon',
-      value: stats.totalCoupons,
-      icon: Gift,
+      title: 'Widget Durumu',
+      value: stats.isWidgetActive ? 'Aktif' : 'Pasif',
+      icon: Activity,
+      color: stats.isWidgetActive ? 'text-green-600' : 'text-red-600',
+      bgColor: stats.isWidgetActive ? 'bg-green-50' : 'bg-red-50'
+    },
+    {
+      title: 'Bu Ay Gönderilen',
+      value: stats.emailUsage,
+      icon: Mail,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50'
     },
     {
-      title: 'Kullanılan Kupon',
-      value: stats.totalUsedCoupons,
-      icon: Gift,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50'
-    },
-    {
-      title: 'Kalan Kupon',
-      value: stats.totalAvailableCoupons,
-      icon: Gift,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Gönderilen Email',
-      value: stats.totalEmailsSent,
-      icon: Mail,
+      title: 'Aylık Limit',
+      value: stats.emailLimit,
+      icon: Zap,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
+    },
+    {
+      title: 'Kalan Hak',
+      value: Math.max(0, stats.emailLimit - stats.emailUsage),
+      icon: CheckCircle,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
     }
   ]
 
-  const notifications = [
-    {
-      id: 1,
-      type: 'success',
-      title: 'Widget Aktif',
-      message: 'Oyun widget\'ınız başarıyla çalışıyor',
-      time: '2 saat önce',
-      icon: CheckCircle
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'Kupon Stoku Azalıyor',
-      message: 'Level 2 kuponunuzun stoku %20\'nin altına düştü',
-      time: '5 saat önce',
-      icon: AlertCircle
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'Yeni Oyuncu',
-      message: '3 yeni oyuncu kupon kazandı',
-      time: '1 gün önce',
-      icon: Clock
-    }
-  ]
+  if (loading) {
+     return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-6 text-white flex justify-between items-center">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-6 text-white flex justify-between items-center shadow-lg">
         <div>
           <h1 className="text-2xl font-bold mb-2">
             Hoş geldiniz! 👋
@@ -170,13 +186,13 @@ export default function Dashboard() {
         {statCards.map((stat) => {
           const Icon = stat.icon
           return (
-            <div key={stat.title} className="bg-white p-6 rounded-lg shadow-sm border">
+            <div key={stat.title} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className={`${stat.bgColor} p-3 rounded-lg`}>
                   <Icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <p className="text-sm font-medium text-gray-500">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
               </div>
@@ -185,91 +201,49 @@ export default function Dashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Bildirimler */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Bell className="h-5 w-5 mr-2" />
-              Bildirimler
-            </h3>
-          </div>
-          <div className="space-y-4">
-            {notifications.map((notification) => {
+      {/* Notifications */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-gray-900 flex items-center">
+            <Bell className="h-5 w-5 mr-2 text-indigo-600" />
+            Önemli Bildirimler
+          </h3>
+          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{notifications.length} Yeni</span>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {notifications.length > 0 ? (
+            notifications.map((notification) => {
               const Icon = notification.icon
-              const typeColors = {
-                success: 'text-green-600 bg-green-50 border-green-200',
-                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
-                info: 'text-blue-600 bg-blue-50 border-blue-200'
+              const typeClasses = {
+                success: 'bg-green-50 text-green-700 border-green-200',
+                warning: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                error: 'bg-red-50 text-red-700 border-red-200',
+                info: 'bg-blue-50 text-blue-700 border-blue-200'
               }
               
               return (
-                <div key={notification.id} className={`p-4 rounded-lg border ${typeColors[notification.type as keyof typeof typeColors]}`}>
+                <div key={notification.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start">
-                    <Icon className="h-5 w-5 mr-3 mt-0.5" />
+                    <div className={`p-2 rounded-lg mr-4 ${typeClasses[notification.type as keyof typeof typeClasses]} bg-opacity-20`}>
+                       <Icon className={`h-5 w-5 ${typeClasses[notification.type as keyof typeof typeClasses].split(' ')[1]}`} />
+                    </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{notification.title}</h4>
-                      <p className="text-sm opacity-90 mt-1">{notification.message}</p>
-                      <p className="text-xs opacity-75 mt-2">{notification.time}</p>
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-semibold text-gray-900">{notification.title}</h4>
+                        <span className="text-xs text-gray-400 font-medium">{notification.time}</span>
+                      </div>
+                      <p className="text-gray-600 text-sm mt-1">{notification.message}</p>
                     </div>
                   </div>
                 </div>
               )
-            })}
-          </div>
-        </div>
-
-        {/* Email Logları */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Mail className="h-5 w-5 mr-2" />
-              Son Gönderilen Kuponlar
-            </h3>
-          </div>
-          <div className="space-y-4">
-            {emailLogs.length > 0 ? emailLogs.map((log) => {
-              const gameTypeText = log.game_type === 'timing' ? 'Zamanlama' : 'Hafıza'
-              const discountText = log.discount_type === 'percentage' ? `%${log.discount_value}` : `${log.discount_value}₺`
-              
-              return (
-                <div key={log.id} className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{log.coupon_code}</h4>
-                      <p className="text-sm text-gray-600">{log.email}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-green-600">{discountText}</p>
-                      <p className="text-xs text-gray-500">{gameTypeText} Oyunu</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      Gönderilme: {new Date(log.sent_at).toLocaleDateString('tr-TR')}
-                    </span>
-                    <span className={`font-medium px-2 py-1 rounded-full text-xs ${
-                      log.status === 'sent' ? 'bg-green-100 text-green-800' : 
-                      log.status === 'failed' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {log.status === 'sent' ? '✅ Gönderildi' : 
-                       log.status === 'failed' ? '❌ Başarısız' : 
-                       '⏳ Bekliyor'}
-                    </span>
-                  </div>
-                </div>
-              )
-            }) : (
-              <div className="text-center py-8 text-gray-500">
-                <Mail className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>Henüz email gönderilmedi</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Oyuncular kupon kazandığında burada görünecek
-                </p>
-              </div>
-            )}
-          </div>
+            })
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <Bell className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+              <p>Yeni bildiriminiz yok</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

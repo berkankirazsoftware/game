@@ -158,39 +158,6 @@ export type Database = {
                 }
                 Relationships: []
             }
-            subscriptions: {
-                Row: {
-                    created_at: string | null
-                    expiration_date: string | null
-                    id: string
-                    is_active: boolean | null
-                    plan_type: string
-                    start_date: string | null
-                    updated_at: string | null
-                    user_id: string | null
-                }
-                Insert: {
-                    created_at?: string | null
-                    expiration_date?: string | null
-                    id?: string
-                    is_active?: boolean | null
-                    plan_type: string
-                    start_date?: string | null
-                    updated_at?: string | null
-                    user_id?: string | null
-                }
-                Update: {
-                    created_at?: string | null
-                    expiration_date?: string | null
-                    id?: string
-                    is_active?: boolean | null
-                    plan_type?: string
-                    start_date?: string | null
-                    updated_at?: string | null
-                    user_id?: string | null
-                }
-                Relationships: []
-            }
         }
         Views: {
             [_ in never]: never
