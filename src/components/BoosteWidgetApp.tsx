@@ -238,6 +238,13 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       e.preventDefault();
       if (!claimEmail || !pendingCoupon || !selectedGame) return;
 
+      // Basic Email Validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(claimEmail)) {
+          setClaimError("Lütfen geçerli bir e-posta adresi giriniz.");
+          return;
+      }
+
       setIsClaiming(true);
       setClaimError(null);
 

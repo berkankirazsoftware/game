@@ -206,6 +206,15 @@ export type Database = {
                 }
                 Returns: Json
             }
+            claim_coupon: {
+                Args: {
+                    p_coupon_id: string
+                    p_email: string
+                    p_game_type: string
+                    p_guest_id?: string
+                }
+                Returns: Json
+            }
         }
         Enums: {
             [_ in never]: never
