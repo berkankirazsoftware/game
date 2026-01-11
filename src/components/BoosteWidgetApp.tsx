@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Clock, Copy, Check } from 'lucide-react';
+import { Trophy, Clock, Copy, Check, Mail, ArrowRight, Loader2 } from 'lucide-react';
 import CircleDashGame from '../pages/CircleDashGame';
 import WheelGame from '../pages/WheelGame';
 import MemoryGame from '../pages/MemoryGame';
@@ -25,19 +25,25 @@ const THEMES: Record<string, any> = {
     background: '#ffffff',
     text: '#1f2937',
     primary: '#4f46e5',
-    secondary: '#f3f4f6'
+    secondary: '#f3f4f6',
+    inputBg: '#ffffff',
+    inputBorder: '#e5e7eb'
   },
   dark: {
     background: '#111827',
     text: '#f9fafb',
     primary: '#6366f1',
-    secondary: '#374151'
+    secondary: '#374151',
+    inputBg: '#1f2937',
+    inputBorder: '#374151'
   },
   colorful: {
     background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
     text: '#ffffff',
     primary: 'rgba(255, 255, 255, 0.2)',
-    secondary: 'rgba(255, 255, 255, 0.1)'
+    secondary: 'rgba(255, 255, 255, 0.1)',
+    inputBg: 'rgba(255, 255, 255, 0.1)',
+    inputBorder: 'rgba(255, 255, 255, 0.2)'
   }
 };
 
@@ -59,6 +65,12 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [remoteCooldownMinutes, setRemoteCooldownMinutes] = useState(1440);
   const [copied, setCopied] = useState(false);
 
+  // Claim States
+  const [pendingCoupon, setPendingCoupon] = useState<Coupon | null>(null);
+  const [claimEmail, setClaimEmail] = useState('');
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+
   useEffect(() => {
     checkAvailability();
     
@@ -79,7 +91,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     
     if (diff <= 0) {
         setCooldownTimerStr('Hazır!');
-        // Ideally we could re-check availability here to unlock the game
     } else {
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -118,8 +129,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       
       if (error) {
         console.error('Widget check error:', error);
-        // On error, we default to showing it to avoid disrupting the UX, 
-        // but we might want to reconsider this if abuse is a concern.
         setIsAllowed(true); 
       } else {
         const result = data as any;
@@ -129,7 +138,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
 
         // Check Cooldown
         const lastPlayed = localStorage.getItem('booste_last_played');
-        let isCooldownActive = false;
         
         if (lastPlayed) {
             const lastPlayedTime = parseInt(lastPlayed);
@@ -138,7 +146,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
             
             if (elapsedMinutes < cooldownMinutes) {
                 console.log(`Booste Widget: Cool down active. Wait ${cooldownMinutes - elapsedMinutes} minutes.`);
-                isCooldownActive = true;
                 
                 // Set Cooldown State
                 setIsGamePlayable(false);
@@ -195,17 +202,12 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
             setTimeRemaining(null);
         }
 
-        // Note: isAllowed is primarily for "Is the widget overall enabled/visible?". 
-        // If cooldown is active, we STILL want it visible (isAllowed = true), just showing a different view.
-        // Unless result.allowed is false (e.g. passive campaign), then we hide it completely.
         if (result.allowed === false) {
              console.log('Booste Widget: Not allowed. Reason:', result.reason);
              setRejectionReason(result.reason);
         }
 
         setIsAllowed(result.allowed);
-        
-        // If allowed by backend, but cooldown is active, we keep isAllowed=true but set isGamePlayable=false (handled above)
         
         let gamesToUse = result.games || [];
         if (gamesToUse.length === 0 && result.game_type) {
@@ -227,18 +229,54 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const handleGameComplete = (coupon: Coupon | null) => {
-    // Save state
-    const now = Date.now();
-    localStorage.setItem('booste_last_played', now.toString());
-    if (coupon) {
-        localStorage.setItem('booste_latest_coupon', JSON.stringify(coupon));
-    }
-    
-    // Update local state
-    setLatestCoupon(coupon);
-    setIsGamePlayable(false);
-    setShowCooldownView(true);
-    setCooldownEndTime(now + remoteCooldownMinutes * 60 * 1000);
+    // Stage 1: Store pending coupon and show email form
+    // Do not save to localStorage yet!
+    setPendingCoupon(coupon);
+  };
+
+  const handleClaimSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!claimEmail || !pendingCoupon || !selectedGame) return;
+
+      setIsClaiming(true);
+      setClaimError(null);
+
+      try {
+          const { data, error } = await import('../lib/supabase').then(m => 
+            m.supabase.rpc('claim_coupon', { 
+                p_coupon_id: pendingCoupon.id,
+                p_email: claimEmail,
+                p_game_type: selectedGame
+            })
+          );
+
+          if (error) throw error;
+
+          const result = data as any;
+          if (!result.success) {
+              throw new Error(result.error);
+          }
+
+          // Success!
+          const finalValues = { ...pendingCoupon, code: result.coupon_code };
+          
+          // Save and transition
+          const now = Date.now();
+          localStorage.setItem('booste_last_played', now.toString());
+          localStorage.setItem('booste_latest_coupon', JSON.stringify(finalValues));
+          
+          setLatestCoupon(finalValues);
+          setPendingCoupon(null);
+          setIsGamePlayable(false);
+          setShowCooldownView(true);
+          setCooldownEndTime(now + remoteCooldownMinutes * 60 * 1000);
+
+      } catch (err: any) {
+          console.error("Claim error:", err);
+          setClaimError(err.message || "Bir hata oluştu.");
+      } finally {
+          setIsClaiming(false);
+      }
   };
 
   const handleCopyCode = () => {
@@ -247,6 +285,101 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
       }
+  };
+
+  const renderEmailForm = () => {
+      if (!pendingCoupon) return null;
+
+      return (
+          <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              padding: '24px',
+              textAlign: 'center',
+              color: themeStyles.text,
+              background: themeStyles.background
+          }}>
+              <div style={{
+                  padding: '16px',
+                  borderRadius: '50%',
+                  background: themeStyles.secondary,
+                  marginBottom: '24px'
+              }}>
+                  <Mail size={40} className="text-indigo-600" style={{ color: themeStyles.primary }} />
+              </div>
+              
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+                  Kuponunu Al
+              </h2>
+              
+              <p style={{ opacity: 0.8, marginBottom: '24px' }}>
+                  Kupon kodunu görmek ve e-postana gönderilmesi için adresini gir.
+              </p>
+
+              <form onSubmit={handleClaimSubmit} style={{ width: '100%' }}>
+                  <input 
+                      type="email"
+                      required
+                      placeholder="E-posta adresin"
+                      value={claimEmail}
+                      onChange={(e) => setClaimEmail(e.target.value)}
+                      style={{
+                          width: '100%',
+                          padding: '14px',
+                          borderRadius: '12px',
+                          border: `1px solid ${themeStyles.inputBorder || '#ccc'}`,
+                          background: themeStyles.inputBg || 'white',
+                          color: themeStyles.text,
+                          marginBottom: '16px',
+                          fontSize: '16px',
+                          outline: 'none'
+                      }}
+                  />
+                  
+                  {claimError && (
+                      <div style={{ color: '#EF4444', marginBottom: '16px', fontSize: '14px' }}>
+                          {claimError}
+                      </div>
+                  )}
+
+                  <button 
+                      type="submit"
+                      disabled={isClaiming}
+                      style={{
+                          width: '100%',
+                          padding: '14px',
+                          borderRadius: '12px',
+                          background: themeStyles.text === '#ffffff' ? 'white' : '#4f46e5',
+                          color: themeStyles.text === '#ffffff' ? '#444' : 'white',
+                          border: 'none',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          cursor: isClaiming ? 'wait' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          opacity: isClaiming ? 0.7 : 1
+                      }}
+                  >
+                      {isClaiming ? (
+                          <>
+                            <Loader2 size={20} className="animate-spin" />
+                            İşleniyor...
+                          </>
+                      ) : (
+                          <>
+                            Kuponu Göster
+                            <ArrowRight size={20} />
+                          </>
+                      )}
+                  </button>
+              </form>
+          </div>
+      );
   };
 
   const renderCooldownView = () => {
@@ -340,7 +473,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const isVisible = (config.type === 'embedded' || isOpen) && (isAllowed === true);
 
   if (isAllowed === null) return null; 
-  if (isAllowed === false) return null; // Hide completely if not allowed 
+  if (isAllowed === false) return null; 
 
 
   const handleGameSelect = (gameId: string) => {
@@ -355,7 +488,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const renderGame = () => {
-    if (!isGamePlayable) return null; // Should not reach here if logic correct, but safety
+    if (!isGamePlayable) return null; 
 
     const gameProps = {
       embedded: true,
@@ -397,10 +530,14 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   const renderContent = () => {
-    // Priority: Cooldown View -> Game Selector -> Game View
+    // Priority: Cooldown View -> Email Form -> Game Selector -> Game View
     
     if (showCooldownView) {
         return renderCooldownView();
+    }
+
+    if (pendingCoupon) {
+        return renderEmailForm();
     }
 
     if (!selectedGame) {
@@ -427,7 +564,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       };
 
       const buttonStyle: React.CSSProperties = {
-        padding: '30px 20px',
+         padding: '30px 20px',
         borderRadius: '16px',
         background: themeStyles.secondary,
         border: 'none',
