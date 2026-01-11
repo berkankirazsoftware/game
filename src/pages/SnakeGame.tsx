@@ -200,18 +200,18 @@ export default function SnakeGame({ embedded = false, theme, userId: propUserId,
         color: theme?.textColor
       }}
     >
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+      <div className={`max-w-4xl mx-auto ${embedded ? 'h-full' : ''}`}>
+        <div className={`bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col ${embedded ? 'h-full' : ''}`}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-            <h1 className="text-3xl font-bold mb-2">{game.name}</h1>
-            <p className="text-indigo-100">{game.description}</p>
-            <div className="mt-4 flex items-center space-x-4">
-              <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="font-semibold">Skor: {score}</span>
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 sm:p-6 text-white shrink-0">
+            <h1 className="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">{game.name}</h1>
+            <p className="text-indigo-100 text-xs sm:text-base hidden sm:block">{game.description}</p>
+            <div className="mt-2 flex items-center space-x-2 sm:space-x-4">
+              <div className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-full">
+                <span className="font-semibold text-xs sm:text-base">Skor: {score}</span>
               </div>
-              <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="font-semibold">Hedef: 50 puan</span>
+              <div className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-full">
+                <span className="font-semibold text-xs sm:text-base">Hedef: 50 puan</span>
               </div>
             </div>
           </div>
@@ -249,10 +249,10 @@ export default function SnakeGame({ embedded = false, theme, userId: propUserId,
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className={`grid ${embedded ? 'grid-cols-1 lg:grid-cols-6' : 'grid-cols-1 lg:grid-cols-3'} gap-4 sm:gap-6 h-full auto-rows-min`}>
               {/* Game Area */}
-              <div className="lg:col-span-2 flex flex-col items-center">
-                <div className="w-full max-w-md bg-gray-900 rounded-lg p-2 sm:p-4 mb-4 shadow-xl border-4 border-gray-800">
+              <div className={`${embedded ? 'lg:col-span-4' : 'lg:col-span-2'} flex flex-col items-center justify-center min-h-0`}>
+                <div className="w-full max-w-[85vmin] sm:max-w-md bg-gray-900 rounded-lg p-2 sm:p-4 mb-2 sm:mb-4 shadow-xl border-4 border-gray-800 shrink-0">
                   <div className="aspect-square w-full relative">
                     <div className="grid grid-cols-20 gap-0 w-full h-full">
                       {Array.from({ length: 400 }, (_, index) => {
@@ -302,7 +302,7 @@ export default function SnakeGame({ embedded = false, theme, userId: propUserId,
                         </p>
                         
                         {/* Mobile D-Pad */}
-                        <div className="grid grid-cols-3 gap-2 sm:hidden w-48 mx-auto">
+                        <div className="grid grid-cols-3 gap-2 sm:hidden w-40 mx-auto mt-2">
                             <div></div>
                             <button className="bg-gray-200 p-4 rounded-lg active:bg-gray-300 shadow-md text-2xl" onClick={() => setDirection([-1, 0])}>⬆️</button>
                             <div></div>
@@ -316,7 +316,7 @@ export default function SnakeGame({ embedded = false, theme, userId: propUserId,
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-6">
+              <div className={`space-y-4 sm:space-y-6 ${embedded ? 'lg:col-span-2 overflow-y-auto max-h-[30vh] lg:max-h-full pr-1' : ''}`}>
                 {/* Instructions */}
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-blue-900 mb-2 flex items-center">

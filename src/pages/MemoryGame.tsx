@@ -197,18 +197,18 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
         background: theme?.background || 'linear-gradient(to bottom right, #a78bfa, #ec4899, #ef4444)'
       }}
     >
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+      <div className={`max-w-4xl mx-auto ${embedded ? 'h-full' : ''}`}>
+        <div className={`bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col ${embedded ? 'h-full' : ''}`}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-            <h1 className="text-3xl font-bold mb-2">{game.name}</h1>
-            <p className="text-indigo-100">{game.description}</p>
-            <div className="mt-4 flex items-center space-x-4">
-              <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="font-semibold">Hamle: {moves}</span>
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 sm:p-6 text-white shrink-0">
+            <h1 className="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">{game.name}</h1>
+            <p className="text-indigo-100 text-xs sm:text-base hidden sm:block">{game.description}</p>
+            <div className="mt-2 flex items-center space-x-2 sm:space-x-4">
+              <div className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-full">
+                <span className="font-semibold text-xs sm:text-base">Hamle: {moves}</span>
               </div>
-              <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="font-semibold">Eşleşen: {matchedPairs}/8</span>
+              <div className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-full">
+                <span className="font-semibold text-xs sm:text-base">Eşleşen: {matchedPairs}/8</span>
               </div>
             </div>
           </div>
@@ -224,16 +224,16 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
               />
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className={`grid ${embedded ? 'grid-cols-1 lg:grid-cols-6' : 'grid-cols-1 lg:grid-cols-3'} gap-4 sm:gap-6 h-full auto-rows-min`}>
               {/* Game Area */}
-              <div className="lg:col-span-2">
-                <div className="bg-gray-100 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-4 gap-3 max-w-md mx-auto">
+              <div className={`${embedded ? 'lg:col-span-4' : 'lg:col-span-2'} flex flex-col items-center justify-center min-h-0`}>
+                <div className="bg-gray-100 rounded-lg p-2 sm:p-4 mb-2 sm:mb-4 w-full max-w-[85vmin] sm:max-w-md shrink-0">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full aspect-square">
                     {cards.map((card) => (
                       <div
                         key={card.id}
                         onClick={() => handleCardClick(card.id)}
-                        className={`aspect-square rounded-lg flex items-center justify-center text-2xl font-bold cursor-pointer transition-all duration-300 ${
+                        className={`aspect-square rounded-lg flex items-center justify-center text-xl sm:text-2xl font-bold cursor-pointer transition-all duration-300 ${
                           card.isFlipped || card.isMatched
                             ? card.isMatched
                               ? 'bg-green-200 text-green-800'
@@ -247,16 +247,16 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
                   </div>
                 </div>
 
-                <div className="text-center space-y-4">
+                <div className="text-center space-y-2 w-full shrink-0 h-10 sm:h-auto">
                   {!gameStarted && !gameCompleted && (
                     <div>
                       <button
                         onClick={startGame}
-                        className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                        className="bg-green-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg text-base sm:text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg w-full sm:w-auto"
                       >
                         Oyunu Başlat
                       </button>
-                      <p className="text-gray-600 text-sm mt-2">
+                      <p className="text-gray-600 text-xs sm:text-sm mt-1 sm:mt-2 hidden sm:block">
                         Kartları çevirerek eşleşen çiftleri bulun
                       </p>
                     </div>
@@ -264,12 +264,12 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
                   
                   {gameStarted && (
                     <div className="flex justify-center space-x-4">
-                      <p className="text-gray-600">
+                      <p className="text-gray-600 hidden sm:block">
                         Kartları çevirerek eşleşen çiftleri bulun!
                       </p>
                       <button
                         onClick={resetGame}
-                        className="text-indigo-600 hover:text-indigo-700 flex items-center"
+                        className="text-indigo-600 hover:text-indigo-700 flex items-center text-sm sm:text-base"
                       >
                         <RotateCcw className="h-4 w-4 mr-1" />
                         Yeniden Başla
@@ -280,7 +280,7 @@ export default function MemoryGame({ embedded, userId: propUserId, testMode: pro
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-6">
+              <div className={`space-y-4 sm:space-y-6 ${embedded ? 'lg:col-span-2 overflow-y-auto max-h-[30vh] lg:max-h-full pr-1' : ''}`}>
                 {/* Instructions */}
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-blue-900 mb-2 flex items-center">

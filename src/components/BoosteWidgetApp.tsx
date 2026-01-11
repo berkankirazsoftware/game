@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SnakeGame from '../pages/SnakeGame';
 import WheelGame from '../pages/WheelGame';
 import MemoryGame from '../pages/MemoryGame';
@@ -42,7 +42,51 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
   const themeStyles = THEMES[config.theme] || THEMES.light;
-  const isVisible = config.type === 'embedded' || isOpen;
+  // Initialize availability state
+  const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
+  
+  useEffect(() => {
+    checkAvailability();
+  }, [config.userId]);
+
+  const checkAvailability = async () => {
+    // If no userId, assume allowed (e.g. demo mode) or handle as needed
+    if (!config.userId) {
+      setIsAllowed(true);
+      return;
+    }
+
+    try {
+      // Import needed if not available globally. Assuming supabase client is passed or imported.
+      // We need to import supabase here.
+      const { data, error } = await import('../lib/supabase').then(m => 
+        m.supabase.rpc('check_widget_status', { p_user_id: config.userId })
+      );
+      
+      if (error) {
+        console.error('Widget check error:', error);
+        // Fallback to allowed on error to avoid breaking site? Or deny?
+        // Let's safe fail to TRUE for now, or FALSE regarding strictness.
+        // User asked: "hiç görünmemeli". So maybe false on error is safer if strict.
+        setIsAllowed(true); 
+      } else {
+        setIsAllowed((data as any).allowed);
+      }
+    } catch (err) {
+      console.error('Widget check failed:', err);
+      setIsAllowed(true);
+    }
+  };
+
+  // Only show if type logic meets AND isAllowed is true.
+  // Wait for check to complete (isAllowed !== null) to avoid flash?
+  // Or start hidden.
+  const isVisible = (config.type === 'embedded' || isOpen) && (isAllowed === true);
+
+  // If check is pending, what to render?
+  // If embedded, maybe skeleton? If popup, nothing.
+  if (isAllowed === null) return null; // Don't render until checked
+
 
   const handleGameSelect = (gameId: string) => {
     setSelectedGame(gameId);
@@ -207,7 +251,6 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   };
 
   // Popup trigger button
-  // Popup trigger button
   if (config.type === 'popup' && !isOpen) {
     // Explicitly using React.CSSProperties to ensure type safety
     const triggerStyle: React.CSSProperties = {
@@ -257,46 +300,47 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(0, 0, 0, 0.5)',
-    backdropFilter: 'blur(4px)',
-    padding: '20px'
+    background: config.type === 'popup' ? themeStyles.background : 'transparent', // Full screen background for popup
+    zIndex: 9999,
   } : {
     width: '100%',
     height: '100%',
-    minHeight: '500px'
+    minHeight: '100%' // Remove minHeight constraint for embedded if possible, or keep it responsive
   };
 
   const widgetStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    maxWidth: config.type === 'popup' ? '900px' : '100%',
-    height: config.type === 'popup' ? 'auto' : '100%',
-    aspectRatio: config.type === 'popup' ? '4/3' : undefined,
-    maxHeight: '90vh',
+    height: '100%', // Full height
+    maxWidth: '100%', // Full width
+    maxHeight: '100%', // Full height
     overflow: 'hidden',
-    borderRadius: '16px',
-    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-    background: themeStyles.background
+    borderRadius: config.type === 'popup' ? '0' : '16px', // No radius for full screen popup
+    boxShadow: config.type === 'popup' ? 'none' : '0 20px 60px rgba(0,0,0,0.3)',
+    background: themeStyles.background,
+    display: 'flex',
+    flexDirection: 'column'
   };
 
   const closeButtonStyle: React.CSSProperties = {
     position: 'absolute',
-    top: '16px',
-    right: '16px',
+    top: '20px',
+    right: '20px',
     zIndex: 60,
     padding: '8px',
     borderRadius: '50%',
-    background: 'rgba(0, 0, 0, 0.2)',
+    background: 'rgba(0, 0, 0, 0.05)', // Lighter background
     border: 'none',
     cursor: 'pointer',
-    color: 'white',
+    color: themeStyles.text, // Use theme text color
     fontSize: '24px',
     width: '40px',
     height: '40px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background 0.2s'
+    transition: 'background 0.2s',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
   };
 
   if (!isVisible && config.type !== 'popup') {

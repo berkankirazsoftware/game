@@ -201,64 +201,66 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme 
              <div className="absolute -bottom-8 left-20 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
 
-        <div className="max-w-md w-full relative z-10">
+        <div className="w-full h-full flex flex-col items-center justify-center relative z-10 max-w-md mx-auto">
             {/* Header */}
-            <div className="text-center mb-8">
-                <div className="inline-block p-3 rounded-full bg-white/10 backdrop-blur-sm mb-4">
-                    <Star className="w-8 h-8 text-yellow-400" />
+            <div className="text-center mb-2 sm:mb-4 shrink-0">
+                <div className="inline-block p-2 sm:p-3 rounded-full bg-white/10 backdrop-blur-sm mb-2 sm:mb-4">
+                    <Star className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
                 </div>
-                <h1 className="text-3xl font-bold text-white mb-2 filter drop-shadow-lg">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 filter drop-shadow-lg">
                     Şans Çarkı
                 </h1>
-                <p className="text-indigo-200 text-sm">
+                <p className="text-indigo-200 text-xs sm:text-sm">
                     Çarkı çevir, sürpriz hediyeleri yakala!
                 </p>
             </div>
 
             {/* Wheel Container */}
-            <div className="relative w-full aspect-square max-w-[320px] mx-auto mb-8">
-                {/* Pointer (Triangle) */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white drop-shadow-lg"></div>
+            <div className="relative w-full shrink-0 flex items-center justify-center mb-4 sm:mb-8" style={{ height: '50vmin', maxHeight: '400px', minHeight: '280px' }}>
+                <div className="relative w-full h-full aspect-square max-w-[50vmin] max-h-[50vmin]">
+                  {/* Pointer (Triangle) */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white drop-shadow-lg"></div>
 
-                {/* The Wheel */}
-                <div 
-                    className="w-full h-full rounded-full border-4 border-white shadow-2xl relative transition-transform duration-[5000ms] cubic-bezier(0.17, 0.67, 0.12, 0.99)"
-                    style={{
-                        background: wheelBackground,
-                        transform: `rotate(${rotation}deg)`
-                    }}
-                >
-                     {/* Segment Labels */}
-                     {segments.map((seg, i) => {
-                         const angle = (360 / segments.length) * i + (360 / segments.length) / 2
-                         return (
-                             <div
-                                 key={seg.id}
-                                 className="absolute top-1/2 left-1/2 w-full h-[1px] -translate-y-1/2 origin-left"
-                                 style={{ transform: `rotate(${angle - 90}deg)` }} // -90 to start from top
-                             >
-                                 <div className="absolute right-8 -translate-y-1/2 text-white font-bold text-sm sm:text-base drop-shadow-md whitespace-nowrap" style={{ transform: 'rotate(90deg)' }}>
-                                     {seg.label}
-                                 </div>
-                             </div>
-                         )
-                     })}
-                </div>
-                
-                {/* Center Cap */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border-4 border-indigo-100">
-                    <Gift className="w-8 h-8 text-indigo-600" />
+                  {/* The Wheel */}
+                  <div 
+                      className="w-full h-full rounded-full border-4 border-white shadow-2xl relative transition-transform duration-[5000ms] cubic-bezier(0.17, 0.67, 0.12, 0.99)"
+                      style={{
+                          background: wheelBackground,
+                          transform: `rotate(${rotation}deg)`
+                      }}
+                  >
+                       {/* Segment Labels */}
+                       {segments.map((seg, i) => {
+                           const angle = (360 / segments.length) * i + (360 / segments.length) / 2
+                           return (
+                               <div
+                                   key={seg.id}
+                                   className="absolute top-1/2 left-1/2 w-full h-[1px] -translate-y-1/2 origin-left"
+                                   style={{ transform: `rotate(${angle - 90}deg)` }} // -90 to start from top
+                               >
+                                   <div className="absolute right-8 -translate-y-1/2 text-white font-bold text-xs sm:text-sm md:text-base drop-shadow-md whitespace-nowrap" style={{ transform: 'rotate(90deg)' }}>
+                                       {seg.label}
+                                   </div>
+                               </div>
+                           )
+                       })}
+                  </div>
+                  
+                  {/* Center Cap */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border-4 border-indigo-100">
+                      <Gift className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600" />
+                  </div>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="text-center">
+            <div className="text-center shrink-0">
                 {!wonSegment ? (
                     <button
                         onClick={spinWheel}
                         disabled={isSpinning}
                         className={`
-                            px-8 py-4 rounded-full font-bold text-lg shadow-lg transform transition-all
+                            px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg shadow-lg transform transition-all
                             ${isSpinning 
                                 ? 'bg-gray-500 cursor-not-allowed opacity-50' 
                                 : 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 hover:scale-105 active:scale-95 text-white ring-4 ring-yellow-200/30'}
@@ -267,14 +269,18 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme 
                         {isSpinning ? 'Bol Şans...' : 'ÇEVİR'}
                     </button>
                 ) : (
-                    <GameWinModal 
-                        coupon={wonSegment.coupon!}
-                        onReset={() => {
-                            setIsSpinning(false)
-                            setWonSegment(null)
-                        }}
-                        gameType="wheel"
-                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-auto bg-black/50 z-50">
+                     <div className="bg-white p-4 rounded-lg">
+                      <GameWinModal 
+                          coupon={wonSegment.coupon!}
+                          onReset={() => {
+                              setIsSpinning(false)
+                              setWonSegment(null)
+                          }}
+                          gameType="wheel"
+                      />
+                     </div>
+                    </div>
                 )}
             </div>
         </div>
