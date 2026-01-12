@@ -147,7 +147,15 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
 
   // Helper to collect rich user info
   const collectUserInfo = () => {
+    // Unique Visitor ID Logic
+    let visitorId = localStorage.getItem('booste_visitor_id');
+    if (!visitorId) {
+        visitorId = crypto.randomUUID();
+        localStorage.setItem('booste_visitor_id', visitorId);
+    }
+
     return {
+        visitor_id: visitorId,
         userAgent: navigator.userAgent,
         language: navigator.language,
         platform: navigator.platform,
