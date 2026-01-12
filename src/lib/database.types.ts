@@ -201,6 +201,8 @@ export type Database = {
                     full_name: string
                     id: string
                     widget_config: { cooldown_minutes: number } | null
+                    website: string | null
+                    updated_at: string | null
                 }
                 Insert: {
                     business_name?: string | null
@@ -209,6 +211,8 @@ export type Database = {
                     full_name: string
                     id: string
                     widget_config?: { cooldown_minutes: number } | null
+                    website?: string | null
+                    updated_at?: string | null
                 }
                 Update: {
                     business_name?: string | null
@@ -217,6 +221,8 @@ export type Database = {
                     full_name?: string
                     id?: string
                     widget_config?: { cooldown_minutes: number } | null
+                    website?: string | null
+                    updated_at?: string | null
                 }
                 Relationships: []
             }

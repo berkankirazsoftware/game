@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { BarChart, Activity, MousePointer, Trophy, Eye } from 'lucide-react';
+import { Activity, MousePointer, Trophy, Eye } from 'lucide-react';
 import {
-  BarChart as RechartsBarChart,
+  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -66,7 +66,7 @@ export default function ReportsPage() {
 
       if (error) throw error;
 
-      setData(data as AnalyticsData);
+      setData(data as unknown as AnalyticsData);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {

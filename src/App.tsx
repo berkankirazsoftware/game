@@ -20,6 +20,7 @@ import PricingPage from './pages/PricingPage'
 import WheelGame from './pages/WheelGame'
 import SettingsPage from './pages/SettingsPage'
 import ReportsPage from './pages/ReportsPage'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (
@@ -53,6 +54,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ReportsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProfilePage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Megaphone,
-  BarChart2
+  BarChart2,
+  User
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -32,6 +33,7 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Boostelerim', href: '/my-boostes', icon: Megaphone },
     { name: 'Kuponlar', href: '/coupons', icon: Gift },
     { name: 'Entegrasyon', href: '/integration', icon: Code },
+    { name: 'Profil', href: '/profile', icon: User },
     { name: 'Ayarlar', href: '/settings', icon: Settings },
   ]
 
