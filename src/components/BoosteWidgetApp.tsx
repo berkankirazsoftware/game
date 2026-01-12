@@ -50,7 +50,7 @@ const THEMES: Record<string, any> = {
 export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
   const [isOpen, setIsOpen] = useState(config.autoOpen || false);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
-  const [availableGames, setAvailableGames] = useState<string[]>(config.games || []);
+  const [availableGames, setAvailableGames] = useState<string[]>((config.games || []).filter(g => g !== 'circle-dash'));
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const themeStyles = THEMES[config.theme] || THEMES.light;
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
@@ -129,6 +129,28 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     } catch (e) {
         console.error('Tracking error', e);
     }
+  };
+
+  // Helper to collect rich user info
+  const collectUserInfo = () => {
+    return {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        screen: {
+            width: window.screen.width,
+            height: window.screen.height,
+            colorDepth: window.screen.colorDepth
+        },
+        window: {
+            width: window.innerWidth,
+            height: window.innerHeight
+        },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        referrer: document.referrer,
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+    };
   };
 
   const checkAvailability = async () => {
@@ -224,14 +246,15 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
 
         setIsAllowed(result.allowed);
         
-        let gamesToUse = result.games || [];
-        if (gamesToUse.length === 0 && result.game_type) {
+        let gamesToUse = (result.games || []).filter((g: string) => g !== 'circle-dash');
+        if (gamesToUse.length === 0 && result.game_type && result.game_type !== 'circle-dash') {
             gamesToUse = [result.game_type];
         }
 
         if (result.allowed && gamesToUse.length > 0) {
-            // Track Impression if allowed
-            trackEvent('impression');
+            // Track Impression if allowed with RICH METADATA
+            const userInfo = collectUserInfo();
+            trackEvent('impression', userInfo);
 
             if ( gamesToUse.length === 1) {
                 setSelectedGame(gamesToUse[0]);

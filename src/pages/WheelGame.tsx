@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { Gift, Star } from 'lucide-react'
+import { Gift, Star, Sparkles, Trophy } from 'lucide-react'
 import GameWinModal from '../components/GameWinModal'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../lib/database.types'
@@ -39,9 +39,6 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
   const [rotation, setRotation] = useState(0)
   const [wonSegment, setWonSegment] = useState<Segment | null>(null)
   
-  // Confetti Reference
-  const containerRef = useRef<HTMLDivElement>(null)
-
   const [segments, setSegments] = useState<Segment[]>([])
 
   useEffect(() => {
@@ -50,17 +47,13 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
     }
     
     if (testMode) {
-      // Mock coupons for test
+      // Mock coupons for test with different levels
       setCoupons([
-        { 
-          id: 'test-1', user_id: userId || '', code: 'TEST10', description: '%10 İndirim', 
-          discount_type: 'percentage', discount_value: 10, level: 1, quantity: 100, used_count: 0, created_at: '' 
-        },
-        { 
-          id: 'test-2', user_id: userId || '', code: 'TEST50', description: '50TL İndirim', 
-          discount_type: 'fixed', discount_value: 50, level: 2, quantity: 50, used_count: 0, created_at: '' 
-        }
-      ])
+        { id: '1', user_id: userId || '', code: 'BRONZE10', description: '%10 İndirim', discount_type: 'percentage', discount_value: 10, level: 1, quantity: 100, used_count: 0, created_at: '' },
+        { id: '2', user_id: userId || '', code: 'SILVER25', description: '%25 İndirim', discount_type: 'percentage', discount_value: 25, level: 2, quantity: 20, used_count: 0, created_at: '' },
+        { id: '3', user_id: userId || '', code: 'GOLD50', description: '%50 İndirim', discount_type: 'percentage', discount_value: 50, level: 3, quantity: 5, used_count: 0, created_at: '' },
+        { id: '4', user_id: userId || '', code: 'PLATINUM', description: '100TL Hediye', discount_type: 'fixed', discount_value: 100, level: 3, quantity: 1, used_count: 0, created_at: '' }
+      ] as any)
     }
   }, [userId, testMode])
 
@@ -77,11 +70,13 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
   }
 
   const generateSegments = () => {
-    // Generate segments from coupons
     const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6']
     const newSegments: Segment[] = []
     
+    // Create 8 segments based on weighted probability
     for (let i = 0; i < 8; i++) {
+        // This naturally creates more segments for common coupons (Level 1)
+        // and fewer for rare ones (Level 3), visualizing the probability.
         const coupon = selectWeightedCoupon(coupons)
         if (coupon) {
             newSegments.push({
@@ -102,18 +97,16 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
     setIsSpinning(true)
     setWonSegment(null)
 
-    // Calculate random angle (min 5 spins = 1800 deg)
+    // randomDegrees ensures we land on a random spot
+    // Adding extra rotations ensures a satisfying spin duration
     const minSpins = 5
-    const randomDegrees = Math.floor(Math.random() * 360)
+    const randomDegrees = Math.floor(Math.random() * 360) 
     const newRotation = rotation + (minSpins * 360) + randomDegrees
     
     setRotation(newRotation)
 
-    // Layout calculation to find winning segment
-    // Normalize to 0-360
     const normalizedRotation = newRotation % 360
     
-    // Wait for animation to finish (5s)
     setTimeout(() => {
         setIsSpinning(false)
         calculateWinner(normalizedRotation)
@@ -122,12 +115,25 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
 
   const calculateWinner = (degrees: number) => {
     const segmentSize = 360 / segments.length
-    const winningIndex = Math.floor(((360 - degrees) % 360) / segmentSize)
-    const winner = segments[winningIndex]
+    
+    // Calculate which segment is at the top (pointer position)
+    // The wheel rotates clockwise, so we subtract rotation from 360
+    const winningIndex = Math.floor(((360 - degrees + 90) % 360) / segmentSize)
+    // Note: The +90 adjustment depends on where the first segment starts. 
+    // In our CSS, we usually start at 3 o'clock or 12 o'clock.
+    // If we render start at 0deg (12 o'clock), we typically don't need offset if logic matches.
+    // Let's refine:
+    // Implementation renders segments starting at -90deg (12 o'clock).
+    // So distinct logic: 
+    // Segment i = 0 is at 12 o'clock to 12 + segmentSize.
+    
+    // Simplest approach: The pointer is at TOP (270deg or -90deg visually? No, pointer is absolute top).
+    // Let's assume standard CSS rotation where 0deg is top-center.
+    const winner = segments[winningIndex % segments.length]
     
     setWonSegment(winner)
     
-    if (winner.value !== '0') {
+    if (winner && winner.value !== '0') {
       triggerConfetti()
       onGameComplete?.(winner.coupon || null)
     }
@@ -160,7 +166,6 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
     frame()
   }
 
-  // Create conic gradient for the wheel
   const wheelBackground = `conic-gradient(
     ${segments.map((seg, i) => {
       const start = (i * 100) / segments.length
@@ -171,101 +176,114 @@ export default function WheelGame({ embedded = false, userId: propUserId, theme,
 
   return (
     <div 
-        className="min-h-screen flex items-center justify-center p-4 overflow-hidden relative"
+        className="min-h-screen flex items-center justify-center p-4 overflow-hidden relative font-sans"
         style={{
             background: theme?.background || 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
         }}
     >
-        {/* Background Effects */}
+        {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-             <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-             <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-             <div className="absolute -bottom-8 left-20 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+             <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/30 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse"></div>
+             <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/30 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
         </div>
 
-        <div className="w-full h-full flex flex-col items-center justify-center relative z-10 max-w-md mx-auto">
+        <div className="w-full max-w-lg mx-auto bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/20 p-6 flex flex-col items-center relative z-10">
+            
             {/* Header */}
-            <div className="text-center mb-2 sm:mb-4 shrink-0">
-                <div className="inline-block p-2 sm:p-3 rounded-full bg-white/10 backdrop-blur-sm mb-2 sm:mb-4">
-                    <Star className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
+            <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg mb-4">
+                    <Star className="w-8 h-8 text-white fill-white" />
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 filter drop-shadow-lg">
+                <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 drop-shadow-md tracking-tight">
                     Şans Çarkı
                 </h1>
-                <p className="text-indigo-200 text-xs sm:text-sm">
-                    Çarkı çevir, sürpriz hediyeleri yakala!
+                <p className="text-indigo-200 text-sm sm:text-base font-medium">
+                    Çevir ve anında kazan! Şans senden yana olsun.
                 </p>
             </div>
 
             {/* Wheel Container */}
-            <div className="relative w-full shrink-0 flex items-center justify-center mb-4 sm:mb-8" style={{ height: '50vmin', maxHeight: '400px', minHeight: '280px' }}>
-                <div className="relative w-full h-full aspect-square max-w-[50vmin] max-h-[50vmin]">
-                  {/* Pointer (Triangle) */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white drop-shadow-lg"></div>
+            <div className="relative mb-10 group" style={{ width: 'min(80vmin, 400px)', height: 'min(80vmin, 400px)' }}>
+                {/* Pointer */}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none drop-shadow-xl">
+                     <div className="w-8 h-10 bg-white clip-path-polygon-[50%_100%,0%_0%,100%_0%] rounded-t-lg"></div>
+                     <div className="w-2 h-2 bg-gray-200 rounded-full absolute top-1 left-1.5 shadow-inner"></div>
+                </div>
 
-                  {/* The Wheel */}
-                  <div 
-                      className="w-full h-full rounded-full border-4 border-white shadow-2xl relative transition-transform duration-[5000ms] cubic-bezier(0.17, 0.67, 0.12, 0.99)"
-                      style={{
-                          background: wheelBackground,
-                          transform: `rotate(${rotation}deg)`
-                      }}
-                  >
-                       {/* Segment Labels */}
-                       {segments.map((seg, i) => {
-                           const angle = (360 / segments.length) * i + (360 / segments.length) / 2
-                           return (
-                               <div
-                                   key={seg.id}
-                                   className="absolute top-1/2 left-1/2 w-full h-[1px] -translate-y-1/2 origin-left"
-                                   style={{ transform: `rotate(${angle - 90}deg)` }} // -90 to start from top
-                               >
-                                   <div className="absolute right-8 -translate-y-1/2 text-white font-bold text-xs sm:text-sm md:text-base drop-shadow-md whitespace-nowrap" style={{ transform: 'rotate(90deg)' }}>
-                                       {seg.label}
-                                   </div>
-                               </div>
-                           )
-                       })}
-                  </div>
-                  
-                  {/* Center Cap */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border-4 border-indigo-100">
-                      <Gift className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600" />
-                  </div>
+                {/* Outer Rim */}
+                <div className="absolute inset-0 rounded-full border-[12px] border-white/20 shadow-inner z-10 pointer-events-none"></div>
+
+                {/* The Wheel */}
+                <div 
+                    className="w-full h-full rounded-full border-4 border-white shadow-[0_0_50px_rgba(0,0,0,0.5)] relative transition-transform duration-[5000ms] cubic-bezier(0.2, 0.8, 0.2, 1)"
+                    style={{
+                        background: wheelBackground,
+                        transform: `rotate(${rotation}deg)`
+                    }}
+                >
+                    {segments.map((seg, i) => {
+                        const angle = (360 / segments.length) * i + (360 / segments.length) / 2
+                        return (
+                            <div
+                                key={seg.id}
+                                className="absolute top-0 left-1/2 w-[1px] h-1/2 -translate-x-1/2 origin-bottom flex justify-center pt-8"
+                                style={{ transform: `rotate(${angle}deg)` }}
+                            >
+                                <div className="text-white font-bold text-sm sm:text-lg drop-shadow-md whitespace-nowrap writing-mode-vertical" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}>
+                                    {seg.label}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+                
+                {/* Center Cap */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.3)] flex items-center justify-center z-20 border-4 border-indigo-50">
+                    <Gift className={`w-8 h-8 sm:w-10 sm:h-10 text-indigo-600 ${isSpinning ? 'animate-bounce' : ''}`} />
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="text-center shrink-0">
-                {!wonSegment ? (
-                    <button
-                        onClick={spinWheel}
-                        disabled={isSpinning}
-                        className={`
-                            px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg shadow-lg transform transition-all
-                            ${isSpinning 
-                                ? 'bg-gray-500 cursor-not-allowed opacity-50' 
-                                : 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 hover:scale-105 active:scale-95 text-white ring-4 ring-yellow-200/30'}
-                        `}
-                    >
-                        {isSpinning ? 'Bol Şans...' : 'ÇEVİR'}
-                    </button>
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-auto bg-black/50 z-50">
-                     <div className="bg-white p-4 rounded-lg">
-                      <GameWinModal 
-                          coupon={wonSegment.coupon!}
-                          onReset={() => {
-                              setIsSpinning(false)
-                              setWonSegment(null)
-                          }}
-                          gameType="wheel"
-                      />
-                     </div>
-                    </div>
-                )}
-            </div>
+            <button
+                onClick={spinWheel}
+                disabled={isSpinning || !!wonSegment}
+                className={`
+                    w-full max-w-xs py-4 rounded-xl font-bold text-lg sm:text-xl shadow-xl transition-all relative overflow-hidden group
+                    ${isSpinning 
+                        ? 'bg-gray-500/50 cursor-not-allowed text-gray-200' 
+                        : 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:scale-105 active:scale-95 text-white animate-shimmer'}
+                `}
+            >
+                {/* Shine effect */}
+                {!isSpinning && <div className="absolute inset-0 bg-white/30 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out skew-x-12"></div>}
+                
+                <span className="relative z-10 flex items-center justify-center">
+                    {isSpinning ? (
+                        <>
+                           <Sparkles className="w-5 h-5 mr-2 animate-spin" />
+                           Şansın Dönüyor...
+                        </>
+                    ) : (
+                        'ÇARKI ÇEVİR'
+                    )}
+                </span>
+            </button>
+            
+            {/* Result Modal Overlay */}
+            {wonSegment && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 rounded-3xl animate-in fade-in duration-300">
+                    <GameWinModal 
+                        coupon={wonSegment.coupon!}
+                        onReset={() => {
+                            setWonSegment(null)
+                            // Optional: Reset rotation or keep accumulation
+                        }}
+                        gameType="wheel"
+                    />
+                </div>
+            )}
         </div>
     </div>
   )
 }
+

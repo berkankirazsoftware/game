@@ -47,12 +47,14 @@ const THEMES = [
 ]
 
 const GAMES = [
+  /*
   { 
     id: 'circle-dash' as GameId, 
     name: 'Circle Dash', 
     description: 'Reflekslerini test et ve kazan', 
     icon: '🎯' 
   },
+  */
   { 
     id: 'wheel' as GameId, 
     name: 'Şans Çarkı', 
