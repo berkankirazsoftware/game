@@ -131,6 +131,20 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
     }
   };
 
+  // Conversion Funnel Tracking
+  useEffect(() => {
+     if (!config.userId) return;
+
+     const currentUrl = window.location.href.toLowerCase();
+     if (currentUrl.includes('cart') || currentUrl.includes('sepet') || currentUrl.includes('basket')) {
+         trackEvent('page_view_cart', { url: window.location.href });
+     } else if (currentUrl.includes('checkout') || currentUrl.includes('odeme') || currentUrl.includes('payment')) {
+         trackEvent('page_view_checkout', { url: window.location.href });
+     } else if (currentUrl.includes('order-received') || currentUrl.includes('thank-you') || currentUrl.includes('siparis-onay')) {
+          trackEvent('conversion_purchase', { url: window.location.href });
+     }
+  }, [config.userId]);
+
   // Helper to collect rich user info
   const collectUserInfo = () => {
     return {

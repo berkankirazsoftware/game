@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Activity, MousePointer, Trophy, Eye, Smartphone, Globe } from 'lucide-react';
+import { Activity, MousePointer, Trophy, Eye, Smartphone, Globe, Ticket, Gamepad2, ShoppingCart } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -38,6 +38,11 @@ interface AnalyticsData {
   }[];
   platform_stats?: { name: string; value: number; }[];
   language_stats?: { name: string; value: number; }[];
+  coupon_stats?: { name: string; value: number; }[];
+  game_stats?: { name: string; value: number; }[];
+  cart_visits?: number;
+  checkout_visits?: number;
+  purchases?: number;
 }
 
 export default function ReportsPage() {
@@ -112,6 +117,36 @@ export default function ReportsPage() {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
+  // Helper to process and aggregate platform names
+  const processPlatformStats = (stats: { name: string; value: number }[] | undefined) => {
+    if (!stats) return [];
+
+    const agg: Record<string, number> = {};
+
+    stats.forEach(item => {
+      let name = item.name.toLowerCase();
+      let displayName = 'Diğer';
+
+      if (name.includes('mac') || name.includes('iphone') || name.includes('ipad') || name.includes('ipod')) {
+        displayName = 'Apple';
+      } else if (name.includes('win')) {
+        displayName = 'Windows';
+      } else if (name.includes('android')) {
+        displayName = 'Android';
+      } else if (name.includes('linux')) {
+        displayName = 'Linux';
+      }
+
+      agg[displayName] = (agg[displayName] || 0) + item.value;
+    });
+
+    return Object.entries(agg)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  const platformData = processPlatformStats(data?.platform_stats);
+
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -162,7 +197,10 @@ export default function ReportsPage() {
         
         {/* Impressions vs Opens */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Etkileşim Trendi</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+             <Activity className="w-5 h-5 text-blue-600" />
+             Etkileşim Trendi
+          </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data?.daily_stats}>
@@ -181,9 +219,12 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Conversions */}
+        {/* Conversions Trend */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Kupon Kazanımları</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-green-600" />
+            Kupon Kazanımları
+          </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.daily_stats}>
@@ -211,11 +252,11 @@ export default function ReportsPage() {
                 <h3 className="text-lg font-semibold text-gray-900">Cihaz Dağılımı</h3>
             </div>
             <div className="h-64 flex items-center justify-center">
-               {data?.platform_stats && data.platform_stats.length > 0 ? (
+               {platformData && platformData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={data.platform_stats}
+                        data={platformData}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
@@ -224,7 +265,7 @@ export default function ReportsPage() {
                         paddingAngle={5}
                         dataKey="value"
                       >
-                        {data.platform_stats.map((_, index) => (
+                        {platformData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -237,7 +278,7 @@ export default function ReportsPage() {
             </div>
              {/* Legend */}
              <div className="flex flex-wrap gap-2 justify-center mt-4">
-                 {data?.platform_stats?.map((entry, index) => (
+                 {platformData?.map((entry, index) => (
                      <div key={index} className="flex items-center text-xs text-gray-600">
                          <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                          {entry.name} ({entry.value})
@@ -288,6 +329,120 @@ export default function ReportsPage() {
              </div>
           </div>
        </div>
+
+       {/* Tertiary Charts: Coupons & Games */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Coupon Performance */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-6">
+                <Ticket className="w-5 h-5 text-rose-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Kupon Performansı</h3>
+            </div>
+            <div className="h-64">
+               {data?.coupon_stats && data.coupon_stats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart layout="vertical" data={data.coupon_stats} margin={{ left: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" fontSize={12} />
+                      <YAxis type="category" dataKey="name" width={100} fontSize={10} />
+                      <Tooltip />
+                      <Bar dataKey="value" name="Kazanılma" fill="#f43f5e" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+               ) : (
+                   <div className="h-full flex items-center justify-center">
+                     <p className="text-gray-400">Veri bulunamadı</p>
+                   </div>
+               )}
+            </div>
+          </div>
+
+          {/* Game Popularity */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+             <div className="flex items-center gap-2 mb-6">
+                <Gamepad2 className="w-5 h-5 text-violet-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Oyun Popülerliği</h3>
+            </div>
+            <div className="h-64 flex items-center justify-center">
+               {data?.game_stats && data.game_stats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data.game_stats}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        fill="#8b5cf6"
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {data.game_stats.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+               ) : (
+                   <p className="text-gray-400">Veri bulunamadı</p>
+               )}
+            </div>
+            {/* Legend */}
+            <div className="flex flex-wrap gap-2 justify-center mt-4">
+                 {data?.game_stats?.map((entry, index) => (
+                     <div key={index} className="flex items-center text-xs text-gray-600">
+                         <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                         {entry.name} ({entry.value})
+                     </div>
+                 ))}
+             </div>
+          </div>
+       </div>
+
+       {/* Funnel Chart */}
+       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 mb-6">
+              <ShoppingCart className="w-5 h-5 text-amber-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Dönüşüm Hunisi</h3>
+          </div>
+          <div className="h-80">
+             <ResponsiveContainer width="100%" height="100%">
+               <BarChart 
+                  layout="vertical" 
+                  data={[
+                    { name: 'Görüntülenme', value: data?.impressions || 0, fill: '#3b82f6' },
+                    { name: 'Oyun Oynama', value: data?.game_plays || 0, fill: '#8b5cf6' },
+                    { name: 'Kupon Kazanma', value: data?.conversions || 0, fill: '#10b981' },
+                    { name: 'Sepete Ekleme', value: data?.cart_visits || 0, fill: '#f59e0b' },
+                    { name: 'Ödeme Başlatma', value: data?.checkout_visits || 0, fill: '#ef4444' },
+                    { name: 'Sipariş Tamamlama', value: data?.purchases || 0, fill: '#059669' }
+                  ]} 
+                  margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
+               >
+                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                 <XAxis type="number" fontSize={12} />
+                 <YAxis type="category" dataKey="name" width={120} fontSize={12} />
+                 <Tooltip cursor={{fill: 'transparent'}} />
+                 <Bar dataKey="value" name="Adet" radius={[0, 4, 4, 0]}>
+                    {
+                      [
+                        { name: 'Görüntülenme', value: data?.impressions || 0, fill: '#3b82f6' },
+                        { name: 'Oyun Oynama', value: data?.game_plays || 0, fill: '#8b5cf6' },
+                        { name: 'Kupon Kazanma', value: data?.conversions || 0, fill: '#10b981' },
+                        { name: 'Sepete Ekleme', value: data?.cart_visits || 0, fill: '#f59e0b' },
+                        { name: 'Ödeme Başlatma', value: data?.checkout_visits || 0, fill: '#ef4444' },
+                        { name: 'Sipariş Tamamlama', value: data?.purchases || 0, fill: '#059669' }
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))
+                    }
+                 </Bar>
+               </BarChart>
+             </ResponsiveContainer>
+          </div>
+       </div>
+
     </div>
   );
 }
