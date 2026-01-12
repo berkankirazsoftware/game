@@ -343,7 +343,7 @@ export default function CouponsPage() {
                <tbody className="divide-y divide-gray-50">
                  {coupons.map((coupon) => {
                    const levelInfo = getLevelInfo(coupon.level)
-                   const percentUsed = (coupon.used_count / coupon.quantity) * 100
+                   const percentUsed = coupon.quantity > 0 ? (coupon.used_count / coupon.quantity) * 100 : 0
                    const isSoldOut = coupon.quantity - coupon.used_count <= 0
 
                    return (
