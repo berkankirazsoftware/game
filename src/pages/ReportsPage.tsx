@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Activity, MousePointer, Trophy, Eye } from 'lucide-react';
+import { Activity, MousePointer, Trophy, Eye, Smartphone, Globe } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -11,7 +11,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   LineChart,
-  Line
+  Line,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 
 interface AnalyticsStat {
@@ -33,6 +36,8 @@ interface AnalyticsData {
     opens: number;
     conversions: number;
   }[];
+  platform_stats?: { name: string; value: number; }[];
+  language_stats?: { name: string; value: number; }[];
 }
 
 export default function ReportsPage() {
@@ -105,6 +110,8 @@ export default function ReportsPage() {
     }
   ];
 
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -150,7 +157,7 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      {/* Charts */}
+      {/* Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Impressions vs Opens */}
@@ -194,6 +201,93 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+
+       {/* Secondary Charts: Platform & Language */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Platform Stats */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-6">
+                <Smartphone className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Cihaz Dağılımı</h3>
+            </div>
+            <div className="h-64 flex items-center justify-center">
+               {data?.platform_stats && data.platform_stats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data.platform_stats}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {data.platform_stats.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+               ) : (
+                   <p className="text-gray-400">Veri bulunamadı</p>
+               )}
+            </div>
+             {/* Legend */}
+             <div className="flex flex-wrap gap-2 justify-center mt-4">
+                 {data?.platform_stats?.map((entry, index) => (
+                     <div key={index} className="flex items-center text-xs text-gray-600">
+                         <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                         {entry.name} ({entry.value})
+                     </div>
+                 ))}
+             </div>
+          </div>
+
+          {/* Language Stats */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+             <div className="flex items-center gap-2 mb-6">
+                <Globe className="w-5 h-5 text-cyan-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Dil Dağılımı</h3>
+            </div>
+            <div className="h-64 flex items-center justify-center">
+               {data?.language_stats && data.language_stats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data.language_stats}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        fill="#82ca9d"
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {data.language_stats.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+               ) : (
+                   <p className="text-gray-400">Veri bulunamadı</p>
+               )}
+            </div>
+            {/* Legend */}
+            <div className="flex flex-wrap gap-2 justify-center mt-4">
+                 {data?.language_stats?.map((entry, index) => (
+                     <div key={index} className="flex items-center text-xs text-gray-600">
+                         <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: COLORS[(index + 2) % COLORS.length] }}></div>
+                         {entry.name} ({entry.value})
+                     </div>
+                 ))}
+             </div>
+          </div>
+       </div>
     </div>
   );
 }
