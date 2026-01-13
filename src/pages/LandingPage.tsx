@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
 import { 
   Gamepad as GamepadIcon, 
@@ -8,9 +7,9 @@ import {
   Code, 
   Layout, 
   Gift,
-  Play,
   Star
 } from 'lucide-react'
+import GamesShowcase from '../components/GamesShowcase'
 
 export default function LandingPage() {
   const features = [
@@ -228,94 +227,7 @@ export default function LandingPage() {
       </section>
 
       {/* Game Showcase */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Oyun Kütüphanesi
-            </h2>
-            <p className="text-xl text-gray-600">
-              Sürekli genişleyen oyun seçenekleri
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Wheel Game Card */}
-            <Link 
-              to="/game/wheel-demo?testMode=true" 
-              target="_blank"
-              className="group relative overflow-hidden rounded-2xl shadow-lg cursor-pointer transition-transform hover:-translate-y-1 block"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1605020420620-20c943cc4669?q=80&w=800&auto=format&fit=crop" 
-                alt="Spin Wheel" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute bottom-0 left-0 p-6 z-20 w-full">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Şans Çarkı</h3>
-                    <p className="text-gray-200 text-sm">Klasik çarkıfelek. Çevir ve büyük ödülü kazan.</p>
-                  </div>
-                  <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-indigo-600">
-                    <Play className="h-5 w-5 fill-current" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-            {/* Snake Game Card */}
-            <Link 
-              to="/game/snake-demo?testMode=true" 
-              target="_blank"
-              className="group relative overflow-hidden rounded-2xl shadow-lg cursor-pointer transition-transform hover:-translate-y-1 block"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=800&auto=format&fit=crop" 
-                alt="Snake Game" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute bottom-0 left-0 p-6 z-20 w-full">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Snake (Yılan)</h3>
-                    <p className="text-gray-200 text-sm">Klasik yılan oyunu. Yemleri topla, uza ve kazan.</p>
-                  </div>
-                  <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-indigo-600">
-                    <Play className="h-5 w-5 fill-current" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Memory Game Card */}
-            <Link 
-              to="/memory/memory-demo?testMode=true" 
-              target="_blank"
-              className="group relative overflow-hidden rounded-2xl shadow-lg cursor-pointer transition-transform hover:-translate-y-1 block"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1606167668584-78701c57f13d?q=80&w=800&auto=format&fit=crop" 
-                alt="Memory Game" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-               <div className="absolute bottom-0 left-0 p-6 z-20 w-full">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Hafıza Kartları</h3>
-                    <p className="text-gray-200 text-sm">Eşleşen kartları bul, hafızanı test et ve kazan.</p>
-                  </div>
-                   <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-indigo-600">
-                    <Play className="h-5 w-5 fill-current" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <GamesShowcase />
 
       {/* Features */}
       <section className="py-16 bg-white">

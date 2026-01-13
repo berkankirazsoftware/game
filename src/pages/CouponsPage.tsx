@@ -24,6 +24,23 @@ export default function CouponsPage() {
   const [couponMode, setCouponMode] = useState<'single' | 'unique'>('single')
   const [uniqueCodesInput, setUniqueCodesInput] = useState('')
   const [deleteConfirmation, setDeleteConfirmation] = useState<Coupon | null>(null)
+  
+  // Status Modal State
+  const [statusModal, setStatusModal] = useState<{
+      isOpen: boolean;
+      type: 'success' | 'error';
+      title: string;
+      message: string;
+  }>({
+      isOpen: false,
+      type: 'success',
+      title: '',
+      message: ''
+  });
+
+  const showStatus = (type: 'success' | 'error', title: string, message: string) => {
+      setStatusModal({ isOpen: true, type, title, message });
+  };
 
   useEffect(() => {
     fetchCoupons()
@@ -59,8 +76,14 @@ export default function CouponsPage() {
       : []
 
     if (couponMode === 'unique' && codesToInsert.length === 0) {
-      alert('Lütfen en az bir adet kupon kodu giriniz.')
+      showStatus('error', 'Eksik Bilgi', 'Lütfen en az bir adet kupon kodu giriniz.');
       return
+    }
+
+    // Validation: Check if level already exists
+    if (levelCounts[couponForm.level as keyof typeof levelCounts] > 0) {
+        showStatus('error', 'Limit Aşıldı', `Level ${couponForm.level} için zaten bir kupon tanımlı. Lütfen başka bir seviye seçin.`);
+        return
     }
 
     // 1. Create Coupon Record
@@ -77,7 +100,7 @@ export default function CouponsPage() {
 
     if (couponError) {
       console.error('Error adding coupon:', couponError)
-      alert('Kupon oluşturulurken bir hata oluştu.')
+      showStatus('error', 'Hata', 'Kupon oluşturulurken bir hata oluştu.')
       return
     }
 
@@ -96,8 +119,7 @@ export default function CouponsPage() {
 
       if (codesError) {
         console.error('Error adding unique codes:', codesError)
-        // Cleanup? or just alert. Ideally utilize transaction but simple for now.
-        alert('Kupon kodları eklenirken bir hata oluştu. Lütfen kontrol ediniz.')
+        showStatus('error', 'Hata', 'Kupon kodları eklenirken bir hata oluştu. Lütfen kontrol ediniz.')
       }
     }
 
@@ -140,7 +162,7 @@ export default function CouponsPage() {
        setDeleteConfirmation(null)
     } else {
        console.error('Error deleting coupon:', error)
-       alert('Kupon silinirken bir hata oluştu: ' + error.message)
+       showStatus('error', 'Hata', 'Kupon silinirken bir hata oluştu: ' + error.message)
     }
   }
 
@@ -202,6 +224,19 @@ export default function CouponsPage() {
     return levelCounts[level as keyof typeof levelCounts] === 0
   }
 
+  const handleOpenAddModal = () => {
+      // Find first available level
+      const availableLevel = [1, 2, 3].find(l => levelCounts[l as keyof typeof levelCounts] === 0);
+      
+      if (!availableLevel) {
+          showStatus('error', 'Kapasite Dolu', 'Tüm seviyeler (1, 2, 3) dolu! Yeni kupon eklemek için önce mevcut bir kuponu silmelisiniz.');
+          return;
+      }
+
+      setCouponForm(prev => ({ ...prev, level: availableLevel }));
+      setShowAddModal(true);
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
@@ -213,7 +248,7 @@ export default function CouponsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={handleOpenAddModal}
           className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
         >
           <Plus className="h-5 w-5 mr-2" />
@@ -227,13 +262,14 @@ export default function CouponsPage() {
           const info = getLevelInfo(level)
           const hasLevel = levelCounts[level as keyof typeof levelCounts] > 0
           const coupon = coupons.find(c => c.level === level)
+          const isSoldOut = coupon && (coupon.quantity - coupon.used_count <= 0)
           
           return (
             <div 
               key={level} 
               className={`relative overflow-hidden rounded-2xl border transition-all duration-300 ${
                 hasLevel 
-                  ? 'bg-white border-green-100 shadow-sm hover:shadow-md' 
+                  ? (isSoldOut ? 'bg-white border-red-100 shadow-sm' : 'bg-white border-green-100 shadow-sm hover:shadow-md')
                   : 'bg-gray-50 border-dashed border-gray-300'
               }`}
             >
@@ -252,9 +288,15 @@ export default function CouponsPage() {
                         {info.icon}
                     </div>
                     {hasLevel ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                           <Check className="w-3 h-3 mr-1" /> Aktif
-                        </span>
+                        isSoldOut ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                               <AlertCircle className="w-3 h-3 mr-1" /> Tükendi
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                               <Check className="w-3 h-3 mr-1" /> Aktif
+                            </span>
+                        )
                     ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-800">
                            Eksik
@@ -430,7 +472,7 @@ export default function CouponsPage() {
                     İlk kuponunuzu oluşturarak başlayın. 3 farklı seviye için kupon tanımlayarak oyun widget'ını aktif hale getirebilirsiniz.
                 </p>
                 <button
-                    onClick={() => setShowAddModal(true)}
+                    onClick={handleOpenAddModal}
                     className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-colors"
                 >
                     <Plus className="h-5 w-5 mr-2" />
@@ -749,6 +791,35 @@ export default function CouponsPage() {
                  </div>
               </div>
            </div>
+        </div>
+      )}
+
+
+      {/* Status Modal */}
+      {statusModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
+                <div className="p-6 text-center">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                        statusModal.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                    }`}>
+                        {statusModal.type === 'success' ? <Check className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{statusModal.title}</h3>
+                    <p className="text-gray-500 mb-6">{statusModal.message}</p>
+                    
+                    <button 
+                        onClick={() => setStatusModal(prev => ({ ...prev, isOpen: false }))}
+                        className={`w-full px-5 py-3 font-bold rounded-xl shadow-lg transition-transform transform active:scale-95 text-white ${
+                            statusModal.type === 'success' 
+                            ? 'bg-green-600 hover:bg-green-700 shadow-green-200' 
+                            : 'bg-red-600 hover:bg-red-700 shadow-red-200'
+                        }`}
+                    >
+                        Tamam
+                    </button>
+                </div>
+            </div>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Play, Trash2, BarChart2, Calendar, Settings, Gamepad2, Megaphone, AlertTriangle, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Calendar, Settings, Gamepad2, Megaphone, AlertTriangle, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import type { Database } from '../lib/database.types'
@@ -8,9 +8,11 @@ import type { Database } from '../lib/database.types'
 type Campaign = Database['public']['Tables']['campaigns']['Row']
 
 interface Booste extends Campaign {
-  views: number
-  plays: number
-  clicks: number
+  health: {
+      status: 'healthy' | 'warning' | 'error';
+      message: string;
+      reason?: string;
+  }
 }
 
 
@@ -28,22 +30,53 @@ export default function MyBoostesPage() {
 
   const fetchBoostes = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: coupons, error: couponError } = await supabase
+        .from('coupons')
+        .select('id, quantity, used_count')
+        .eq('user_id', user!.id)
+
+      const { data: campaigns, error: campaignError } = await supabase
         .from('campaigns')
         .select('*')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (campaignError) throw campaignError
 
-      if (data) {
-        // Map DB fields to UI fields & Mock stats for now
-        const mappedBoostes = data.map(camp => ({
-          ...camp,
-          views: 0,
-          plays: 0,
-          clicks: 0
-        }))
+      if (campaigns) {
+        // Calculate Global Health
+        let globalHealth: Booste['health'] = { status: 'healthy', message: 'Yayında', reason: 'active' };
+        
+        const couponList = coupons || [];
+        const hasCoupons = couponList.length > 0;
+        
+        // Strict Stock Check: All coupons must have positive stock
+        const hasStock = couponList.every(c => (c.quantity - c.used_count) > 0);
+        
+        if (!hasCoupons) {
+            globalHealth = { status: 'error', message: 'Kupon Yok', reason: 'no_coupons' };
+        } else if (!hasStock) {
+            globalHealth = { status: 'error', message: 'Stok Bitti', reason: 'no_stock' };
+        }
+
+        const mappedBoostes = campaigns.map(camp => {
+            // Campaign specific health override if needed (e.g. paused)
+            let health = globalHealth;
+            
+            // If campaign is NOT active, it overrides global health issues (e.g. a draft doesn't need coupons yet)
+            if (camp.status !== 'active') {
+                health = { 
+                    status: 'healthy', 
+                    message: camp.status === 'draft' ? 'Taslak' : (camp.status === 'ended' ? 'Sona Erdi' : camp.status),
+                    reason: camp.status || undefined 
+                };
+            }
+
+            return {
+              ...camp,
+              health
+            }
+        })
         setBoostes(mappedBoostes)
       }
     } catch (error) {
@@ -140,7 +173,7 @@ export default function MyBoostesPage() {
                     Oyunlar
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İstatistikler
+                    Kampanya İstatistikleri
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tarih
@@ -172,9 +205,24 @@ export default function MyBoostesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(booste.status)}`}>
-                        {getStatusLabel(booste.status)}
-                      </span>
+                       {booste.health.status === 'error' ? (
+                           <div className="group relative flex items-center">
+                                <span className="px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 cursor-help">
+                                    <AlertTriangle className="w-3 h-3 mr-1 self-center" />
+                                    {booste.health.message}
+                                </span>
+                                {/* Tooltip */}
+                                <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                                    {booste.health.reason === 'no_coupons' && 'Gösterilecek kupon bulunamadı. Lütfen "Kuponlar" sayfasından kupon ekleyin.'}
+                                    {booste.health.reason === 'no_stock' && 'Kupon stoklarınız tükendiği için widget gizlendi. Lütfen stok ekleyin.'}
+                                    <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
+                                </div>
+                           </div>
+                       ) : (
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(booste.status)}`}>
+                            {getStatusLabel(booste.status)}
+                          </span>
+                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex -space-x-1">
@@ -186,16 +234,13 @@ export default function MyBoostesPage() {
                       </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-4 text-xs text-gray-600">
-                             <div className="flex items-center" title="Görüntülenme">
-                               <BarChart2 className="h-3 w-3 mr-1" />
-                               {booste.views}
-                             </div>
-                             <div className="flex items-center" title="Oynanma">
-                               <Play className="h-3 w-3 mr-1" />
-                               {booste.plays}
-                             </div>
-                          </div>
+                          {booste.health.status === 'error' ? (
+                                <span className="text-xs text-red-500 font-medium">Veri toplanamıyor</span>
+                          ) : (
+                              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                                 <span className="text-gray-400 italic">Veri toplanıyor...</span>
+                              </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex items-center">
