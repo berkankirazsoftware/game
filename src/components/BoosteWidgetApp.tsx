@@ -211,14 +211,23 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
                 setShowCooldownView(true);
                 setCooldownEndTime(lastPlayedTime + cooldownMinutes * 60 * 1000);
                 
-                // Load cached coupon
+                // Load cached coupon to ensure it persists in view
                 const cachedCoupon = localStorage.getItem('booste_latest_coupon');
                 if (cachedCoupon) {
                     try {
-                        setLatestCoupon(JSON.parse(cachedCoupon));
+                        const parsed = JSON.parse(cachedCoupon);
+                        setLatestCoupon(parsed);
+                        // Ensure we are in a "view" mode
+                        setShowCooldownView(true);
                     } catch (e) {
                         console.error("Error parsing cached coupon", e);
                     }
+                }
+            } else {
+                // Cooldown expired, clear old coupon data if any
+                if (localStorage.getItem('booste_latest_coupon')) {
+                    localStorage.removeItem('booste_latest_coupon');
+                    setLatestCoupon(null);
                 }
             }
         }
@@ -321,6 +330,7 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
       setClaimError(null);
 
       try {
+          // 1. Claim Coupon in DB
           const { data, error } = await import('../lib/supabase').then(m => 
             m.supabase.rpc('claim_coupon', { 
                 p_coupon_id: pendingCoupon.id,
@@ -336,19 +346,42 @@ export default function BoosteWidgetApp({ config }: BoosteWidgetAppProps) {
               throw new Error(result.error);
           }
 
+          // 2. Send Email via Edge Function
+          // We don't block the UI for this, but we trigger it.
+          await import('../lib/supabase').then(m => 
+            m.supabase.functions.invoke('send-coupon-email', {
+                body: {
+                    email: claimEmail,
+                    couponCode: result.coupon_code, // Use the claimed code
+                    discountValue: pendingCoupon.discount_value,
+                    discountType: pendingCoupon.discount_type,
+                    gameType: selectedGame
+                }
+            })
+          ).catch(emailErr => {
+              console.error("Email send warning:", emailErr);
+              // We don't throw here to ensure the user still sees their coupon
+          });
+
           // Success!
           const finalValues = { ...pendingCoupon, code: result.coupon_code };
           
           // Save and transition
           const now = Date.now();
+          const cooldownEnd = now + remoteCooldownMinutes * 60 * 1000;
+          
           localStorage.setItem('booste_last_played', now.toString());
           localStorage.setItem('booste_latest_coupon', JSON.stringify(finalValues));
           
+          // Update State
           setLatestCoupon(finalValues);
           setPendingCoupon(null);
           setIsGamePlayable(false);
           setShowCooldownView(true);
-          setCooldownEndTime(now + remoteCooldownMinutes * 60 * 1000);
+          setCooldownEndTime(cooldownEnd);
+          
+          // Also persist cooldown end to ensure widget checks it properly on reload if needed
+          // (Though checkAvailability calculates it from last_played)
 
       } catch (err: any) {
           console.error("Claim error:", err);
